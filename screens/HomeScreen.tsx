@@ -1,11 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import InstallPWAButton from '../components/InstallPWAButton';
 
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>HOME</Text>
       <Text style={styles.subtitle}>Pantalla Principal</Text>
+      <InstallPWAButton />
     </View>
   );
 }

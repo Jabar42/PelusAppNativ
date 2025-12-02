@@ -10,16 +10,32 @@ if (!fs.existsSync(indexPath)) {
 
 let html = fs.readFileSync(indexPath, 'utf8');
 
-// Check if manifest link already exists
-if (html.includes('<link rel="manifest"')) {
-  console.log('Manifest link already exists in index.html');
-  process.exit(0);
+// Add manifest link if it doesn't exist
+if (!html.includes('<link rel="manifest"')) {
+  const manifestLink = '    <link rel="manifest" href="/manifest.json">\n';
+  html = html.replace('</head>', manifestLink + '</head>');
+  console.log('Manifest link added to index.html');
 }
 
-// Add manifest link before the closing </head> tag
-const manifestLink = '    <link rel="manifest" href="/manifest.json">\n';
-html = html.replace('</head>', manifestLink + '</head>');
+// Add service worker registration script if it doesn't exist
+if (!html.includes('serviceWorker.register')) {
+  const serviceWorkerScript = `  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('Service Worker registrado con éxito:', registration.scope);
+          })
+          .catch((error) => {
+            console.error('Error al registrar el Service Worker:', error);
+          });
+      });
+    }
+  </script>
+`;
+  html = html.replace('</body>', serviceWorkerScript + '</body>');
+  console.log('Service Worker registration added to index.html');
+}
 
 fs.writeFileSync(indexPath, html, 'utf8');
-console.log('Manifest link added to index.html');
 
