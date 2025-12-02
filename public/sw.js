@@ -5,7 +5,8 @@ const CACHE_NAME = 'pelus-app-v1';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/sw.js'
 ];
 
 // Instalación del Service Worker
