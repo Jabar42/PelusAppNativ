@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const indexPath = path.join(__dirname, '..', 'web-build', 'index.html');
+const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
 
 if (!fs.existsSync(indexPath)) {
   console.error('index.html not found at:', indexPath);

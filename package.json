@@ -7,7 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo export --platform web --output-dir web-build && node scripts/add-manifest-link.js"
+    "build": "expo export -p web && node scripts/add-manifest-link.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
