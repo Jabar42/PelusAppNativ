@@ -1,20 +1,24 @@
 {
   "name": "pelus-app-native",
   "version": "1.0.0",
-  "main": "node_modules/expo/AppEntry.js",
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
+    "dev": "expo start --dev-client",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export -p web && node scripts/add-manifest-link.js"
   },
   "dependencies": {
+    "@clerk/clerk-expo": "^2.19.10",
     "@expo/metro-runtime": "~3.2.3",
     "@expo/vector-icons": "^14.1.0",
     "@react-navigation/bottom-tabs": "^7.8.8",
     "@react-navigation/native": "^7.1.22",
     "expo": "~51.0.0",
+    "expo-router": "~3.5.24",
+    "expo-secure-store": "~13.0.2",
     "expo-status-bar": "~1.12.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",

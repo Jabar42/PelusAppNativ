@@ -16,9 +16,9 @@ interface BottomTabBarProps {
 }
 
 const tabs: TabItem[] = [
-  { name: 'Home', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home' },
-  { name: 'Fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart' },
-  { name: 'Pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person' },
+  { name: 'index', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home' },
+  { name: 'fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart' },
+  { name: 'pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person' },
 ];
 
 export default function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {

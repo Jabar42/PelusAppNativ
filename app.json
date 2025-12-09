@@ -3,6 +3,7 @@
     "name": "PelusAppNative",
     "slug": "pelus-app-native",
     "version": "1.0.0",
+    "scheme": "pelus-app",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -13,6 +14,10 @@
     },
     "assetBundlePatterns": [
       "**/*"
+    ],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
     ],
     "ios": {
       "supportsTablet": true
@@ -34,4 +39,3 @@
     }
   }
 }
-
