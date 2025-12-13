@@ -10,5 +10,6 @@ module.exports = {
     extend: {},
   },
   plugins: [],
+  darkMode: 'class', // Cambiar de 'media' a 'class' para evitar el error
 }
 

@@ -74,9 +74,9 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const activeRoute = getActiveRoute();
 
   return (
-    <View style={styles.container} className="bg-white border-r border-gray-200">
-      <View style={styles.header} className="p-4 border-b border-gray-200">
-        <Text style={styles.title} className="text-xl font-bold text-gray-900">
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>
           PelusApp
         </Text>
       </View>
@@ -92,9 +92,6 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
                 styles.menuItem,
                 isActive && styles.menuItemActive,
               ]}
-              className={`flex-row items-center px-4 py-3 ${
-                isActive ? 'bg-blue-50' : ''
-              }`}
             >
               <Ionicons
                 name={isActive ? item.icon : (`${item.icon}-outline` as any)}
@@ -106,7 +103,6 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
                   styles.menuItemText,
                   { color: isActive ? '#1C1B1F' : '#A09CAB' },
                 ]}
-                className="ml-3 text-base font-medium"
               >
                 {item.label}
               </Text>
@@ -115,14 +111,13 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
         })}
       </View>
 
-      <View style={styles.footer} className="p-4 border-t border-gray-200">
+      <View style={styles.footer}>
         <TouchableOpacity
           onPress={handleSignOut}
           style={styles.signOutButton}
-          className="flex-row items-center px-4 py-3 bg-red-50 rounded-lg"
         >
           <Ionicons name="log-out-outline" size={24} color="#DC2626" />
-          <Text style={styles.signOutText} className="ml-3 text-base font-medium text-red-600">
+          <Text style={styles.signOutText}>
             Cerrar sesión
           </Text>
         </TouchableOpacity>
@@ -136,9 +131,14 @@ const styles = StyleSheet.create({
     width: 250,
     height: '100%',
     backgroundColor: '#FFFFFF',
+    borderRightWidth: 1,
+    borderRightColor: '#E5E7EB',
   },
   header: {
     paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
   },
   title: {
     fontSize: 20,
@@ -168,6 +168,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
   signOutButton: {
     flexDirection: 'row',

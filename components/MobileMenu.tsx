@@ -23,7 +23,7 @@ const tabs: TabItem[] = [
 
 export default function MobileMenu({ state, descriptors, navigation }: MobileMenuProps) {
   return (
-    <View style={styles.container} className="bg-white border-t border-gray-200">
+    <View style={styles.container}>
       {state.routes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
@@ -62,7 +62,6 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
             onPress={onPress}
             onLongPress={onLongPress}
             style={styles.tab}
-            className="flex-1 items-center justify-center py-2"
           >
             <Ionicons
               name={iconName}
@@ -74,7 +73,6 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
                 styles.label,
                 { color: isFocused ? '#1C1B1F' : '#A09CAB' },
               ]}
-              className="text-xs font-medium mt-1"
             >
               {tab?.label || route.name}
             </Text>

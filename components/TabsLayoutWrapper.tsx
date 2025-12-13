@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { Tabs } from 'expo-router';
 import ResponsiveNavigation from './ResponsiveNavigation';
@@ -7,23 +7,22 @@ export default function TabsLayoutWrapper() {
   const { width } = useWindowDimensions();
   const isLargeScreen = width > 768;
   const [navProps, setNavProps] = useState<any>(null);
-  const navPropsRef = useRef<any>(null);
+  const prevStateIndexRef = useRef<number>(-1);
 
-  // Componente interno para capturar las props del tabBar
-  const TabBarWrapper = (props: any) => {
-    useEffect(() => {
-      if (isLargeScreen && props.state) {
-        navPropsRef.current = props;
+  // Función para capturar las props del tabBar sin causar loops
+  const handleTabBar = useCallback((props: any) => {
+    if (isLargeScreen) {
+      // Solo actualizar si el índice de estado realmente cambió
+      const currentIndex = props.state?.index ?? -1;
+      if (currentIndex !== prevStateIndexRef.current) {
+        prevStateIndexRef.current = currentIndex;
         setNavProps(props);
       }
-    }, [props.state, isLargeScreen]);
-
-    if (isLargeScreen) {
       return null; // Ocultar tabBar en desktop
     }
     // En móvil, renderizar MobileMenu como tabBar
     return <ResponsiveNavigation {...props} />;
-  };
+  }, [isLargeScreen]);
 
   return (
     <View style={{ flex: 1, flexDirection: isLargeScreen ? 'row' : 'column' }}>
@@ -34,7 +33,7 @@ export default function TabsLayoutWrapper() {
       )}
       <View style={{ flex: 1 }}>
         <Tabs
-          tabBar={(props) => <TabBarWrapper {...props} />}
+          tabBar={handleTabBar}
           screenOptions={{ 
             headerShown: false,
             tabBarStyle: { display: 'none' } // Ocultar tab bar nativo

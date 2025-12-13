@@ -29,6 +29,7 @@
       }
     },
     "web": {
+      "bundler": "metro",
       "favicon": "./assets/favicon.png",
       "name": "PelusAppNative",
       "shortName": "PelusApp",
