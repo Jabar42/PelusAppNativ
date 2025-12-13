@@ -1,0 +1,187 @@
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@clerk/clerk-expo';
+import { useRouter } from 'expo-router';
+
+interface MenuItem {
+  name: string;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  route: string;
+  isAction?: boolean;
+}
+
+interface SidebarProps {
+  state?: any;
+  descriptors?: any;
+  navigation?: any;
+}
+
+const menuItems: MenuItem[] = [
+  { name: 'index', label: 'Home', icon: 'home', route: '/(tabs)/index' },
+  { name: 'fav', label: 'Favoritos', icon: 'heart', route: '/(tabs)/fav' },
+  { name: 'pro', label: 'Perfil', icon: 'person', route: '/(tabs)/pro' },
+  { name: 'settings', label: 'Configuración', icon: 'settings', route: '/(tabs)/settings' },
+  { name: 'help', label: 'Ayuda', icon: 'help-circle', route: '/(tabs)/help' },
+];
+
+export default function Sidebar({ state, navigation }: SidebarProps) {
+  const { signOut } = useAuth();
+  const router = useRouter();
+
+  const handleNavigation = (route: string) => {
+    const routeName = route.split('/').pop() || 'index';
+    
+    if (navigation && state) {
+      // Navegar usando el navigation de expo-router
+      const targetRoute = state.routes?.find((r: any) => r.name === routeName);
+      if (targetRoute) {
+        const event = navigation.emit({
+          type: 'tabPress',
+          target: targetRoute.key,
+          canPreventDefault: true,
+        });
+        
+        if (!event.defaultPrevented) {
+          navigation.navigate(routeName);
+        }
+      } else {
+        // Si la ruta no está en las tabs, usar router
+        router.push(route as any);
+      }
+    } else {
+      router.push(route as any);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.replace('/(auth)/login');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const getActiveRoute = () => {
+    if (state?.routes && state.index !== undefined) {
+      return state.routes[state.index]?.name || 'index';
+    }
+    return 'index';
+  };
+
+  const activeRoute = getActiveRoute();
+
+  return (
+    <View style={styles.container} className="bg-white border-r border-gray-200">
+      <View style={styles.header} className="p-4 border-b border-gray-200">
+        <Text style={styles.title} className="text-xl font-bold text-gray-900">
+          PelusApp
+        </Text>
+      </View>
+      
+      <View style={styles.menu}>
+        {menuItems.map((item) => {
+          const isActive = activeRoute === item.name;
+          return (
+            <TouchableOpacity
+              key={item.name}
+              onPress={() => handleNavigation(item.route)}
+              style={[
+                styles.menuItem,
+                isActive && styles.menuItemActive,
+              ]}
+              className={`flex-row items-center px-4 py-3 ${
+                isActive ? 'bg-blue-50' : ''
+              }`}
+            >
+              <Ionicons
+                name={isActive ? item.icon : (`${item.icon}-outline` as any)}
+                size={24}
+                color={isActive ? '#1C1B1F' : '#A09CAB'}
+              />
+              <Text
+                style={[
+                  styles.menuItemText,
+                  { color: isActive ? '#1C1B1F' : '#A09CAB' },
+                ]}
+                className="ml-3 text-base font-medium"
+              >
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <View style={styles.footer} className="p-4 border-t border-gray-200">
+        <TouchableOpacity
+          onPress={handleSignOut}
+          style={styles.signOutButton}
+          className="flex-row items-center px-4 py-3 bg-red-50 rounded-lg"
+        >
+          <Ionicons name="log-out-outline" size={24} color="#DC2626" />
+          <Text style={styles.signOutText} className="ml-3 text-base font-medium text-red-600">
+            Cerrar sesión
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    width: 250,
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    paddingVertical: 16,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1C1B1F',
+  },
+  menu: {
+    flex: 1,
+    paddingVertical: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 8,
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  menuItemActive: {
+    backgroundColor: '#EFF6FF',
+  },
+  menuItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 12,
+  },
+  footer: {
+    paddingVertical: 16,
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 12,
+    color: '#DC2626',
+  },
+});
+

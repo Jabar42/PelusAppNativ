@@ -2,6 +2,7 @@ import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { tokenCache } from './utils/cache';
+import '../global.css';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 

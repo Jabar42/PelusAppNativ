@@ -2,12 +2,12 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function FavScreen() {
+export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>FAV</Text>
-        <Text style={styles.subtitle}>Favoritos</Text>
+        <Text style={styles.title}>CONFIGURACIÓN</Text>
+        <Text style={styles.subtitle}>Ajustes de la aplicación</Text>
       </View>
     </SafeAreaView>
   );
