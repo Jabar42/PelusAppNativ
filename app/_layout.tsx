@@ -1,8 +1,8 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
-import { Slot, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { Slot, useSegments, Redirect } from 'expo-router';
 import { tokenCache } from '@/core/services/storage';
 import { useAuth as useAuthHook } from '@/features/Auth/hooks/useAuth';
+import LoadingScreen from '@/shared/components/LoadingScreen';
 import '../global.css';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -65,25 +65,28 @@ if (typeof window !== 'undefined') {
 function InitialLayout() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
-  const router = useRouter();
   
   // Usar el hook useAuth para obtener el rol del usuario
   useAuthHook();
 
-  useEffect(() => {
-    if (!isLoaded) return;
+  const inAuthGroup = segments[0] === '(auth)';
 
-    const inAuthGroup = segments[0] === '(auth)';
+  // 1) Mientras Clerk carga → mostrar LoadingScreen, no Slot
+  if (!isLoaded) {
+    return <LoadingScreen />;
+  }
 
-    if (isSignedIn && inAuthGroup) {
-      // Si está logueado y trata de entrar al login, mándalo al home
-      router.replace('/(tabs)');
-    } else if (!isSignedIn && !inAuthGroup) {
-      // Si NO está logueado y NO está en login, mándalo al login
-      router.replace('/(auth)/login');
-    }
-  }, [isLoaded, isSignedIn, segments]);
+  // 2) Usuario no autenticado fuera de (auth) → ir a login
+  if (!isSignedIn && !inAuthGroup) {
+    return <Redirect href="/(auth)/login" />;
+  }
 
+  // 3) Usuario autenticado dentro de (auth) → ir a tabs
+  if (isSignedIn && inAuthGroup) {
+    return <Redirect href="/(tabs)" />;
+  }
+
+  // 4) Estado coherente → renderizar la ruta actual
   return <Slot />;
 }
 
