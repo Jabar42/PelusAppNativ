@@ -1,9 +1,6 @@
-import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
-import { Slot, useSegments, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { ClerkProvider } from '@clerk/clerk-expo';
+import { Slot } from 'expo-router';
 import { tokenCache } from '@/core/services/storage';
-import { useAuth as useAuthHook } from '@/features/Auth/hooks/useAuth';
-import LoadingScreen from '@/shared/components/LoadingScreen';
 import '../global.css';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -63,45 +60,13 @@ if (typeof window !== 'undefined') {
   });
 }
 
-function InitialLayout() {
-  const { isLoaded, isSignedIn } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
-  
-  // Usar el hook useAuth para obtener el rol del usuario
-  useAuthHook();
-
-  const inAuthGroup = segments[0] === '(auth)';
-
-  // Navegación imperativa una vez que Clerk está cargado
-  useEffect(() => {
-    if (!isLoaded) return;
-
-    if (!isSignedIn && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (isSignedIn && inAuthGroup) {
-      router.replace('/(tabs)');
-    }
-
-    setIsReady(true);
-  }, [isLoaded, isSignedIn, inAuthGroup, router]);
-
-  return (
-    <>
-      <Slot />
-      {(!isLoaded || !isReady) && <LoadingScreen />}
-    </>
-  );
-}
-
 export default function RootLayout() {
   return (
     <ClerkProvider 
-      publishableKey={publishableKey} 
+      publishableKey={publishableKey}
       tokenCache={tokenCache}
     >
-      <InitialLayout />
+      <Slot />
     </ClerkProvider>
   );
 }
