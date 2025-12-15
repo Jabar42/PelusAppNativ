@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@clerk/clerk-expo';
+import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/core/store/authStore';
 
 interface MenuItem {
   name: string;
@@ -10,6 +11,7 @@ interface MenuItem {
   icon: keyof typeof Ionicons.glyphMap;
   route: string;
   isAction?: boolean;
+  roles?: ('B2B' | 'B2C')[]; // Roles que pueden ver este item
 }
 
 interface SidebarProps {
@@ -18,23 +20,31 @@ interface SidebarProps {
   navigation?: any;
 }
 
-const menuItems: MenuItem[] = [
-  { name: 'index', label: 'Home', icon: 'home', route: '/(tabs)/index' },
-  { name: 'fav', label: 'Favoritos', icon: 'heart', route: '/(tabs)/fav' },
-  { name: 'pro', label: 'Perfil', icon: 'person', route: '/(tabs)/pro' },
-  { name: 'settings', label: 'Configuración', icon: 'settings', route: '/(tabs)/settings' },
-  { name: 'help', label: 'Ayuda', icon: 'help-circle', route: '/(tabs)/help' },
+const allMenuItems: MenuItem[] = [
+  { name: 'index', label: 'Home', icon: 'home', route: '/(tabs)/index', roles: ['B2B', 'B2C'] },
+  { name: 'fav', label: 'Favoritos', icon: 'heart', route: '/(tabs)/fav', roles: ['B2C'] }, // Solo B2C
+  { name: 'pro', label: 'Perfil', icon: 'person', route: '/(tabs)/pro', roles: ['B2B', 'B2C'] },
+  { name: 'settings', label: 'Configuración', icon: 'settings', route: '/(tabs)/settings', roles: ['B2B', 'B2C'] },
+  { name: 'help', label: 'Ayuda', icon: 'help-circle', route: '/(tabs)/help', roles: ['B2B', 'B2C'] },
 ];
 
 export default function Sidebar({ state, navigation }: SidebarProps) {
-  const { signOut } = useAuth();
+  const { signOut } = useClerkAuth();
   const router = useRouter();
+  const { userRole, isLoading } = useAuthStore();
+
+  // Filtrar items del menú según el rol del usuario
+  const getVisibleMenuItems = () => {
+    if (isLoading || !userRole) return [];
+    return allMenuItems.filter(item => !item.roles || item.roles.includes(userRole));
+  };
+
+  const visibleMenuItems = getVisibleMenuItems();
 
   const handleNavigation = (route: string) => {
     const routeName = route.split('/').pop() || 'index';
     
     if (navigation && state) {
-      // Navegar usando el navigation de expo-router
       const targetRoute = state.routes?.find((r: any) => r.name === routeName);
       if (targetRoute) {
         const event = navigation.emit({
@@ -47,7 +57,6 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
           navigation.navigate(routeName);
         }
       } else {
-        // Si la ruta no está en las tabs, usar router
         router.push(route as any);
       }
     } else {
@@ -82,7 +91,7 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
       </View>
       
       <View style={styles.menu}>
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const isActive = activeRoute === item.name;
           return (
             <TouchableOpacity
@@ -187,7 +196,4 @@ const styles = StyleSheet.create({
     color: '#DC2626',
   },
 });
-
-
-
 

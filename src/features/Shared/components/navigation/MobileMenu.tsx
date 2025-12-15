@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuthStore } from '@/core/store/authStore';
 
 interface TabItem {
   name: string;
   label: string;
   iconOutline: keyof typeof Ionicons.glyphMap;
   iconFilled: keyof typeof Ionicons.glyphMap;
+  roles?: ('B2B' | 'B2C')[]; // Roles que pueden ver este tab
 }
 
 interface MobileMenuProps {
@@ -15,18 +17,34 @@ interface MobileMenuProps {
   navigation: any;
 }
 
-const tabs: TabItem[] = [
-  { name: 'index', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home' },
-  { name: 'fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart' },
-  { name: 'pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person' },
+const allTabs: TabItem[] = [
+  { name: 'index', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home', roles: ['B2B', 'B2C'] },
+  { name: 'fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart', roles: ['B2C'] }, // Solo B2C
+  { name: 'pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person', roles: ['B2B', 'B2C'] },
 ];
 
 export default function MobileMenu({ state, descriptors, navigation }: MobileMenuProps) {
+  const { userRole, isLoading } = useAuthStore();
+
+  // Filtrar tabs según el rol del usuario
+  const getVisibleTabs = () => {
+    if (isLoading || !userRole) return [];
+    return allTabs.filter(tab => !tab.roles || tab.roles.includes(userRole));
+  };
+
+  const visibleTabs = getVisibleTabs();
+  const visibleTabNames = visibleTabs.map(t => t.name);
+
+  // Filtrar las rutas del state para mostrar solo las visibles
+  const visibleRoutes = state.routes.filter((route: any) => 
+    visibleTabNames.includes(route.name)
+  );
+
   return (
     <View style={styles.container}>
-      {state.routes.map((route: any, index: number) => {
+      {visibleRoutes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
-        const isFocused = state.index === index;
+        const isFocused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
 
         const onPress = () => {
           const event = navigation.emit({
@@ -47,7 +65,7 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
           });
         };
 
-        const tab = tabs.find(t => t.name === route.name);
+        const tab = allTabs.find(t => t.name === route.name);
         const iconName = isFocused 
           ? (tab?.iconFilled || 'home') 
           : (tab?.iconOutline || 'home-outline');
@@ -91,9 +109,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    // El tabBar de expo-router maneja el posicionamiento sticky
     elevation: 8,
-    // Usar solo boxShadow para web, eliminar shadow* props para evitar warnings
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
     } : {}),
@@ -110,7 +126,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
-
-
-
 

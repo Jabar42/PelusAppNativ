@@ -9,7 +9,13 @@
     "jsx": "react-native",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/core/*": ["./src/core/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/shared/*": ["./src/features/Shared/*"]
+    }
   },
   "include": [
     "**/*.ts",
@@ -20,5 +26,6 @@
     "node_modules"
   ]
 }
+
 
 

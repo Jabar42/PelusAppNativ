@@ -1,6 +1,6 @@
 # PelusAppNative - React Native con Expo
 
-Aplicación de ejemplo "Hola Mundo" construida con React Native y Expo usando TypeScript.
+Aplicación B2B2C construida con React Native y Expo usando TypeScript, con arquitectura basada en características (feature-based).
 
 ## Requisitos previos
 
@@ -36,34 +36,43 @@ Esto abrirá el Metro Bundler en tu navegador. Desde ahí puedes:
 - `npm run android` - Inicia en Android
 - `npm run ios` - Inicia en iOS
 - `npm run web` - Inicia en navegador web
+- `npm run build` - Construye la aplicación para web (PWA)
 
 ## Estructura del proyecto
 
 ```
 PelusAppNative/
-├── app/                    # Expo Router (file-based routing)
-│   ├── _layout.tsx        # Layout raíz con ClerkProvider
-│   ├── (auth)/            # Grupo de rutas de autenticación
-│   │   └── login.tsx      # Pantalla de login
-│   ├── (tabs)/            # Grupo de rutas con tabs
-│   │   ├── _layout.tsx    # Layout de tabs
-│   │   ├── index.tsx      # Home
-│   │   ├── fav.tsx        # Favoritos
-│   │   ├── pro.tsx        # Perfil
-│   │   ├── settings.tsx   # Configuración
-│   │   └── help.tsx       # Ayuda
-│   └── utils/
-│       └── cache.ts       # Token cache para Clerk
-├── components/            # Componentes reutilizables
-│   ├── MobileMenu.tsx     # Menú móvil (bottom bar)
-│   ├── Sidebar.tsx        # Sidebar para desktop
-│   ├── ResponsiveNavigation.tsx  # Wrapper responsivo
-│   ├── TabsLayoutWrapper.tsx     # Layout wrapper principal
-│   └── InstallPWAButton.tsx     # Botón PWA
-├── app.json               # Configuración de Expo
-├── package.json           # Dependencias del proyecto
-├── tsconfig.json          # Configuración de TypeScript
-└── README.md              # Este archivo
+├── src/
+│   ├── core/                    # Infraestructura compartida
+│   │   ├── services/           # API clients, storage
+│   │   ├── store/              # Zustand stores (authStore)
+│   │   └── types/              # Tipos TypeScript compartidos
+│   │
+│   ├── features/                # Módulos por característica
+│   │   ├── Auth/               # Autenticación
+│   │   │   ├── screens/        # LoginScreen
+│   │   │   └── hooks/          # useAuth
+│   │   │
+│   │   ├── B2B_Dashboard/      # Módulo B2B
+│   │   │   ├── components/     # Componentes específicos B2B
+│   │   │   └── screens/        # HomeScreen, ProfileScreen, etc.
+│   │   │
+│   │   ├── B2C_Shop/           # Módulo B2C
+│   │   │   ├── components/     # Componentes específicos B2C
+│   │   │   └── screens/        # HomeScreen, FavoritesScreen, etc.
+│   │   │
+│   │   └── Shared/             # Componentes transversales
+│   │       └── components/     # Navigation, RoleGate, etc.
+│   │
+│   └── app/                     # Expo Router (solo rutas)
+│       ├── _layout.tsx          # Layout raíz (ClerkProvider)
+│       ├── (auth)/              # Rutas de autenticación
+│       └── (tabs)/              # Rutas con tabs
+│
+├── app.json                     # Configuración de Expo
+├── package.json                 # Dependencias del proyecto
+├── tsconfig.json                # Configuración de TypeScript
+└── README.md                    # Este archivo
 ```
 
 ## Tecnologías utilizadas
@@ -74,22 +83,40 @@ PelusAppNative/
 - TypeScript 5.1.3
 - React 18.2.0
 - Clerk (Autenticación)
+- Zustand (State Management)
 - NativeWind 4.2.1 (Tailwind CSS para React Native)
 
 ## Características
 
+- ✅ Arquitectura feature-based (escalable para B2B2C)
 - ✅ Navegación con Expo Router (file-based routing)
 - ✅ Autenticación con Clerk
+- ✅ Manejo de roles B2B/B2C desde Clerk metadata
+- ✅ State management con Zustand
 - ✅ Navegación responsiva (móvil/desktop)
 - ✅ Soporte PWA
 - ✅ TypeScript con tipado estricto
+- ✅ Path aliases configurados (@/core, @/features, @/shared)
+
+## Arquitectura
+
+El proyecto utiliza una arquitectura basada en características (feature-based) que separa claramente:
+
+- **Core**: Infraestructura compartida (servicios, stores, tipos)
+- **Features**: Módulos independientes por característica (Auth, B2B_Dashboard, B2C_Shop, Shared)
+- **App**: Solo rutas de Expo Router que re-exportan desde features
+
+### Manejo de Roles
+
+Los roles (B2B/B2C) se obtienen desde Clerk metadata (`user.publicMetadata.role`) y se almacenan en el Zustand store. Las pantallas se renderizan dinámicamente según el rol del usuario.
+
+### Path Aliases
+
+El proyecto utiliza path aliases para imports más limpios:
+- `@/core/*` → `src/core/*`
+- `@/features/*` → `src/features/*`
+- `@/shared/*` → `src/features/Shared/*`
 
 ## Documentación adicional
 
 Para más detalles sobre la arquitectura del proyecto, consulta [ARQUITECTURA.md](./ARQUITECTURA.md).
-
-
-
-
-
-

@@ -1,44 +1,19 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuthStore } from '@/core/store/authStore';
+import { HelpScreen as HelpB2B } from '@/features/B2B_Dashboard/screens/HelpScreen';
+import { HelpScreen as HelpB2C } from '@/features/B2C_Shop/screens/HelpScreen';
+import LoadingScreen from '@/shared/components/LoadingScreen';
 
 export default function HelpScreen() {
-  return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.container}>
-        <Text style={styles.title}>AYUDA</Text>
-        <Text style={styles.subtitle}>Centro de ayuda y soporte</Text>
-      </View>
-    </SafeAreaView>
-  );
+  const { userRole, isLoading } = useAuthStore();
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (userRole === 'B2B') {
+    return <HelpB2B />;
+  }
+
+  return <HelpB2C />;
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  container: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 56, // Espacio para el menú fijo
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1C1B1F',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-  },
-});
-
-
-
-

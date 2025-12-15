@@ -1,7 +1,8 @@
 import { ClerkProvider, useAuth } from '@clerk/clerk-expo';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
-import { tokenCache } from './utils/cache';
+import { tokenCache } from '@/core/services/storage';
+import { useAuth as useAuthHook } from '@/features/Auth/hooks/useAuth';
 import '../global.css';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -16,6 +17,9 @@ function InitialLayout() {
   const { isLoaded, isSignedIn } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  
+  // Usar el hook useAuth para obtener el rol del usuario
+  useAuthHook();
 
   useEffect(() => {
     if (!isLoaded) return;

@@ -1,43 +1,22 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import InstallPWAButton from '../../components/InstallPWAButton';
+import { useAuthStore } from '@/core/store/authStore';
+import { HomeScreen as HomeB2B } from '@/features/B2B_Dashboard/screens/HomeScreen';
+import { HomeScreen as HomeB2C } from '@/features/B2C_Shop/screens/HomeScreen';
+import LoadingScreen from '@/shared/components/LoadingScreen';
 
-export default function HomeScreen() {
-  return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.container}>
-        <Text style={styles.title}>HOME</Text>
-        <Text style={styles.subtitle}>Pantalla Principal</Text>
-        <InstallPWAButton />
-      </View>
-    </SafeAreaView>
-  );
+export default function IndexScreen() {
+  const { userRole, isLoading } = useAuthStore();
+
+  // CRÍTICO: Esperar explícitamente a que isLoading === false antes de renderizar
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // Renderizar condicionalmente según el rol
+  if (userRole === 'B2B') {
+    return <HomeB2B />;
+  }
+
+  // Default a B2C
+  return <HomeB2C />;
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  container: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 56, // Espacio para el menú fijo
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1C1B1F',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-  },
-});
-

@@ -6,12 +6,7 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-// Extender el tipo Window para incluir matchMedia
-declare global {
-  interface Window {
-    matchMedia?: (query: string) => MediaQueryList;
-  }
-}
+// matchMedia ya está definido en los tipos de React Native Web
 
 export default function InstallPWAButton() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -19,18 +14,15 @@ export default function InstallPWAButton() {
   const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // Solo funciona en web
     if (Platform.OS !== 'web') {
       return;
     }
 
-    // Verificar si la app ya está instalada
     if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
       return;
     }
 
-    // Escuchar el evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -41,7 +33,6 @@ export default function InstallPWAButton() {
       window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     }
 
-    // Verificar si ya está instalada cuando se carga
     const checkInstalled = () => {
       if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
         setIsInstalled(true);
@@ -59,7 +50,6 @@ export default function InstallPWAButton() {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
-      // Si no hay prompt disponible, mostrar instrucciones para iOS
       if (Platform.OS === 'web' && typeof navigator !== 'undefined') {
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
         if (isIOS) {
@@ -77,10 +67,7 @@ export default function InstallPWAButton() {
       return;
     }
 
-    // Mostrar el prompt de instalación
     deferredPrompt.prompt();
-
-    // Esperar a que el usuario responda
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
@@ -90,12 +77,10 @@ export default function InstallPWAButton() {
       console.log('Usuario rechazó la instalación');
     }
 
-    // Limpiar el prompt
     setDeferredPrompt(null);
     setIsInstallable(false);
   };
 
-  // No mostrar nada si ya está instalada o no es web
   if (Platform.OS !== 'web' || isInstalled || (!isInstallable && !deferredPrompt)) {
     return null;
   }
@@ -137,4 +122,3 @@ const styles = StyleSheet.create({
     color: '#666',
   },
 });
-

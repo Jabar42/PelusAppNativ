@@ -1,4 +1,4 @@
-import TabsLayoutWrapper from '../../components/TabsLayoutWrapper';
+import TabsLayoutWrapper from '@/shared/components/navigation/TabsLayoutWrapper';
 
 export default function TabsLayout() {
   return <TabsLayoutWrapper />;
