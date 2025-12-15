@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import ResponsiveNavigation from './ResponsiveNavigation';
 
@@ -33,25 +33,36 @@ export default function TabsLayoutWrapper() {
           }, 0);
         }
       }
-      return null; // Ocultar tabBar en desktop
+      // Retornar View vacío en lugar de null para evitar errores de DOM
+      return <View style={{ display: 'none' }} />;
     }
-    // En móvil, renderizar MobileMenu como tabBar
+    // En móvil, renderizar MobileMenu como tabBar (sticky)
     return <ResponsiveNavigation {...props} />;
   }, [isLargeScreen]);
 
   return (
-    <View style={{ flex: 1, flexDirection: isLargeScreen ? 'row' : 'column' }}>
+    <View style={[styles.container, { flexDirection: isLargeScreen ? 'row' : 'column' }]}>
       {isLargeScreen && navProps && (
-        <View style={{ width: 250 }}>
+        <View style={styles.sidebar}>
           <ResponsiveNavigation {...navProps} />
         </View>
       )}
-      <View style={{ flex: 1 }}>
+      <View style={styles.content}>
         <Tabs
           tabBar={handleTabBar}
           screenOptions={{ 
             headerShown: false,
-            tabBarStyle: { display: 'none' } // Ocultar tab bar nativo
+            tabBarStyle: isLargeScreen 
+              ? { display: 'none' } // Ocultar tab bar nativo en desktop
+              : {
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 56,
+                  borderTopWidth: 0,
+                  elevation: 8,
+                },
           }}
         >
           <Tabs.Screen name="index" options={{ title: 'Home' }} />
@@ -70,4 +81,26 @@ export default function TabsLayoutWrapper() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    overflow: 'hidden', // Prevenir scrolls no deseados
+    width: '100%',
+    height: '100%',
+  },
+  sidebar: {
+    width: 250,
+    height: '100%',
+  },
+  content: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden', // Prevenir scrolls horizontales
+  },
+});
+
+
+
 

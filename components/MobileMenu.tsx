@@ -87,19 +87,16 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     height: 56,
+    width: '100%',
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+    // El tabBar de expo-router maneja el posicionamiento sticky
     elevation: 8,
-    // Usar boxShadow para web en lugar de shadow* props
+    // Usar solo boxShadow para web, eliminar shadow* props para evitar warnings
     ...(Platform.OS === 'web' ? {
       boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
-    } : {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: -2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-    }),
+    } : {}),
   },
   tab: {
     flex: 1,
@@ -113,4 +110,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 });
+
+
+
 

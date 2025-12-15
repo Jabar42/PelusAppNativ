@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HelpScreen() {
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.container}>
         <Text style={styles.title}>AYUDA</Text>
         <Text style={styles.subtitle}>Centro de ayuda y soporte</Text>
@@ -16,12 +16,16 @@ export default function HelpScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    width: '100%',
+    overflow: 'hidden',
   },
   container: {
     flex: 1,
+    width: '100%',
     backgroundColor: '#f5f5f5',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingBottom: 56, // Espacio para el menú fijo
   },
   title: {
     fontSize: 32,
@@ -34,4 +38,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
 });
+
+
+
 

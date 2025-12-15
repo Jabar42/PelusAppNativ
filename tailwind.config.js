@@ -13,3 +13,6 @@ module.exports = {
   darkMode: 'class', // Cambiar de 'media' a 'class' para evitar el error
 }
 
+
+
+
