@@ -41,28 +41,52 @@ Esto abrirá el Metro Bundler en tu navegador. Desde ahí puedes:
 
 ```
 PelusAppNative/
-├── App.tsx          # Componente principal de la aplicación
-├── app.json         # Configuración de Expo
-├── package.json     # Dependencias del proyecto
-├── tsconfig.json    # Configuración de TypeScript
-└── README.md        # Este archivo
+├── app/                    # Expo Router (file-based routing)
+│   ├── _layout.tsx        # Layout raíz con ClerkProvider
+│   ├── (auth)/            # Grupo de rutas de autenticación
+│   │   └── login.tsx      # Pantalla de login
+│   ├── (tabs)/            # Grupo de rutas con tabs
+│   │   ├── _layout.tsx    # Layout de tabs
+│   │   ├── index.tsx      # Home
+│   │   ├── fav.tsx        # Favoritos
+│   │   ├── pro.tsx        # Perfil
+│   │   ├── settings.tsx   # Configuración
+│   │   └── help.tsx       # Ayuda
+│   └── utils/
+│       └── cache.ts       # Token cache para Clerk
+├── components/            # Componentes reutilizables
+│   ├── MobileMenu.tsx     # Menú móvil (bottom bar)
+│   ├── Sidebar.tsx        # Sidebar para desktop
+│   ├── ResponsiveNavigation.tsx  # Wrapper responsivo
+│   ├── TabsLayoutWrapper.tsx     # Layout wrapper principal
+│   └── InstallPWAButton.tsx     # Botón PWA
+├── app.json               # Configuración de Expo
+├── package.json           # Dependencias del proyecto
+├── tsconfig.json          # Configuración de TypeScript
+└── README.md              # Este archivo
 ```
 
 ## Tecnologías utilizadas
 
-- React Native
+- React Native 0.74.5
 - Expo SDK ~51.0.0
-- TypeScript
+- Expo Router 3.5.24 (file-based routing)
+- TypeScript 5.1.3
 - React 18.2.0
+- Clerk (Autenticación)
+- NativeWind 4.2.1 (Tailwind CSS para React Native)
 
-## Próximos pasos
+## Características
 
-Esta es una aplicación básica de ejemplo. Puedes expandirla agregando:
-- Navegación entre pantallas
-- Estado global (Context API, Redux, etc.)
-- Llamadas a APIs
-- Almacenamiento local
-- Y mucho más...
+- ✅ Navegación con Expo Router (file-based routing)
+- ✅ Autenticación con Clerk
+- ✅ Navegación responsiva (móvil/desktop)
+- ✅ Soporte PWA
+- ✅ TypeScript con tipado estricto
+
+## Documentación adicional
+
+Para más detalles sobre la arquitectura del proyecto, consulta [ARQUITECTURA.md](./ARQUITECTURA.md).
 
 
 
