@@ -29,6 +29,14 @@ export function LoginScreen() {
   // Actualizar metadata cuando el usuario esté disponible después del login
   useEffect(() => {
     if (user && pendingRole && !user.publicMetadata?.role && isSignedIn) {
+      // Verificar si unsafeMetadata.pendingRole ya está establecido y coincide
+      // Esto previene llamadas API repetidas innecesarias
+      const currentPendingRole = user.unsafeMetadata?.pendingRole;
+      if (currentPendingRole === pendingRole) {
+        // Ya está actualizado, no hacer nada
+        return;
+      }
+
       user.update({
         unsafeMetadata: { pendingRole },
       }).then(() => {
@@ -70,19 +78,12 @@ export function LoginScreen() {
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
         
-        // Actualizar metadata inmediatamente después del registro exitoso
-        // Esto minimiza la race condition con el webhook
-        if (pendingRole && user && !user.publicMetadata?.role) {
-          try {
-            await user.update({
-              unsafeMetadata: { pendingRole },
-            });
-            console.log('Updated unsafeMetadata.pendingRole:', pendingRole);
-          } catch (metadataError) {
-            console.error('Failed to update metadata:', metadataError);
-            // No bloquear el flujo, el webhook puede procesarlo después
-          }
-        }
+        // No actualizar metadata aquí porque:
+        // 1. El objeto `user` de useUser() no se actualiza sincrónicamente después de setActive()
+        // 2. Necesita un re-render para que el hook actualice el valor
+        // 3. El useEffect (líneas 30-49) manejará la actualización cuando user esté disponible
+        // 4. El webhook también está diseñado para manejar esto si el useEffect no se ejecuta a tiempo
+        // Esto evita race conditions y uso de datos stale/null
         
         // Importante: redirigir al flujo de carga inicial
         // para que se sincronicen rol y onboarding antes de entrar a tabs
