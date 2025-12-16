@@ -45,18 +45,46 @@ self.addEventListener('activate', (event) => {
 
 // Estrategia: Network First, luego Cache
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  // Solo cachear peticiones GET y HEAD (el Cache API no soporta POST, PUT, DELETE, etc.)
+  // Excluir peticiones a APIs, webhooks y funciones de Netlify
+  const shouldCache = 
+    (request.method === 'GET' || request.method === 'HEAD') &&
+    !url.pathname.startsWith('/.netlify/functions/') &&
+    !url.pathname.startsWith('/api/') &&
+    url.protocol !== 'chrome-extension:' &&
+    url.protocol !== 'chrome:' &&
+    url.protocol !== 'moz-extension:';
+
+  if (!shouldCache) {
+    // Para peticiones que no deben ser cacheadas (POST, APIs, etc.), solo hacer fetch
+    event.respondWith(fetch(request));
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
-        // Clonar la respuesta
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
+        // Solo cachear respuestas exitosas y del mismo origen
+        if (response && response.status === 200 && response.type === 'basic') {
+          // Clonar la respuesta porque solo puede ser leída una vez
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            try {
+              cache.put(request, responseToCache);
+            } catch (error) {
+              // Ignorar errores de cache (puede fallar si la respuesta es muy grande o no es cacheable)
+              console.warn('Service Worker: No se pudo cachear la respuesta', error);
+            }
+          });
+        }
         return response;
       })
       .catch(() => {
-        return caches.match(event.request);
+        // Si falla la red, intentar servir desde cache
+        return caches.match(request);
       })
   );
 });
