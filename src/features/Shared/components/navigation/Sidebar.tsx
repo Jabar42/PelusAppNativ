@@ -31,7 +31,7 @@ const allMenuItems: MenuItem[] = [
 export default function Sidebar({ state, navigation }: SidebarProps) {
   const { signOut } = useClerkAuth();
   const router = useRouter();
-  const { userRole, isLoading } = useAuthStore();
+  const { userRole, isLoading, clearAuth } = useAuthStore();
 
   // Filtrar items del menú según el rol del usuario
   const getVisibleMenuItems = () => {
@@ -67,11 +67,15 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const handleSignOut = async () => {
     try {
       await signOut();
+      // Limpiar el estado de autenticación en Zustand
+      clearAuth();
       // Importante: siempre regresar al flujo inicial de loading
       // para que la lógica central decida si mostrar login o role-select
       router.replace('/(initial)/loading');
     } catch (error) {
       console.error('Error signing out:', error);
+      // Limpiar el estado incluso si hay un error en signOut
+      clearAuth();
     }
   };
 
