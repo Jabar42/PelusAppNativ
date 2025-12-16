@@ -21,6 +21,8 @@ const allTabs: TabItem[] = [
   { name: 'index', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home', roles: ['B2B', 'B2C'] },
   { name: 'fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart', roles: ['B2C'] }, // Solo B2C
   { name: 'pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person', roles: ['B2B', 'B2C'] },
+  { name: 'settings', label: 'CONFIG', iconOutline: 'settings-outline', iconFilled: 'settings', roles: ['B2B', 'B2C'] },
+  { name: 'help', label: 'AYUDA', iconOutline: 'help-circle-outline', iconFilled: 'help-circle', roles: ['B2B', 'B2C'] },
 ];
 
 export default function MobileMenu({ state, descriptors, navigation }: MobileMenuProps) {
