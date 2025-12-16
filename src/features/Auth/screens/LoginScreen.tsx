@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useSignIn } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthSync } from '../hooks/useAuthSync';
 
 export function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -10,9 +10,9 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
-  
-  // Usar el hook useAuth para obtener el rol después del login
-  useAuth();
+
+  // Sincronizar rol y estado de onboarding con el store
+  useAuthSync();
 
   const onSignInPress = async () => {
     if (!isLoaded) return;
@@ -25,7 +25,9 @@ export function LoginScreen() {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
-        router.replace('/(tabs)');
+        // Importante: redirigir al flujo de carga inicial
+        // para que se sincronicen rol y onboarding antes de entrar a tabs
+        router.replace('/(initial)/loading');
       }
     } catch (err: any) {
       setError(err.errors?.[0]?.message || 'Error al iniciar sesión');
@@ -99,4 +101,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
 

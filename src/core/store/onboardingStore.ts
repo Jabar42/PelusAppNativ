@@ -11,3 +11,4 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setPendingRole: (role) => set({ pendingRole: role }),
 }));
 
+

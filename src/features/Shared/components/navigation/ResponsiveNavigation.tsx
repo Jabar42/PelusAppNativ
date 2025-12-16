@@ -27,3 +27,4 @@ export default function ResponsiveNavigation({
   return <MobileMenu state={state} descriptors={descriptors} navigation={navigation} />;
 }
 
+

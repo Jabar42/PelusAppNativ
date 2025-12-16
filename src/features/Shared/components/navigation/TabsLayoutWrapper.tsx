@@ -2,7 +2,6 @@ import React, { useState, useRef, useCallback } from 'react';
 import { View, useWindowDimensions, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import ResponsiveNavigation from './ResponsiveNavigation';
-import { useAuthStore } from '@/core/store/authStore';
 
 export default function TabsLayoutWrapper() {
   const { width } = useWindowDimensions();
@@ -10,7 +9,6 @@ export default function TabsLayoutWrapper() {
   const [navProps, setNavProps] = useState<any>(null);
   const navPropsRef = useRef<any>(null);
   const updateScheduledRef = useRef(false);
-  const { userRole, isLoading } = useAuthStore();
 
   // Función para capturar las props del tabBar sin causar loops
   const handleTabBar = useCallback((props: any) => {
@@ -42,22 +40,6 @@ export default function TabsLayoutWrapper() {
     return <ResponsiveNavigation {...props} />;
   }, [isLargeScreen]);
 
-  // Determinar qué tabs mostrar según el rol
-  const getTabsToShow = () => {
-    if (isLoading || !userRole) {
-      return ['index']; // Mostrar solo index mientras carga
-    }
-    
-    if (userRole === 'B2B') {
-      return ['index', 'pro', 'settings', 'help']; // Sin 'fav'
-    }
-    
-    // B2C
-    return ['index', 'fav', 'pro', 'settings', 'help'];
-  };
-
-  const tabsToShow = getTabsToShow();
-
   return (
     <View style={[styles.container, { flexDirection: isLargeScreen ? 'row' : 'column' }]}>
       {isLargeScreen && navProps && (
@@ -83,27 +65,19 @@ export default function TabsLayoutWrapper() {
                 },
           }}
         >
-          {tabsToShow.includes('index') && (
-            <Tabs.Screen name="index" options={{ title: 'Home' }} />
-          )}
-          {tabsToShow.includes('fav') && (
-            <Tabs.Screen name="fav" options={{ title: 'Favoritos' }} />
-          )}
-          {tabsToShow.includes('pro') && (
-            <Tabs.Screen name="pro" options={{ title: 'Perfil' }} />
-          )}
-          {tabsToShow.includes('settings') && (
-            <Tabs.Screen 
-              name="settings" 
-              options={{ title: 'Configuración', tabBarButton: () => null }} 
-            />
-          )}
-          {tabsToShow.includes('help') && (
-            <Tabs.Screen 
-              name="help" 
-              options={{ title: 'Ayuda', tabBarButton: () => null }} 
-            />
-          )}
+          {/* Definir todas las rutas de tabs de forma estática.
+              La visibilidad por rol se maneja en MobileMenu / Sidebar */}
+          <Tabs.Screen name="index" options={{ title: 'Home' }} />
+          <Tabs.Screen name="fav" options={{ title: 'Favoritos' }} />
+          <Tabs.Screen name="pro" options={{ title: 'Perfil' }} />
+          <Tabs.Screen
+            name="settings"
+            options={{ title: 'Configuración', tabBarButton: () => null }}
+          />
+          <Tabs.Screen
+            name="help"
+            options={{ title: 'Ayuda', tabBarButton: () => null }}
+          />
         </Tabs>
       </View>
     </View>
@@ -128,3 +102,4 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 });
+

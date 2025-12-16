@@ -25,3 +25,4 @@ export default function RoleGate({ allowedRoles, children, fallback = null }: Ro
 
   return <>{children}</>;
 }
+
