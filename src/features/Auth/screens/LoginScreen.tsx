@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
-import { useSignIn, useAuth } from '@clerk/clerk-expo';
+import { useSignIn, useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useAuthSync } from '../hooks/useAuthSync';
+import { useOnboardingStore } from '@/core/store/onboardingStore';
 
 export function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { user } = useUser();
+  const { pendingRole } = useOnboardingStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,6 +25,20 @@ export function LoginScreen() {
       router.replace('/(initial)/loading');
     }
   }, [authLoaded, isSignedIn, router]);
+
+  // Actualizar metadata cuando el usuario esté disponible después del login
+  useEffect(() => {
+    if (user && pendingRole && !user.publicMetadata?.role && isSignedIn) {
+      user.update({
+        unsafeMetadata: { pendingRole },
+      }).then(() => {
+        console.log('Updated unsafeMetadata.pendingRole:', pendingRole);
+      }).catch((error) => {
+        console.error('Failed to update metadata:', error);
+        // No bloquear el flujo, el webhook puede procesarlo después
+      });
+    }
+  }, [user, pendingRole, isSignedIn]);
 
   const onSignInPress = async () => {
     if (!isLoaded) {
@@ -52,6 +69,21 @@ export function LoginScreen() {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
+        
+        // Actualizar metadata inmediatamente después del registro exitoso
+        // Esto minimiza la race condition con el webhook
+        if (pendingRole && user && !user.publicMetadata?.role) {
+          try {
+            await user.update({
+              unsafeMetadata: { pendingRole },
+            });
+            console.log('Updated unsafeMetadata.pendingRole:', pendingRole);
+          } catch (metadataError) {
+            console.error('Failed to update metadata:', metadataError);
+            // No bloquear el flujo, el webhook puede procesarlo después
+          }
+        }
+        
         // Importante: redirigir al flujo de carga inicial
         // para que se sincronicen rol y onboarding antes de entrar a tabs
         router.replace('/(initial)/loading');

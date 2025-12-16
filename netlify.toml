@@ -2,6 +2,12 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  # Netlify Functions configuration
+  # Functions are automatically detected in netlify/functions/
+  # Environment variables should be set in Netlify Dashboard (Settings > Environment variables)
+  # Required: CLERK_SECRET_KEY, CLERK_WEBHOOK_SECRET
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
