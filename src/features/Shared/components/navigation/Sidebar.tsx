@@ -67,7 +67,9 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const handleSignOut = async () => {
     try {
       await signOut();
-      router.replace('/(auth)/login');
+      // Importante: siempre regresar al flujo inicial de loading
+      // para que la lógica central decida si mostrar login o role-select
+      router.replace('/(initial)/loading');
     } catch (error) {
       console.error('Error signing out:', error);
     }

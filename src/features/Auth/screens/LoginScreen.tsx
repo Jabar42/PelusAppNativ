@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
-import { useSignIn } from '@clerk/clerk-expo';
+import { useSignIn, useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useAuthSync } from '../hooks/useAuthSync';
 
 export function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,6 +15,13 @@ export function LoginScreen() {
 
   // Sincronizar rol y estado de onboarding con el store
   useAuthSync();
+
+  // Si el usuario ya está autenticado, redirigir
+  useEffect(() => {
+    if (authLoaded && isSignedIn) {
+      router.replace('/(initial)/loading');
+    }
+  }, [authLoaded, isSignedIn, router]);
 
   const onSignInPress = async () => {
     if (!isLoaded) {
@@ -58,12 +66,67 @@ export function LoginScreen() {
       
       // Manejar diferentes tipos de errores
       if (err.errors && err.errors.length > 0) {
-        const errorMessage = err.errors[0].message || err.errors[0].longMessage;
+        const errorMessage = err.errors[0].message || err.errors[0].longMessage || '';
+        const errorMessageLower = errorMessage.toLowerCase();
+        
+        // Verificar si es un error de red
+        const isNetworkError = 
+          errorMessageLower.includes('network') || 
+          errorMessageLower.includes('err_network') ||
+          errorMessageLower.includes('failed to fetch') ||
+          errorMessageLower.includes('network error') ||
+          errorMessageLower.includes('network_changed') ||
+          errorMessageLower.includes('fetch failed');
+        
+        if (isNetworkError) {
+          setError('Error de conexión. Por favor verifica tu conexión a internet e intenta de nuevo');
+          return;
+        }
+        
+        // Manejar específicamente el error de sesión existente
+        if (errorMessage.includes('Session already exists') || errorMessage.includes('session already exists')) {
+          // Si ya hay una sesión, intentar activarla y redirigir
+          try {
+            // Verificar si hay una sesión activa y redirigir
+            if (isSignedIn) {
+              router.replace('/(initial)/loading');
+              return;
+            }
+            // Si no hay sesión activa pero Clerk dice que existe, limpiar y reintentar
+            setError('Ya existe una sesión activa. Redirigiendo...');
+            setTimeout(() => {
+              router.replace('/(initial)/loading');
+            }, 1000);
+            return;
+          } catch (redirectErr) {
+            setError('Ya estás autenticado. Redirigiendo...');
+            setTimeout(() => {
+              router.replace('/(initial)/loading');
+            }, 1000);
+            return;
+          }
+        }
+        
         setError(errorMessage || 'Error al iniciar sesión');
       } else if (err.message) {
         // Manejar errores de red específicamente
-        if (err.message.includes('network') || err.message.includes('ERR_NETWORK')) {
+        const errorMessageLower = err.message.toLowerCase();
+        const isNetworkError = 
+          errorMessageLower.includes('network') || 
+          errorMessageLower.includes('err_network') ||
+          errorMessageLower.includes('failed to fetch') ||
+          errorMessageLower.includes('network error') ||
+          errorMessageLower.includes('network_changed') ||
+          errorMessageLower.includes('fetch failed');
+        
+        if (isNetworkError) {
           setError('Error de conexión. Por favor verifica tu conexión a internet e intenta de nuevo');
+        } else if (err.message.includes('Session already exists') || err.message.includes('session already exists')) {
+          // Manejar el error de sesión existente en el mensaje
+          setError('Ya estás autenticado. Redirigiendo...');
+          setTimeout(() => {
+            router.replace('/(initial)/loading');
+          }, 1000);
         } else {
           setError(err.message);
         }
