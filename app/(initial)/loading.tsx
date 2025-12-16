@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import LoadingScreen from '@/shared/components/LoadingScreen';
@@ -11,11 +11,19 @@ export default function InitialLoadingScreen() {
   const router = useRouter();
   const { isLoading: authLoading, hasCompletedOnboarding, userRole } = useAuthStore();
   const { pendingRole } = useOnboardingStore();
+  const hasNavigatedRef = useRef(false);
 
   useAuthSync();
 
   useEffect(() => {
+    // Prevent multiple navigations
+    if (hasNavigatedRef.current) return;
+    
+    // Wait for Clerk and auth store to be ready
     if (!isLoaded || authLoading) return;
+
+    // Mark as navigating to prevent duplicate navigations
+    hasNavigatedRef.current = true;
 
     if (!isSignedIn) {
       router.replace('/(initial)/role-select');
@@ -42,7 +50,7 @@ export default function InitialLoadingScreen() {
     // If user has completed onboarding OR we don't have role info yet (waiting for webhook),
     // proceed to tabs. The tabs will handle loading states appropriately.
     router.replace('/(tabs)');
-  }, [isLoaded, authLoading, isSignedIn, hasCompletedOnboarding, userRole, pendingRole, router]);
+  }, [isLoaded, authLoading, isSignedIn, hasCompletedOnboarding, userRole, pendingRole]);
 
   return <LoadingScreen />;
 }

@@ -53,15 +53,17 @@ export function useAuthSync() {
     }
 
     setIsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isLoaded,
     userLoaded,
     isSignedIn,
-    user,
+    user?.id, // Only depend on user ID, not the whole user object
+    user?.publicMetadata?.role,
+    user?.publicMetadata?.hasCompletedOnboarding,
     pendingRole,
-    setUserRole,
-    setHasCompletedOnboarding,
-    setIsLoading,
+    // Store setters are stable, but we exclude them to avoid unnecessary re-runs
+    // They're safe to use without being in deps
   ]);
 }
 
