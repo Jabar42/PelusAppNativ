@@ -102,7 +102,8 @@ export default function InitialLoadingScreen() {
     // If user has completed onboarding OR is an existing user (has role in metadata or no pendingRole),
     // proceed to tabs. The tabs will handle loading states appropriately.
     router.replace('/(tabs)');
-  }, [isLoaded, authLoading, isSignedIn, hasCompletedOnboarding, userRole, pendingRole, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, authLoading, isSignedIn, hasCompletedOnboarding, userRole, pendingRole]);
 
   return <LoadingScreen />;
 }
