@@ -1,20 +1,13 @@
 // tailwind.config.js
-// Intentar cargar el plugin de Gluestack si está disponible
-let gluestackPlugin = null;
-try {
-  gluestackPlugin = require('@gluestack-ui/nativewind-utils/tailwind-plugin');
-} catch (e) {
-  // Plugin no disponible aún, continuar sin él
-  console.warn('Gluestack UI plugin not found, continuing without it');
-}
+const gluestackPlugin = require('@gluestack-ui/nativewind-utils/tailwind-plugin');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   // 1. MANTENER el preset de NativeWind
   presets: [require("nativewind/preset")], 
   
-  // 2. AGREGAR el plugin de Gluestack si está disponible
-  plugins: gluestackPlugin ? [gluestackPlugin] : [],
+  // 2. AGREGAR el plugin de Gluestack
+  plugins: [gluestackPlugin],
 
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",

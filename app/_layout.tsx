@@ -3,6 +3,8 @@ import { Slot } from 'expo-router';
 import { tokenCache } from '@/core/services/storage';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from '@gluestack-ui/config';
+import { useColorScheme } from 'nativewind';
+import { useEffect, useCallback } from 'react';
 import '../global.css';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -63,12 +65,71 @@ if (typeof window !== 'undefined') {
 }
 
 export default function RootLayout() {
+  const { colorScheme, setColorScheme } = useColorScheme();
+
+  // Detectar preferencia del sistema en la primera carga
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      
+      // Detectar preferencia del sistema si no hay un colorScheme establecido
+      if (colorScheme === undefined || colorScheme === null) {
+        const prefersDark = mediaQuery.matches;
+        setColorScheme(prefersDark ? 'dark' : 'light');
+      }
+    }
+  }, []); // Solo ejecutar una vez al montar
+
+  // Aplicar clase dark al elemento raíz del DOM cuando cambie el colorScheme
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.document) {
+      const root = window.document.documentElement;
+      
+      if (colorScheme === 'dark') {
+        root.classList.add('dark');
+      } else if (colorScheme === 'light') {
+        root.classList.remove('dark');
+      }
+    }
+  }, [colorScheme]);
+
+  // Crear handler estable usando useCallback para evitar memory leaks
+  // Con userInterfaceStyle: "automatic", siempre seguimos la preferencia del sistema
+  const handleSystemPreferenceChange = useCallback((e: MediaQueryListEvent) => {
+    setColorScheme(e.matches ? 'dark' : 'light');
+  }, [setColorScheme]);
+
+  // Escuchar cambios en la preferencia del sistema (solo una vez al montar)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+      // Agregar listener para cambios en la preferencia del sistema
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handleSystemPreferenceChange);
+        return () => {
+          mediaQuery.removeEventListener('change', handleSystemPreferenceChange);
+        };
+      } else {
+        // Fallback para navegadores antiguos
+        mediaQuery.addListener(handleSystemPreferenceChange);
+        return () => {
+          mediaQuery.removeListener(handleSystemPreferenceChange);
+        };
+      }
+    }
+  }, [handleSystemPreferenceChange]); // Usar la función estable de useCallback
+
+  // Determinar el modo para GluestackUIProvider
+  // Usar 'light' como fallback si colorScheme aún no está disponible
+  const mode = (colorScheme === 'dark' ? 'dark' : 'light') as 'light' | 'dark';
+
   return (
     <ClerkProvider 
       publishableKey={publishableKey}
       tokenCache={tokenCache}
     >
-      <GluestackUIProvider config={config} mode="light">
+      <GluestackUIProvider config={config} mode={mode}>
         <Slot />
       </GluestackUIProvider>
     </ClerkProvider>
