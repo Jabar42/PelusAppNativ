@@ -18,8 +18,8 @@ export default function B2COnboardingScreen() {
     if (user) {
       try {
         await user.update({
-          unsafeMetadata: {
-            ...user.unsafeMetadata,
+          publicMetadata: {
+            ...user.publicMetadata,
             hasCompletedOnboarding: true,
           },
         });
