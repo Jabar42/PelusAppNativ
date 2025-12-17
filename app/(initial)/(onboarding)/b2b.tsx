@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth, useUser } from '@clerk/clerk-expo';
@@ -8,10 +8,17 @@ export default function B2BOnboardingScreen() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
   const { user } = useUser();
-  const { setHasCompletedOnboarding } = useAuthStore();
+  const { hasCompletedOnboarding, setHasCompletedOnboarding } = useAuthStore();
+
+  // Redirigir automáticamente si el usuario ya completó el onboarding
+  useEffect(() => {
+    if (isSignedIn && hasCompletedOnboarding) {
+      router.replace('/(tabs)');
+    }
+  }, [isSignedIn, hasCompletedOnboarding, router]);
 
   const handleContinue = async () => {
-    // 1. Actualizar estado local para permitir navegación a tabs
+    // 1. Actualizar estado local - el useEffect manejará la navegación
     setHasCompletedOnboarding(true);
 
     // 2. Intentar persistir en metadata (opcional, buena práctica)
@@ -28,9 +35,7 @@ export default function B2BOnboardingScreen() {
         // Continuamos de todos modos porque el estado local ya se actualizó
       }
     }
-
-    // 3. Navegar a tabs
-    router.replace('/(tabs)');
+    // La navegación se maneja automáticamente por el useEffect cuando hasCompletedOnboarding cambia
   };
 
   return (
@@ -41,19 +46,31 @@ export default function B2BOnboardingScreen() {
       </Text>
 
       {isSignedIn ? (
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleContinue}
-        >
-          <Text style={styles.buttonText}>Continuar</Text>
-        </TouchableOpacity>
+        // Usuario autenticado pero no ha completado onboarding
+        !hasCompletedOnboarding && (
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleContinue}
+          >
+            <Text style={styles.buttonText}>Continuar</Text>
+          </TouchableOpacity>
+        )
       ) : (
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => router.push('/(auth)/login')}
-        >
-          <Text style={styles.buttonText}>Crear cuenta o iniciar sesión</Text>
-        </TouchableOpacity>
+        // Usuario no autenticado - mostrar dos botones
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonPrimary]}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.buttonText}>Iniciar Sesión</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonSecondary]}
+            onPress={() => router.push('/(auth)/signup')}
+          >
+            <Text style={[styles.buttonText, styles.buttonTextSecondary]}>Registrarse</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -78,16 +95,31 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     textAlign: 'center',
   },
+  buttonContainer: {
+    gap: 12,
+  },
   button: {
     padding: 16,
     borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonPrimary: {
     backgroundColor: '#4f46e5',
+  },
+  buttonSecondary: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#4f46e5',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  buttonTextSecondary: {
+    color: '#4f46e5',
   },
 });
 
