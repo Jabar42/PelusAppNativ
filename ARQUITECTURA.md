@@ -9,7 +9,7 @@ Este documento describe la arquitectura técnica de **PelusAppNative**, una apli
 | **Core** | React Native + Expo | SDK 51 | Base del desarrollo móvil multiplataforma. |
 | **Lenguaje** | TypeScript | 5.1+ | Tipado estático y robustez. |
 | **Navegación** | Expo Router | ~3.5 | Enrutamiento basado en archivos (File-based routing). |
-| **Estilos** | NativeWind (Tailwind) | v4 | Estilizado utilitario compatible con RN. |
+| **Estilos** | Gluestack UI + NativeWind | v2 + v4 | Sistema de diseño basado en componentes. Gluestack UI v2 se basa en NativeWind v4 como motor subyacente. |
 | **Estado** | Zustand | v4.5 | Gestión de estado global ligero y modular. |
 | **Auth** | Clerk | v2.19 | Autenticación y gestión de usuarios. |
 
@@ -47,8 +47,11 @@ El código se organiza por **dominio de negocio** en lugar de por tipo de archiv
 - La separación entre roles B2B y B2C se gestiona mediante metadatos de usuario (`user.publicMetadata.role`) y se refleja en el `authStore` de Zustand.
 
 ### Estilizado
-- Se utiliza **NativeWind**, permitiendo usar clases de Tailwind CSS directamente en componentes React Native (`className="..."`).
-- La configuración reside en `tailwind.config.js` y se cargan los estilos globales desde `global.css`.
+- Se utiliza **Gluestack UI v2** como sistema de diseño principal, proporcionando componentes accesibles y estilizados.
+- **Gluestack UI v2 se basa en NativeWind v4** como motor subyacente, por lo que NativeWind se mantiene y se reconfigura para servir a Gluestack.
+- Los componentes de Gluestack UI permiten usar tanto props de estilo como clases de Tailwind CSS (`className="..."`).
+- La configuración reside en `tailwind.config.js` (con plugin de Gluestack y preset de NativeWind) y se cargan los estilos globales desde `global.css`.
+- El `GluestackUIProvider` está configurado en `app/_layout.tsx` dentro de `ClerkProvider`.
 
 ### Soporte Web / PWA
 - El proyecto está configurado para ejecutarse también en web (`react-native-web`).

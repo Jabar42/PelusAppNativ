@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { Platform, Pressable } from 'react-native';
+import { Box, Text, VStack, HStack } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/core/store/authStore';
 
@@ -43,7 +44,16 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
   );
 
   return (
-    <View style={styles.container}>
+    <HStack
+      className="h-14 w-full bg-white border-t border-gray-200 shadow-lg"
+      style={{
+        ...(Platform.OS === 'web' ? {
+          boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
+        } : {
+          elevation: 8,
+        }),
+      }}
+    >
       {visibleRoutes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
@@ -73,7 +83,7 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
           : (tab?.iconOutline || 'home-outline');
 
         return (
-          <TouchableOpacity
+          <Pressable
             key={route.key}
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
@@ -81,52 +91,27 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
             testID={options.tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={styles.tab}
+            className="flex-1 items-center justify-center py-2"
           >
-            <Ionicons
-              name={iconName}
-              size={24}
-              color={isFocused ? '#1C1B1F' : '#A09CAB'}
-            />
-            <Text
-              style={[
-                styles.label,
-                { color: isFocused ? '#1C1B1F' : '#A09CAB' },
-              ]}
-            >
-              {tab?.label || route.name}
-            </Text>
-          </TouchableOpacity>
+            <VStack space="xs" alignItems="center">
+              <Ionicons
+                name={iconName}
+                size={24}
+                color={isFocused ? '#1C1B1F' : '#A09CAB'}
+              />
+              <Text
+                className={`text-xs font-medium mt-1 ${
+                  isFocused ? 'text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                {tab?.label || route.name}
+              </Text>
+            </VStack>
+          </Pressable>
         );
       })}
-    </View>
+    </HStack>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    height: 56,
-    width: '100%',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    elevation: 8,
-    ...(Platform.OS === 'web' ? {
-      boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
-    } : {}),
-  },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 4,
-  },
-});
 
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
+import { Box, Text, VStack } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
 import { useOnboardingStore } from '@/core/store/onboardingStore';
 
@@ -17,54 +18,36 @@ export default function RoleSelectionScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>¿Cómo quieres usar PelusApp?</Text>
-
-      <TouchableOpacity style={styles.card} onPress={() => handleSelect('B2B')}>
-        <Text style={styles.cardTitle}>Soy veterinario</Text>
-        <Text style={styles.cardSubtitle}>
-          Gestiona tu clínica, pacientes y recordatorios.
+    <Box flex={1} className="bg-white dark:bg-black justify-center p-6">
+      <VStack space="lg">
+        <Text className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">
+          ¿Cómo quieres usar PelusApp?
         </Text>
-      </TouchableOpacity>
 
-      <TouchableOpacity style={styles.card} onPress={() => handleSelect('B2C')}>
-        <Text style={styles.cardTitle}>Soy dueño de mascotas</Text>
-        <Text style={styles.cardSubtitle}>
-          Controla vacunas, citas y bienestar de tus peludos.
-        </Text>
-      </TouchableOpacity>
-    </View>
+        <Pressable onPress={() => handleSelect('B2B')}>
+          <Box className="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-900 mb-4">
+            <Text className="text-lg font-semibold mb-1 text-gray-900 dark:text-white">
+              Soy veterinario
+            </Text>
+            <Text className="text-sm text-gray-600 dark:text-gray-300">
+              Gestiona tu clínica, pacientes y recordatorios.
+            </Text>
+          </Box>
+        </Pressable>
+
+        <Pressable onPress={() => handleSelect('B2C')}>
+          <Box className="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-900 mb-4">
+            <Text className="text-lg font-semibold mb-1 text-gray-900 dark:text-white">
+              Soy dueño de mascotas
+            </Text>
+            <Text className="text-sm text-gray-600 dark:text-gray-300">
+              Controla vacunas, citas y bienestar de tus peludos.
+            </Text>
+          </Box>
+        </Pressable>
+      </VStack>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  card: {
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: '#f3f4ff',
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#4b5563',
-  },
-});
 
 

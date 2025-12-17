@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
+import { Box, Text, HStack, VStack } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -89,118 +90,56 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const activeRoute = getActiveRoute();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
+    <Box className="w-[250px] h-full bg-white border-r border-gray-200">
+      <Box className="py-4 px-4 border-b border-gray-200">
+        <Text className="text-xl font-bold text-gray-900">
           PelusApp
         </Text>
-      </View>
+      </Box>
       
-      <View style={styles.menu}>
+      <VStack flex={1} className="py-2">
         {visibleMenuItems.map((item) => {
           const isActive = activeRoute === item.name;
           return (
-            <TouchableOpacity
+            <Pressable
               key={item.name}
               onPress={() => handleNavigation(item.route)}
-              style={[
-                styles.menuItem,
-                isActive && styles.menuItemActive,
-              ]}
             >
-              <Ionicons
-                name={isActive ? item.icon : (`${item.icon}-outline` as any)}
-                size={24}
-                color={isActive ? '#1C1B1F' : '#A09CAB'}
-              />
-              <Text
-                style={[
-                  styles.menuItemText,
-                  { color: isActive ? '#1C1B1F' : '#A09CAB' },
-                ]}
+              <HStack
+                className={`px-4 py-3 mx-2 my-1 rounded-lg items-center ${
+                  isActive ? 'bg-blue-50' : ''
+                }`}
               >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
+                <Ionicons
+                  name={isActive ? item.icon : (`${item.icon}-outline` as any)}
+                  size={24}
+                  color={isActive ? '#1C1B1F' : '#A09CAB'}
+                />
+                <Text
+                  className={`text-base font-medium ml-3 ${
+                    isActive ? 'text-gray-900' : 'text-gray-500'
+                  }`}
+                >
+                  {item.label}
+                </Text>
+              </HStack>
+            </Pressable>
           );
         })}
-      </View>
+      </VStack>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
-          onPress={handleSignOut}
-          style={styles.signOutButton}
-        >
-          <Ionicons name="log-out-outline" size={24} color="#DC2626" />
-          <Text style={styles.signOutText}>
-            Cerrar sesión
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+      <Box className="py-4 px-4 border-t border-gray-200">
+        <Pressable onPress={handleSignOut}>
+          <HStack className="px-4 py-3 rounded-lg items-center bg-red-50">
+            <Ionicons name="log-out-outline" size={24} color="#DC2626" />
+            <Text className="text-base font-medium ml-3 text-red-600">
+              Cerrar sesión
+            </Text>
+          </HStack>
+        </Pressable>
+      </Box>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: 250,
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRightWidth: 1,
-    borderRightColor: '#E5E7EB',
-  },
-  header: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1C1B1F',
-  },
-  menu: {
-    flex: 1,
-    paddingVertical: 8,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 8,
-    marginVertical: 4,
-    borderRadius: 8,
-  },
-  menuItemActive: {
-    backgroundColor: '#EFF6FF',
-  },
-  menuItemText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 12,
-  },
-  footer: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: '#FEF2F2',
-  },
-  signOutText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 12,
-    color: '#DC2626',
-  },
-});
 
 

@@ -1,19 +1,12 @@
 import { Slot } from 'expo-router';
-import { View, StyleSheet } from 'react-native';
+import { Box } from '@gluestack-ui/themed';
 
 export default function InitialLayout() {
   return (
-    <View style={styles.container}>
+    <Box flex={1} className="bg-white dark:bg-black">
       <Slot />
-    </View>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-});
 
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
+import { Platform } from 'react-native';
+import { Box, VStack, Text, Input, InputField, Button, ButtonText, Spinner } from '@gluestack-ui/themed';
 import { useSignUp, useAuth, useUser } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useAuthSync } from '../hooks/useAuthSync';
@@ -170,82 +171,73 @@ export function SignUpScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={styles.input}
-        nativeID="email-input"
-        accessibilityLabel="Email"
-      />
-      <TextInput
-        placeholder="Contraseña"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-        nativeID="password-input"
-        accessibilityLabel="Contraseña"
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <TouchableOpacity 
-        style={[styles.button, isLoading && styles.buttonDisabled]} 
-        onPress={onSignUpPress}
-        disabled={isLoading || !isLoaded}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#ffffff" />
-        ) : (
-          <Text style={styles.buttonText}>Registrarse</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+    <Box flex={1} className="bg-white dark:bg-black justify-center p-5">
+      <VStack space="md">
+        <Input 
+          variant="outline" 
+          size="md" 
+          isDisabled={false} 
+          isInvalid={!!error}
+          className="mb-4"
+        >
+          <InputField
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            nativeID="email-input"
+            accessibilityLabel="Email"
+            {...(Platform.OS === 'web' && {
+              style: { outlineStyle: 'none' },
+            })}
+          />
+        </Input>
+
+        <Input 
+          variant="outline" 
+          size="md" 
+          isDisabled={false} 
+          isInvalid={!!error}
+          className="mb-4"
+        >
+          <InputField
+            placeholder="Contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            nativeID="password-input"
+            accessibilityLabel="Contraseña"
+            {...(Platform.OS === 'web' && {
+              style: { outlineStyle: 'none' },
+            })}
+          />
+        </Input>
+
+        {error ? (
+          <Text className="text-red-600 mb-4 text-sm">
+            {error}
+          </Text>
+        ) : null}
+
+        <Button
+          size="md"
+          variant="solid"
+          action="primary"
+          className="bg-primary-500 min-h-[48px]"
+          onPress={onSignUpPress}
+          isDisabled={isLoading || !isLoaded}
+          opacity={isLoading || !isLoaded ? 0.6 : 1}
+        >
+          {isLoading ? (
+            <Spinner color="$white" />
+          ) : (
+            <ButtonText>Registrarse</ButtonText>
+          )}
+        </Button>
+      </VStack>
+    </Box>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 20, 
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#ddd',
-    padding: 12, 
-    marginBottom: 16, 
-    borderRadius: 8,
-    fontSize: 16,
-    backgroundColor: '#ffffff',
-    ...(Platform.OS === 'web' && {
-      outlineStyle: 'none',
-    }),
-  },
-  error: { 
-    color: '#dc2626', 
-    marginBottom: 16,
-    fontSize: 14,
-  },
-  button: {
-    backgroundColor: '#4F46E5',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 

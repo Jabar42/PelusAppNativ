@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { View, useWindowDimensions, StyleSheet } from 'react-native';
+import { useWindowDimensions } from 'react-native';
+import { Box } from '@gluestack-ui/themed';
 import { Tabs } from 'expo-router';
 import ResponsiveNavigation from './ResponsiveNavigation';
 
@@ -33,21 +34,25 @@ export default function TabsLayoutWrapper() {
           }, 0);
         }
       }
-      // Retornar View vacío en lugar de null para evitar errores de DOM
-      return <View style={{ display: 'none' }} />;
+      // Retornar Box vacío en lugar de null para evitar errores de DOM
+      return <Box style={{ display: 'none' }} />;
     }
     // En móvil, renderizar MobileMenu como tabBar (sticky)
     return <ResponsiveNavigation {...props} />;
   }, [isLargeScreen]);
 
   return (
-    <View style={[styles.container, { flexDirection: isLargeScreen ? 'row' : 'column' }]}>
+    <Box 
+      flex={1} 
+      className="overflow-hidden w-full h-full"
+      style={{ flexDirection: isLargeScreen ? 'row' : 'column' }}
+    >
       {isLargeScreen && navProps && (
-        <View style={styles.sidebar}>
+        <Box className="w-[250px] h-full">
           <ResponsiveNavigation {...navProps} />
-        </View>
+        </Box>
       )}
-      <View style={styles.content}>
+      <Box flex={1} className="w-full h-full overflow-hidden">
         <Tabs
           tabBar={handleTabBar}
           screenOptions={{ 
@@ -79,27 +84,8 @@ export default function TabsLayoutWrapper() {
             options={{ title: 'Ayuda', tabBarButton: () => null }}
           />
         </Tabs>
-      </View>
-    </View>
+      </Box>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    overflow: 'hidden',
-    width: '100%',
-    height: '100%',
-  },
-  sidebar: {
-    width: 250,
-    height: '100%',
-  },
-  content: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-  },
-});
 

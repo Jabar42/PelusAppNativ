@@ -1,41 +1,23 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Box, Text, VStack, Center } from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export function FavoritesScreen() {
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.container}>
-        <Text style={styles.title}>FAVORITOS</Text>
-        <Text style={styles.subtitle}>Tus Productos Favoritos</Text>
-      </View>
+    <SafeAreaView style={{ flex: 1, width: '100%', overflow: 'hidden' }} edges={['top']}>
+      <Box flex={1} className="w-full bg-gray-100 dark:bg-gray-900 items-center justify-center pb-14">
+        <Center>
+          <VStack space="md" alignItems="center">
+            <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              FAVORITOS
+            </Text>
+            <Text className="text-lg text-gray-600 dark:text-gray-400">
+              Tus Productos Favoritos
+            </Text>
+          </VStack>
+        </Center>
+      </Box>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  container: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 56,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1C1B1F',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-  },
-});
 
