@@ -2,17 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Variables CSS para dark mode (compatible con Gluestack UI) */
-:root {
-  --color-background: #ffffff;
-  --color-foreground: #000000;
-}
-
-.dark {
-  --color-background: #000000;
-  --color-foreground: #ffffff;
-}
-
 
 
 

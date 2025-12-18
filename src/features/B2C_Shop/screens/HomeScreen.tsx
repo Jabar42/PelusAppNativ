@@ -1,25 +1,43 @@
 import React from 'react';
-import { Box, Text, VStack, Center } from '@gluestack-ui/themed';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import InstallPWAButton from '@/shared/components/InstallPWAButton';
 
 export function HomeScreen() {
   return (
-    <SafeAreaView style={{ flex: 1, width: '100%', overflow: 'hidden' }} edges={['top']}>
-      <Box flex={1} className="w-full bg-gray-100 dark:bg-gray-900 items-center justify-center pb-14">
-        <Center>
-          <VStack space="md" alignItems="center">
-            <Text className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              TIENDA B2C
-            </Text>
-            <Text className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-              Bienvenido a la Tienda
-            </Text>
-            <InstallPWAButton />
-          </VStack>
-        </Center>
-      </Box>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        <Text style={styles.title}>TIENDA B2C</Text>
+        <Text style={styles.subtitle}>Bienvenido a la Tienda</Text>
+        <InstallPWAButton />
+      </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    width: '100%',
+    overflow: 'hidden',
+  },
+  container: {
+    flex: 1,
+    width: '100%',
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 56,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1C1B1F',
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#666',
+  },
+});
 

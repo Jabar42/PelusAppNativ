@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Platform, Alert } from 'react-native';
-import { Box, Button, ButtonText, Text, VStack } from '@gluestack-ui/themed';
+import { Platform, StyleSheet, TouchableOpacity, Text, View, Alert } from 'react-native';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -87,20 +86,44 @@ export default function InstallPWAButton() {
   }
 
   return (
-    <Box className="items-center my-4">
-      <Button
-        size="md"
-        variant="solid"
-        action="primary"
-        className="bg-primary-500 shadow-md"
-        onPress={handleInstallClick}
-      >
-        <ButtonText>📱 Instalar App</ButtonText>
-      </Button>
-      <Text className="mt-2 text-xs text-gray-600 dark:text-gray-400">
-        Agregar a pantalla principal
-      </Text>
-    </Box>
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.button} onPress={handleInstallClick}>
+        <Text style={styles.buttonText}>📱 Instalar App</Text>
+      </TouchableOpacity>
+      <Text style={styles.hint}>Agregar a pantalla principal</Text>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  button: {
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    elevation: 2,
+    ...(Platform.OS === 'web' ? {
+      boxShadow: '0px 2px 3.84px rgba(0, 0, 0, 0.25)',
+    } : {
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+    }),
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  hint: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#666',
+  },
+});
 

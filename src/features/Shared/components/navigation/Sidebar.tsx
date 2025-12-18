@@ -1,6 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { Box, Text, HStack, VStack } from '@gluestack-ui/themed';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -32,7 +31,7 @@ const allMenuItems: MenuItem[] = [
 export default function Sidebar({ state, navigation }: SidebarProps) {
   const { signOut } = useClerkAuth();
   const router = useRouter();
-  const { userRole, isLoading, clearAuth } = useAuthStore();
+  const { userRole, isLoading } = useAuthStore();
 
   // Filtrar items del menú según el rol del usuario
   const getVisibleMenuItems = () => {
@@ -68,15 +67,9 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const handleSignOut = async () => {
     try {
       await signOut();
-      // Limpiar el estado de autenticación en Zustand
-      clearAuth();
-      // Importante: siempre regresar al flujo inicial de loading
-      // para que la lógica central decida si mostrar login o role-select
-      router.replace('/(initial)/loading');
+      router.replace('/(auth)/login');
     } catch (error) {
       console.error('Error signing out:', error);
-      // Limpiar el estado incluso si hay un error en signOut
-      clearAuth();
     }
   };
 
@@ -90,56 +83,118 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const activeRoute = getActiveRoute();
 
   return (
-    <Box className="w-[250px] h-full bg-white border-r border-gray-200">
-      <Box className="py-4 px-4 border-b border-gray-200">
-        <Text className="text-xl font-bold text-gray-900">
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>
           PelusApp
         </Text>
-      </Box>
+      </View>
       
-      <VStack flex={1} className="py-2">
+      <View style={styles.menu}>
         {visibleMenuItems.map((item) => {
           const isActive = activeRoute === item.name;
           return (
-            <Pressable
+            <TouchableOpacity
               key={item.name}
               onPress={() => handleNavigation(item.route)}
+              style={[
+                styles.menuItem,
+                isActive && styles.menuItemActive,
+              ]}
             >
-              <HStack
-                className={`px-4 py-3 mx-2 my-1 rounded-lg items-center ${
-                  isActive ? 'bg-blue-50' : ''
-                }`}
+              <Ionicons
+                name={isActive ? item.icon : (`${item.icon}-outline` as any)}
+                size={24}
+                color={isActive ? '#1C1B1F' : '#A09CAB'}
+              />
+              <Text
+                style={[
+                  styles.menuItemText,
+                  { color: isActive ? '#1C1B1F' : '#A09CAB' },
+                ]}
               >
-                <Ionicons
-                  name={isActive ? item.icon : (`${item.icon}-outline` as any)}
-                  size={24}
-                  color={isActive ? '#1C1B1F' : '#A09CAB'}
-                />
-                <Text
-                  className={`text-base font-medium ml-3 ${
-                    isActive ? 'text-gray-900' : 'text-gray-500'
-                  }`}
-                >
-                  {item.label}
-                </Text>
-              </HStack>
-            </Pressable>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
           );
         })}
-      </VStack>
+      </View>
 
-      <Box className="py-4 px-4 border-t border-gray-200">
-        <Pressable onPress={handleSignOut}>
-          <HStack className="px-4 py-3 rounded-lg items-center bg-red-50">
-            <Ionicons name="log-out-outline" size={24} color="#DC2626" />
-            <Text className="text-base font-medium ml-3 text-red-600">
-              Cerrar sesión
-            </Text>
-          </HStack>
-        </Pressable>
-      </Box>
-    </Box>
+      <View style={styles.footer}>
+        <TouchableOpacity
+          onPress={handleSignOut}
+          style={styles.signOutButton}
+        >
+          <Ionicons name="log-out-outline" size={24} color="#DC2626" />
+          <Text style={styles.signOutText}>
+            Cerrar sesión
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    width: 250,
+    height: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRightWidth: 1,
+    borderRightColor: '#E5E7EB',
+  },
+  header: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1C1B1F',
+  },
+  menu: {
+    flex: 1,
+    paddingVertical: 8,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 8,
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  menuItemActive: {
+    backgroundColor: '#EFF6FF',
+  },
+  menuItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 12,
+  },
+  footer: {
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#FEF2F2',
+  },
+  signOutText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 12,
+    color: '#DC2626',
+  },
+});
 
 

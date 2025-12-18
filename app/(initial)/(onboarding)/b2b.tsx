@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Box, Text, VStack, Button, ButtonText } from '@gluestack-ui/themed';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth, useUser } from '@clerk/clerk-expo';
 import { useAuthStore } from '@/core/store/authStore';
@@ -39,54 +39,84 @@ export default function B2BOnboardingScreen() {
   };
 
   return (
-    <Box flex={1} className="bg-white dark:bg-black justify-center p-6">
-      <VStack space="lg" alignItems="center">
-        <Text className="text-2xl font-bold mb-4 text-center text-gray-900 dark:text-white">
-          PelusApp para Veterinarios
-        </Text>
-        <Text className="text-base text-gray-600 dark:text-gray-300 mb-8 text-center">
-          Organiza tus pacientes, citas y recordatorios en un solo lugar.
-        </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>PelusApp para Veterinarios</Text>
+      <Text style={styles.subtitle}>
+        Organiza tus pacientes, citas y recordatorios en un solo lugar.
+      </Text>
 
-        {isSignedIn ? (
-          // Usuario autenticado pero no ha completado onboarding
-          !hasCompletedOnboarding && (
-            <Button
-              size="md"
-              variant="solid"
-              action="primary"
-              className="bg-primary-500 w-full"
-              onPress={handleContinue}
-            >
-              <ButtonText>Continuar</ButtonText>
-            </Button>
-          )
-        ) : (
-          // Usuario no autenticado - mostrar dos botones
-          <VStack space="md" className="w-full">
-            <Button
-              size="md"
-              variant="solid"
-              action="primary"
-              className="bg-primary-500 w-full"
-              onPress={() => router.push('/(auth)/login')}
-            >
-              <ButtonText>Iniciar Sesión</ButtonText>
-            </Button>
-            <Button
-              size="md"
-              variant="outline"
-              action="primary"
-              className="border-primary-500 w-full"
-              onPress={() => router.push('/(auth)/signup')}
-            >
-              <ButtonText className="text-primary-500">Registrarse</ButtonText>
-            </Button>
-          </VStack>
-        )}
-      </VStack>
-    </Box>
+      {isSignedIn && !hasCompletedOnboarding ? (
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleContinue}
+        >
+          <Text style={styles.buttonText}>Continuar</Text>
+        </TouchableOpacity>
+      ) : !isSignedIn ? (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonPrimary]}
+            onPress={() => router.push('/(auth)/login')}
+          >
+            <Text style={styles.buttonText}>Iniciar Sesión</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonSecondary]}
+            onPress={() => router.push('/(auth)/signup')}
+          >
+            <Text style={[styles.buttonText, styles.buttonTextSecondary]}>Registrarse</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#4b5563',
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    gap: 12,
+  },
+  button: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonPrimary: {
+    backgroundColor: '#4f46e5',
+  },
+  buttonSecondary: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#4f46e5',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  buttonTextSecondary: {
+    color: '#4f46e5',
+  },
+});
 
 

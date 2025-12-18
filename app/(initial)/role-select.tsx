@@ -1,7 +1,8 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { Box, Text, VStack } from '@gluestack-ui/themed';
 import { useRouter } from 'expo-router';
+import { Pressable, Platform } from 'react-native';
+import { VStack, Heading, Text, Box, HStack } from '@gluestack-ui/themed';
+import { Ionicons } from '@expo/vector-icons';
 import { useOnboardingStore } from '@/core/store/onboardingStore';
 
 export default function RoleSelectionScreen() {
@@ -17,34 +18,112 @@ export default function RoleSelectionScreen() {
     }
   };
 
+  const roleOptions = [
+    {
+      role: 'B2B' as const,
+      title: 'Soy veterinario',
+      subtitle: 'Gestiona tu clínica, pacientes y recordatorios.',
+      icon: 'medical-outline' as keyof typeof Ionicons.glyphMap,
+      bgColor: '#eff6ff', // blue-50
+      borderColor: '#bfdbfe', // blue-200
+      iconColor: '#3b82f6',
+    },
+    {
+      role: 'B2C' as const,
+      title: 'Soy dueño de mascotas',
+      subtitle: 'Controla vacunas, citas y bienestar de tus peludos.',
+      icon: 'heart-outline' as keyof typeof Ionicons.glyphMap,
+      bgColor: '#faf5ff', // purple-50
+      borderColor: '#e9d5ff', // purple-200
+      iconColor: '#a855f7',
+    },
+  ];
+
   return (
-    <Box flex={1} className="bg-white dark:bg-black justify-center p-6">
-      <VStack space="lg">
-        <Text className="text-2xl font-bold mb-6 text-center text-gray-900 dark:text-white">
-          ¿Cómo quieres usar PelusApp?
-        </Text>
+    <Box className="flex-1 bg-white">
+      <VStack
+        space="xl"
+        className="flex-1 px-6 py-12 justify-center"
+      >
+        <VStack space="md" className="items-center mb-8">
+          <Heading size="2xl" className="text-center text-gray-900 font-bold">
+            ¿Cómo quieres usar PelusApp?
+          </Heading>
+          <Text size="md" className="text-center text-gray-600 max-w-sm">
+            Selecciona el tipo de cuenta que mejor se adapte a tus necesidades
+          </Text>
+        </VStack>
 
-        <Pressable onPress={() => handleSelect('B2B')}>
-          <Box className="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-900 mb-4">
-            <Text className="text-lg font-semibold mb-1 text-gray-900 dark:text-white">
-              Soy veterinario
-            </Text>
-            <Text className="text-sm text-gray-600 dark:text-gray-300">
-              Gestiona tu clínica, pacientes y recordatorios.
-            </Text>
-          </Box>
-        </Pressable>
-
-        <Pressable onPress={() => handleSelect('B2C')}>
-          <Box className="p-4 rounded-xl bg-indigo-50 dark:bg-indigo-900 mb-4">
-            <Text className="text-lg font-semibold mb-1 text-gray-900 dark:text-white">
-              Soy dueño de mascotas
-            </Text>
-            <Text className="text-sm text-gray-600 dark:text-gray-300">
-              Controla vacunas, citas y bienestar de tus peludos.
-            </Text>
-          </Box>
-        </Pressable>
+        <VStack space="lg" className="w-full">
+          {roleOptions.map((option, index) => (
+            <Pressable
+              key={option.role}
+              onPress={() => handleSelect(option.role)}
+              className="w-full"
+              style={{
+                marginBottom: index < roleOptions.length - 1 ? 16 : 0,
+              }}
+            >
+              {({ pressed }) => (
+                <Box
+                  className="w-full"
+                  style={{
+                    padding: 24,
+                    borderRadius: 16,
+                    borderWidth: 2,
+                    borderColor: option.borderColor,
+                    backgroundColor: option.bgColor,
+                    opacity: pressed ? 0.8 : 1,
+                    ...(Platform.OS === 'web' ? {
+                      boxShadow: pressed 
+                        ? '0 2px 8px rgba(0, 0, 0, 0.1)' 
+                        : '0 4px 12px rgba(0, 0, 0, 0.15)',
+                      transform: pressed ? 'scale(0.98)' : 'scale(1)',
+                      transition: 'all 0.2s ease',
+                    } : {
+                      elevation: pressed ? 2 : 4,
+                    }),
+                  }}
+                >
+                  <HStack space="lg" className="items-center">
+                    <Box
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 28,
+                        backgroundColor: `${option.iconColor}20`,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      className="items-center justify-center"
+                    >
+                      <Ionicons
+                        name={option.icon}
+                        size={28}
+                        color={option.iconColor}
+                      />
+                    </Box>
+                    <VStack space="xs" className="flex-1">
+                      <Heading size="lg" className="text-gray-900 font-semibold">
+                        {option.title}
+                      </Heading>
+                      <Text size="sm" className="text-gray-600">
+                        {option.subtitle}
+                      </Text>
+                    </VStack>
+                    <Box style={{ marginLeft: 'auto' }}>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={24}
+                        color="#9ca3af"
+                      />
+                    </Box>
+                  </HStack>
+                </Box>
+              )}
+            </Pressable>
+          ))}
+        </VStack>
       </VStack>
     </Box>
   );

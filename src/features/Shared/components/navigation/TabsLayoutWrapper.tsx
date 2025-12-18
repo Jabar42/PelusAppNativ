@@ -75,17 +75,17 @@ export default function TabsLayoutWrapper() {
           <Tabs.Screen name="index" options={{ title: 'Home' }} />
           <Tabs.Screen name="fav" options={{ title: 'Favoritos' }} />
           <Tabs.Screen name="pro" options={{ title: 'Perfil' }} />
-          <Tabs.Screen
-            name="settings"
-            options={{ title: 'Configuración', tabBarButton: () => null }}
-          />
+          {/* AYUDA antes que CONFIG para que el orden se refleje en MobileMenu */}
           <Tabs.Screen
             name="help"
             options={{ title: 'Ayuda', tabBarButton: () => null }}
+          />
+          <Tabs.Screen
+            name="settings"
+            options={{ title: 'Configuración', tabBarButton: () => null }}
           />
         </Tabs>
       </Box>
     </Box>
   );
 }
-
