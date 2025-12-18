@@ -52,7 +52,7 @@ export const handler: Handler = async (event, context) => {
 
     if (pendingRole && (pendingRole === 'B2B' || pendingRole === 'B2C')) {
       try {
-        await processUserUpdate(id, pendingRole as string);
+        await processUserUpdate(id, pendingRole);
         return { statusCode: 200, body: JSON.stringify({ message: 'User role updated' }) };
       } catch (error) {
         console.error('Failed to update user role:', error);
@@ -68,6 +68,7 @@ export const handler: Handler = async (event, context) => {
 
   return { statusCode: 200, body: JSON.stringify({ message: 'Event type ignored' }) };
 };
+
 
 
 

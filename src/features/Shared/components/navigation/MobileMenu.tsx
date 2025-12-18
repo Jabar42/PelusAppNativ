@@ -52,7 +52,7 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
         } : {
           elevation: 8,
         }),
-      }}
+      } as any}
     >
       {visibleRoutes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
@@ -93,7 +93,7 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
             onLongPress={onLongPress}
             className="flex-1 items-center justify-center py-2"
           >
-            <VStack space="xs" alignItems="center">
+            <VStack alignItems="center" gap={4}>
               <Ionicons
                 name={iconName}
                 size={24}

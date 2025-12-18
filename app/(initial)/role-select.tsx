@@ -42,19 +42,19 @@ export default function RoleSelectionScreen() {
   return (
     <Box className="flex-1 bg-white">
       <VStack
-        space="xl"
+        gap={24}
         className="flex-1 px-6 py-12 justify-center"
       >
-        <VStack space="md" className="items-center mb-8">
-          <Heading size="2xl" className="text-center text-gray-900 font-bold">
+        <VStack gap={12} className="items-center mb-8">
+          <Heading className="text-center text-gray-900 font-bold" style={{ fontSize: 32 }}>
             ¿Cómo quieres usar PelusApp?
           </Heading>
-          <Text size="md" className="text-center text-gray-600 max-w-sm">
+          <Text className="text-center text-gray-600 max-w-sm" style={{ fontSize: 16 }}>
             Selecciona el tipo de cuenta que mejor se adapte a tus necesidades
           </Text>
         </VStack>
 
-        <VStack space="lg" className="w-full">
+        <VStack gap={16} className="w-full">
           {roleOptions.map((option, index) => (
             <Pressable
               key={option.role}
@@ -85,7 +85,7 @@ export default function RoleSelectionScreen() {
                     }),
                   }}
                 >
-                  <HStack space="lg" className="items-center">
+                  <HStack gap={16} className="items-center">
                     <Box
                       style={{
                         width: 56,
@@ -103,11 +103,11 @@ export default function RoleSelectionScreen() {
                         color={option.iconColor}
                       />
                     </Box>
-                    <VStack space="xs" className="flex-1">
-                      <Heading size="lg" className="text-gray-900 font-semibold">
+                    <VStack gap={4} className="flex-1">
+                      <Heading className="text-gray-900 font-semibold" style={{ fontSize: 20 }}>
                         {option.title}
                       </Heading>
-                      <Text size="sm" className="text-gray-600">
+                      <Text className="text-gray-600" style={{ fontSize: 14 }}>
                         {option.subtitle}
                       </Text>
                     </VStack>
