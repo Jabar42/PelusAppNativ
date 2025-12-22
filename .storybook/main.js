@@ -218,11 +218,11 @@ module.exports = {
       ),
       // MOCK AGRESIVO PARA AUTH STORE
       new webpack.NormalModuleReplacementPlugin(
-        /src\/core\/store\/authStore$/,
+        /.*\/src\/core\/store\/authStore(\.ts)?$/,
         path.resolve(projectRoot, 'storybook/mocks/authStoreMock.ts')
       ),
       new webpack.NormalModuleReplacementPlugin(
-        /src\/core\/store\/authStore\.ts$/,
+        /.*\/store\/authStore$/,
         path.resolve(projectRoot, 'storybook/mocks/authStoreMock.ts')
       ),
       // Interceptar imports relativos desde extractTransform.js

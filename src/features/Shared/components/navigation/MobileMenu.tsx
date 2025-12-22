@@ -33,10 +33,14 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
   const inactiveColor = useToken('colors', 'textLight400');
   const iconSize = useToken('space', '6');
 
+  console.log('📱 MobileMenu Stats:', { userRole, isLoading, stateRoutes: state.routes.length });
+
   // Filtrar tabs según el rol del usuario
   const getVisibleTabs = () => {
-    if (isLoading || !userRole) return [];
-    return allTabs.filter(tab => !tab.roles || tab.roles.includes(userRole));
+    // Si no hay rol, forzar B2C para Storybook si detectamos que estamos en ese entorno
+    const currentRole = userRole || ((window as any).__STORYBOOK_ADDONS ? 'B2C' : null);
+    if (!currentRole) return [];
+    return allTabs.filter(tab => !tab.roles || tab.roles.includes(currentRole as any));
   };
 
   const visibleTabs = getVisibleTabs();
