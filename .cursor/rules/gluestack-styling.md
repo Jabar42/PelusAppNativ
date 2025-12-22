@@ -16,3 +16,4 @@ alwaysApply: true
 - **Refactorización Proactiva:** Si encuentras estilos inline o `StyleSheet.create` con valores fijos, cámbialos por componentes de Gluestack con tokens.
 
 
+
