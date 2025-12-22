@@ -1,0 +1,121 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# PelusApp Component Library
+
+Bienvenido a la Component Library de PelusApp. Esta biblioteca contiene todos los componentes reutilizables del proyecto, organizados por categorías.
+
+## Estructura
+
+La Component Library está organizada en tres categorías principales:
+
+### Design System
+
+Componentes primitivos del design system basados en Gluestack UI. Estos son los componentes base que se pueden combinar para crear interfaces más complejas.
+
+- **Button**: Botones con diferentes variantes, tamaños y estados
+- **Input**: Campos de entrada de texto con diferentes estados (error, disabled, etc.)
+- **Card**: Tarjetas para mostrar contenido con diferentes layouts
+
+### Navigation
+
+Componentes de navegación que adaptan la interfaz según el tamaño de pantalla y el rol del usuario.
+
+- **MobileMenu**: Menú de navegación móvil (bottom tabs)
+- **Sidebar**: Sidebar de navegación para desktop
+- **TabsLayoutWrapper**: Wrapper que adapta la navegación según el tamaño de pantalla
+
+### Shared
+
+Componentes compartidos que se usan en múltiples partes de la aplicación.
+
+- **RoleGate**: Componente que protege contenido según el rol del usuario
+- **LoadingScreen**: Pantalla de carga genérica
+
+## Estrategia de Co-ubicación
+
+Los archivos `.stories.tsx` se ubican junto a sus componentes correspondientes. Esto facilita el mantenimiento:
+
+```
+src/features/Shared/components/
+├── ui/
+│   └── Button/
+│       ├── Button.tsx
+│       └── Button.stories.tsx  ← Story co-ubicada
+├── navigation/
+│   ├── MobileMenu.tsx
+│   └── MobileMenu.stories.tsx  ← Story co-ubicada
+└── RoleGate.tsx
+└── RoleGate.stories.tsx        ← Story co-ubicada
+```
+
+**Ventajas:**
+- Si eliminas un componente, eliminas su story automáticamente
+- Fácil de encontrar y mantener
+- El código del componente y su documentación están juntos
+
+## Cómo Agregar un Nuevo Componente
+
+1. **Crea el componente** en la ubicación apropiada:
+   - Design System: `src/features/Shared/components/ui/[ComponentName]/`
+   - Navigation: `src/features/Shared/components/navigation/`
+   - Shared: `src/features/Shared/components/`
+
+2. **Crea la story** junto al componente:
+   ```typescript
+   // ComponentName.stories.tsx
+   import type { Meta, StoryObj } from '@storybook/react';
+   import ComponentName from './ComponentName';
+
+   const meta: Meta<typeof ComponentName> = {
+     title: 'Category/ComponentName',
+     component: ComponentName,
+     tags: ['autodocs'],
+   };
+
+   export default meta;
+   type Story = StoryObj<typeof ComponentName>;
+
+   export const Default: Story = {
+     args: {
+       // props del componente
+     },
+   };
+   ```
+
+3. **Storybook detectará automáticamente** el nuevo archivo `.stories.tsx`
+
+## Convenciones de Naming
+
+- **Componentes**: PascalCase (ej: `Button`, `MobileMenu`)
+- **Stories**: `[ComponentName].stories.tsx`
+- **Títulos en Storybook**: `Category/ComponentName` (ej: `Design System/Button`, `Navigation/MobileMenu`)
+
+## Mocks y Testing
+
+Los componentes que dependen de:
+- **Zustand stores**: Usan mocks en `storybook/mocks/authStore.ts`
+- **expo-router**: Usan mocks en `storybook/mocks/expoRouter.ts`
+
+Estos mocks se configuran automáticamente en `.storybook/preview.tsx` mediante decorators globales.
+
+## Recursos
+
+- [Documentación de Gluestack UI](https://ui.gluestack.io/)
+- [Documentación de Storybook](https://storybook.js.org/)
+- [Arquitectura del Proyecto](../ARQUITECTURA.md)
+
+## Comandos Útiles
+
+```bash
+# Iniciar Storybook
+npm run storybook
+
+# Build estático de Storybook
+npm run build-storybook
+```
+
+---
+
+**Nota**: Esta Component Library está en desarrollo activo. Los componentes se irán agregando progresivamente según las necesidades del proyecto.

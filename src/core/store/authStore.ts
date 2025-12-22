@@ -11,6 +11,7 @@ export interface AuthState {
   clearAuth: () => void;
 }
 
+console.log('🚨 CARGANDO AUTH STORE REAL (¡ESTO NO DEBERÍA PASAR EN STORYBOOK!)');
 export const useAuthStore = create<AuthState>((set) => ({
   userRole: null,
   isLoading: true, // Inicialmente en true para evitar flickering

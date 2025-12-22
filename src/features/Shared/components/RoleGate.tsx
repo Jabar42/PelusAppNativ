@@ -14,6 +14,13 @@ interface RoleGateProps {
  */
 export default function RoleGate({ allowedRoles, children, fallback = null }: RoleGateProps) {
   const { userRole, isLoading } = useAuthStore();
+  
+  console.log('🛡️ RoleGate Rendering:', { 
+    userRole, 
+    isLoading, 
+    allowedRoles,
+    hasAccess: userRole ? allowedRoles.includes(userRole) : false 
+  });
 
   if (isLoading) {
     return <LoadingScreen />;
