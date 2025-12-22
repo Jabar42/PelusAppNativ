@@ -110,8 +110,8 @@ export default function LoadingScreen() {
   }));
 
   return (
-    <Center flex={1} backgroundColor={primaryBg}>
-      <Box width={200} height={200} justifyContent="center" alignItems="center">
+    <Center flex={1} backgroundColor="$primary0">
+      <Box width={"$48" as any} height={"$48" as any} justifyContent="center" alignItems="center">
         {/* Ripples */}
         <Animated.View style={[{
           position: 'absolute',
@@ -166,7 +166,7 @@ export default function LoadingScreen() {
           <Text 
             fontSize="$2xl" 
             fontWeight="$extrabold" 
-            color={gray800} 
+            color="$gray800" 
             sx={{
               _web: {
                 letterSpacing: 2,
@@ -180,7 +180,7 @@ export default function LoadingScreen() {
         <Animated.View style={textAnimatedStyle}>
           <Text 
             fontSize="$sm" 
-            color={gray500} 
+            color="$gray500" 
             marginTop="$2"
             fontWeight="$medium"
           >

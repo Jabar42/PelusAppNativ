@@ -1,6 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react';
 import MobileMenu from './MobileMenu';
-import { Box } from '@gluestack-ui/themed';
+import { Box, Text } from '@gluestack-ui/themed';
 
 const meta: Meta<typeof MobileMenu> = {
   title: 'Navigation/MobileMenu',
@@ -65,9 +65,9 @@ export const B2BUser: Story = {
     const navigation = createMockNavigation();
 
     return (
-      <Box style={{ width: '375px', height: '667px', position: 'relative' }}>
-        <Box style={{ flex: 1, padding: 20 }}>
-          <p>Contenido de la app</p>
+      <Box width={375} height={667} position="relative">
+        <Box flex={1} padding={20}>
+          <Text>Contenido de la app</Text>
         </Box>
         <MobileMenu state={state} descriptors={descriptors} navigation={navigation} />
       </Box>
@@ -88,9 +88,9 @@ export const B2CUser: Story = {
     const navigation = createMockNavigation();
 
     return (
-      <Box style={{ width: '375px', height: '667px', position: 'relative' }}>
-        <Box style={{ flex: 1, padding: 20 }}>
-          <p>Contenido de la app</p>
+      <Box width={375} height={667} position="relative">
+        <Box flex={1} padding={20}>
+          <Text>Contenido de la app</Text>
         </Box>
         <MobileMenu state={state} descriptors={descriptors} navigation={navigation} />
       </Box>
@@ -111,9 +111,9 @@ export const ActiveHome: Story = {
     const navigation = createMockNavigation();
 
     return (
-      <Box style={{ width: '375px', height: '667px', position: 'relative' }}>
-        <Box style={{ flex: 1, padding: 20 }}>
-          <p>Home activo</p>
+      <Box width={375} height={667} position="relative">
+        <Box flex={1} padding={20}>
+          <Text>Home activo</Text>
         </Box>
         <MobileMenu state={state} descriptors={descriptors} navigation={navigation} />
       </Box>
@@ -134,9 +134,9 @@ export const ActiveFavorites: Story = {
     const navigation = createMockNavigation();
 
     return (
-      <Box style={{ width: '375px', height: '667px', position: 'relative' }}>
-        <Box style={{ flex: 1, padding: 20 }}>
-          <p>Favoritos activo</p>
+      <Box width={375} height={667} position="relative">
+        <Box flex={1} padding={20}>
+          <Text>Favoritos activo</Text>
         </Box>
         <MobileMenu state={state} descriptors={descriptors} navigation={navigation} />
       </Box>

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Platform, Pressable } from 'react-native';
-import { Box, Text, VStack, HStack } from '@gluestack-ui/themed';
+import { Platform } from 'react-native';
+import { Box, Text, VStack, HStack, Pressable } from '@gluestack-ui/themed';
+import { useToken } from '@gluestack-style/react';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/core/store/authStore';
 
@@ -28,6 +29,9 @@ const allTabs: TabItem[] = [
 
 export default function MobileMenu({ state, descriptors, navigation }: MobileMenuProps) {
   const { userRole, isLoading } = useAuthStore();
+  const activeColor = useToken('colors', 'textLight900');
+  const inactiveColor = useToken('colors', 'textLight400');
+  const iconSize = useToken('space', '6');
 
   // Filtrar tabs según el rol del usuario
   const getVisibleTabs = () => {
@@ -45,14 +49,17 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
 
   return (
     <HStack
-      className="h-14 w-full bg-white border-t border-gray-200 shadow-lg"
-      style={{
-        ...(Platform.OS === 'web' ? {
-          boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.1)',
-        } : {
-          elevation: 8,
-        }),
-      } as any}
+      height={"$14" as any}
+      width="$full"
+      backgroundColor="$white"
+      borderTopWidth={"$px" as any}
+      borderTopColor="$borderLight200"
+      hardShadow="2"
+      sx={{
+        _web: {
+          boxShadow: '0 -2px 4px rgba(0, 0, 0, 0.05)',
+        }
+      }}
     >
       {visibleRoutes.map((route: any, index: number) => {
         const { options } = descriptors[route.key];
@@ -85,24 +92,28 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
         return (
           <Pressable
             key={route.key}
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            paddingVertical="$2"
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
             testID={options.tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            className="flex-1 items-center justify-center py-2"
           >
-            <VStack alignItems="center" gap={4}>
+            <VStack alignItems="center" gap="$1">
               <Ionicons
                 name={iconName}
-                size={24}
-                color={isFocused ? '#1C1B1F' : '#A09CAB'}
+                size={iconSize as any}
+                color={isFocused ? activeColor : inactiveColor}
               />
               <Text
-                className={`text-xs font-medium mt-1 ${
-                  isFocused ? 'text-gray-900' : 'text-gray-500'
-                }`}
+                fontSize="$xs"
+                fontWeight="$medium"
+                marginTop="$1"
+                color={isFocused ? '$textLight900' : '$textLight500'}
               >
                 {tab?.label || route.name}
               </Text>
