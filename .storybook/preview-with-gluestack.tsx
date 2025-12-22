@@ -4,7 +4,7 @@
 import 'regenerator-runtime/runtime';
 import React from 'react';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
-import { config } from '@gluestack-ui/config';
+import { config } from '../gluestack-ui.config';
 // SafeAreaProvider funciona en web a través de react-native-web
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { setMockState } from '../storybook/mocks/authStoreMock';

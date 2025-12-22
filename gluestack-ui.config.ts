@@ -78,3 +78,4 @@ declare module '@gluestack-style/react' {
   interface ICustomConfig extends Config {}
 }
 
+

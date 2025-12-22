@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 import React from 'react';
 import { AppRegistry } from 'react-native';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
-import { config } from '@gluestack-ui/config';
+import { config } from '../gluestack-ui.config';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { setMockState } from '../storybook/mocks/authStoreMock';
 import type { Preview } from '@storybook/react';
@@ -124,5 +124,6 @@ const preview: Preview = {
 };
 
 export default preview;
+
 
 

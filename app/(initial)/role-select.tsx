@@ -60,9 +60,6 @@ export default function RoleSelectionScreen() {
               key={option.role}
               onPress={() => handleSelect(option.role)}
               className="w-full"
-              style={{
-                marginBottom: index < roleOptions.length - 1 ? 16 : 0,
-              }}
             >
               {({ pressed }) => (
                 <Box

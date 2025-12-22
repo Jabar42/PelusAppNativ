@@ -15,3 +15,4 @@ alwaysApply: true
 - **Sincronización con Configuración:** Cualquier color nuevo o escala de espaciado debe ser agregado primero en `gluestack-ui.config.ts` antes de usarse en los componentes.
 - **Refactorización Proactiva:** Si encuentras estilos inline o `StyleSheet.create` con valores fijos, cámbialos por componentes de Gluestack con tokens.
 
+
