@@ -18,10 +18,10 @@ export const Default: Story = {};
 
 export const InsideMobileFrame: Story = {
   render: () => (
-    <Center fill backgroundColor="$backgroundLight200" p="$4">
+    <Center flex={1} backgroundColor="$backgroundLight200" padding="$4">
       <Box 
-        w={375} 
-        h={667} 
+        width={375} 
+        height={667} 
         backgroundColor="$white" 
         shadowColor="$black" 
         shadowOpacity={0.2} 
@@ -33,7 +33,7 @@ export const InsideMobileFrame: Story = {
       >
         <LoadingScreen />
       </Box>
-      <Text mt="$4" color="$textLight500" size="sm">
+      <Text marginTop="$4" color="$textLight500" fontSize="$sm">
         Vista previa en contenedor tamaño iPhone 8
       </Text>
     </Center>
@@ -42,7 +42,7 @@ export const InsideMobileFrame: Story = {
 
 export const CustomBackground: Story = {
   render: () => (
-    <VStack space="md" fill>
+    <VStack gap="$4" flex={1}>
       <Box flex={1} backgroundColor="$primary900">
         <LoadingScreen />
       </Box>
@@ -52,5 +52,3 @@ export const CustomBackground: Story = {
     </VStack>
   ),
 };
-
-

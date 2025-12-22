@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { Dimensions } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -7,14 +7,19 @@ import Animated, {
   withTiming, 
   withSequence,
   Easing,
-  interpolate,
   withDelay
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-
-const { width } = Dimensions.get('window');
+import { Box, Text, useToken, Center, VStack } from '@gluestack-ui/themed';
 
 export default function LoadingScreen() {
+  const brandColor = useToken('colors', 'brand600' as any);
+  const primaryBg = useToken('colors', 'primary0' as any);
+  const gray200 = useToken('colors', 'gray200' as any);
+  const gray500 = useToken('colors', 'gray500' as any);
+  const gray800 = useToken('colors', 'gray800' as any);
+  const gray100 = useToken('colors', 'gray100' as any);
+
   const scale = useSharedValue(1);
   const ring1Scale = useSharedValue(0.5);
   const ring1Opacity = useSharedValue(1);
@@ -100,97 +105,89 @@ export default function LoadingScreen() {
     transform: [{ rotate: `${rotation.value}deg` }],
   }));
 
-  const textStyle = useAnimatedStyle(() => ({
+  const textAnimatedStyle = useAnimatedStyle(() => ({
     opacity: textOpacity.value,
   }));
 
   return (
-    <View style={styles.container}>
-      <View style={styles.animationContainer}>
+    <Center flex={1} backgroundColor={primaryBg}>
+      <Box width={200} height={200} justifyContent="center" alignItems="center">
         {/* Ripples */}
-        <Animated.View style={[styles.ring, ring1Style]} />
-        <Animated.View style={[styles.ring, ring2Style]} />
+        <Animated.View style={[{
+          position: 'absolute',
+          width: 80,
+          height: 80,
+          borderRadius: 40,
+          borderWidth: 2,
+          borderColor: brandColor,
+        }, ring1Style]} />
+        <Animated.View style={[{
+          position: 'absolute',
+          width: 80,
+          height: 80,
+          borderRadius: 40,
+          borderWidth: 2,
+          borderColor: brandColor,
+        }, ring2Style]} />
         
         {/* Outer Accent Ring (Dashed) */}
-        <Animated.View style={[styles.accentRing, accentStyle]} />
+        <Animated.View style={[{
+          position: 'absolute',
+          width: 130,
+          height: 130,
+          borderRadius: 65,
+          borderWidth: 1,
+          borderColor: gray200,
+          borderStyle: 'dashed',
+        }, accentStyle]} />
 
         {/* Inner Circle and Icon */}
-        <Animated.View style={[styles.mainCircle, iconStyle]}>
-          <Ionicons name="paw" size={42} color="#4F46E5" />
+        <Animated.View style={[{
+          width: 90,
+          height: 90,
+          borderRadius: 45,
+          backgroundColor: gray100,
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10,
+          // Sombras nativas
+          shadowColor: brandColor,
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.1,
+          shadowRadius: 20,
+          elevation: 10,
+        }, iconStyle]}>
+          <Ionicons name="paw" size={42} color={brandColor} />
         </Animated.View>
-      </View>
+      </Box>
       
-      <View style={styles.textContainer}>
-        <Animated.Text style={[styles.text, textStyle]}>
-          Pelus
-        </Animated.Text>
-        <Animated.Text style={[styles.subtext, textStyle]}>
-          Cargando experiencias...
-        </Animated.Text>
-      </View>
-    </View>
+      <VStack marginTop="$10" alignItems="center">
+        <Animated.View style={textAnimatedStyle}>
+          <Text 
+            fontSize="$2xl" 
+            fontWeight="$extrabold" 
+            color={gray800} 
+            sx={{
+              _web: {
+                letterSpacing: 2,
+                textTransform: 'uppercase',
+              }
+            }}
+          >
+            Pelus
+          </Text>
+        </Animated.View>
+        <Animated.View style={textAnimatedStyle}>
+          <Text 
+            fontSize="$sm" 
+            color={gray500} 
+            marginTop="$2"
+            fontWeight="$medium"
+          >
+            Cargando experiencias...
+          </Text>
+        </Animated.View>
+      </VStack>
+    </Center>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-  },
-  animationContainer: {
-    width: 200,
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mainCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  ring: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: '#4F46E5',
-  },
-  accentRing: {
-    position: 'absolute',
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
-  },
-  textContainer: {
-    marginTop: 40,
-    alignItems: 'center',
-  },
-  text: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1F2937',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
-  subtext: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 8,
-    fontWeight: '500',
-  },
-});

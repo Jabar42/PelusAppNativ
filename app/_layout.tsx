@@ -1,6 +1,8 @@
 import { ClerkProvider } from '@clerk/clerk-expo';
 import { Slot } from 'expo-router';
 import { tokenCache } from '@/core/services/storage';
+import { GluestackUIProvider } from '@gluestack-ui/themed';
+import { config } from '../gluestack-ui.config';
 import '../global.css';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -66,7 +68,9 @@ export default function RootLayout() {
       publishableKey={publishableKey}
       tokenCache={tokenCache}
     >
-      <Slot />
+      <GluestackUIProvider config={config}>
+        <Slot />
+      </GluestackUIProvider>
     </ClerkProvider>
   );
 }
