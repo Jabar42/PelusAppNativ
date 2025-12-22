@@ -1,6 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react';
 import Sidebar from './Sidebar';
-import { Box } from '@gluestack-ui/themed';
+import { Box, Text } from '@gluestack-ui/themed';
 
 const meta: Meta<typeof Sidebar> = {
   title: 'Navigation/Sidebar',
@@ -52,8 +52,8 @@ const createMockDescriptors = (routes: string[]) => {
 };
 
 const createMockNavigation = () => ({
-  navigate: jest.fn(),
-  emit: jest.fn(() => ({ defaultPrevented: false })),
+  navigate: () => {},
+  emit: () => ({ defaultPrevented: false }),
 });
 
 export const B2BUser: Story = {
@@ -63,10 +63,10 @@ export const B2BUser: Story = {
     const navigation = createMockNavigation();
 
     return (
-      <Box style={{ width: '1440px', height: '900px', display: 'flex', flexDirection: 'row' }}>
+      <Box width={1440} height={900} flexDirection="row">
         <Sidebar state={state} descriptors={descriptors} navigation={navigation} />
-        <Box style={{ flex: 1, padding: 20 }}>
-          <p>Contenido principal</p>
+        <Box flex={1} padding={20}>
+          <Text>Contenido principal</Text>
         </Box>
       </Box>
     );
@@ -86,10 +86,10 @@ export const B2CUser: Story = {
     const navigation = createMockNavigation();
 
     return (
-      <Box style={{ width: '1440px', height: '900px', display: 'flex', flexDirection: 'row' }}>
+      <Box width={1440} height={900} flexDirection="row">
         <Sidebar state={state} descriptors={descriptors} navigation={navigation} />
-        <Box style={{ flex: 1, padding: 20 }}>
-          <p>Contenido principal</p>
+        <Box flex={1} padding={20}>
+          <Text>Contenido principal</Text>
         </Box>
       </Box>
     );
@@ -109,10 +109,10 @@ export const ActiveHome: Story = {
     const navigation = createMockNavigation();
 
     return (
-      <Box style={{ width: '1440px', height: '900px', display: 'flex', flexDirection: 'row' }}>
+      <Box width={1440} height={900} flexDirection="row">
         <Sidebar state={state} descriptors={descriptors} navigation={navigation} />
-        <Box style={{ flex: 1, padding: 20 }}>
-          <p>Home activo</p>
+        <Box flex={1} padding={20}>
+          <Text>Home activo</Text>
         </Box>
       </Box>
     );
@@ -132,10 +132,10 @@ export const ActiveSettings: Story = {
     const navigation = createMockNavigation();
 
     return (
-      <Box style={{ width: '1440px', height: '900px', display: 'flex', flexDirection: 'row' }}>
+      <Box width={1440} height={900} flexDirection="row">
         <Sidebar state={state} descriptors={descriptors} navigation={navigation} />
-        <Box style={{ flex: 1, padding: 20 }}>
-          <p>Configuración activa</p>
+        <Box flex={1} padding={20}>
+          <Text>Configuración activa</Text>
         </Box>
       </Box>
     );

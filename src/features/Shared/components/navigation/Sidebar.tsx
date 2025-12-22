@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Box, Text, VStack, HStack, Pressable, Heading } from '@gluestack-ui/themed';
+import { useToken } from '@gluestack-style/react';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -32,6 +33,10 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const { signOut } = useClerkAuth();
   const router = useRouter();
   const { userRole, isLoading } = useAuthStore();
+  
+  const activeIconColor = useToken('colors', 'textLight900');
+  const inactiveIconColor = useToken('colors', 'textLight400');
+  const errorColor = useToken('colors', 'error600');
 
   // Filtrar items del menú según el rol del usuario
   const getVisibleMenuItems = () => {
@@ -83,118 +88,80 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const activeRoute = getActiveRoute();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>
+    <Box
+      width={"$64" as any}
+      height="$full"
+      backgroundColor="$white"
+      borderRightWidth={"$px" as any}
+      borderRightColor="$borderLight200"
+    >
+      <Box
+        paddingVertical="$4"
+        paddingHorizontal="$4"
+        borderBottomWidth={"$px" as any}
+        borderBottomColor="$borderLight200"
+      >
+        <Heading size="md" color="$textLight900">
           PelusApp
-        </Text>
-      </View>
+        </Heading>
+      </Box>
       
-      <View style={styles.menu}>
+      <VStack flex={1} paddingVertical="$2">
         {visibleMenuItems.map((item) => {
           const isActive = activeRoute === item.name;
           return (
-            <TouchableOpacity
+            <Pressable
               key={item.name}
               onPress={() => handleNavigation(item.route)}
-              style={[
-                styles.menuItem,
-                isActive && styles.menuItemActive,
-              ]}
+              paddingHorizontal="$4"
+              paddingVertical="$3"
+              marginHorizontal="$2"
+              marginVertical={"$1" as any}
+              borderRadius="$md"
+              backgroundColor={isActive ? '$primary50' : 'transparent'}
             >
-              <Ionicons
-                name={isActive ? item.icon : (`${item.icon}-outline` as any)}
-                size={24}
-                color={isActive ? '#1C1B1F' : '#A09CAB'}
-              />
-              <Text
-                style={[
-                  styles.menuItemText,
-                  { color: isActive ? '#1C1B1F' : '#A09CAB' },
-                ]}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
+              <HStack alignItems="center" gap="$3">
+                <Ionicons
+                  name={isActive ? item.icon : (`${item.icon}-outline` as any)}
+                  size={24}
+                  color={isActive ? activeIconColor : inactiveIconColor}
+                />
+                <Text
+                  fontWeight={isActive ? '$bold' : '$medium'}
+                  color={isActive ? '$textLight900' : '$textLight500'}
+                >
+                  {item.label}
+                </Text>
+              </HStack>
+            </Pressable>
           );
         })}
-      </View>
+      </VStack>
 
-      <View style={styles.footer}>
-        <TouchableOpacity
+      <Box
+        paddingVertical="$4"
+        paddingHorizontal="$4"
+        borderTopWidth={"$px" as any}
+        borderTopColor="$borderLight200"
+      >
+        <Pressable
           onPress={handleSignOut}
-          style={styles.signOutButton}
+          flexDirection="row"
+          alignItems="center"
+          paddingHorizontal="$4"
+          paddingVertical="$3"
+          borderRadius="$md"
+          backgroundColor="$error50"
+          gap="$3"
         >
-          <Ionicons name="log-out-outline" size={24} color="#DC2626" />
-          <Text style={styles.signOutText}>
+          <Ionicons name="log-out-outline" size={24} color={errorColor} />
+          <Text fontWeight="$medium" color="$error600">
             Cerrar sesión
           </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+        </Pressable>
+      </Box>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: 250,
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRightWidth: 1,
-    borderRightColor: '#E5E7EB',
-  },
-  header: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1C1B1F',
-  },
-  menu: {
-    flex: 1,
-    paddingVertical: 8,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 8,
-    marginVertical: 4,
-    borderRadius: 8,
-  },
-  menuItemActive: {
-    backgroundColor: '#EFF6FF',
-  },
-  menuItemText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 12,
-  },
-  footer: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: '#FEF2F2',
-  },
-  signOutText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 12,
-    color: '#DC2626',
-  },
-});
 
 
