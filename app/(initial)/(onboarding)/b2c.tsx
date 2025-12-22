@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth, useUser } from '@clerk/clerk-expo';
+import { Box, VStack, Heading, Text } from '@gluestack-ui/themed';
 import { useAuthStore } from '@/core/store/authStore';
+import Button from '@/shared/components/ui/Button/Button';
 
 export default function B2COnboardingScreen() {
   const router = useRouter();
@@ -39,84 +40,34 @@ export default function B2COnboardingScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>PelusApp para Dueños de Mascotas</Text>
-      <Text style={styles.subtitle}>
-        Controla vacunas, citas y bienestar de tus peludos desde un solo lugar.
-      </Text>
+    <Box flex={1} backgroundColor="$white" justifyContent="center" p="$6">
+      <VStack gap="$4" alignItems="center">
+        <Heading size="xl" textAlign="center" color="$gray800">
+          PelusApp para Dueños de Mascotas
+        </Heading>
+        <Text size="md" textAlign="center" color="$gray500" mb="$8">
+          Controla vacunas, citas y bienestar de tus peludos desde un solo lugar.
+        </Text>
 
-      {isSignedIn && !hasCompletedOnboarding ? (
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleContinue}
-        >
-          <Text style={styles.buttonText}>Continuar</Text>
-        </TouchableOpacity>
-      ) : !isSignedIn ? (
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.button, styles.buttonPrimary]}
-            onPress={() => router.push('/(auth)/login')}
-          >
-            <Text style={styles.buttonText}>Iniciar Sesión</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.buttonSecondary]}
-            onPress={() => router.push('/(auth)/signup')}
-          >
-            <Text style={[styles.buttonText, styles.buttonTextSecondary]}>Registrarse</Text>
-          </TouchableOpacity>
-        </View>
-      ) : null}
-    </View>
+        {isSignedIn && !hasCompletedOnboarding ? (
+          <Button width="$full" onPress={handleContinue}>
+            Continuar
+          </Button>
+        ) : !isSignedIn ? (
+          <VStack gap="$3" width="$full">
+            <Button width="$full" onPress={() => router.push('/(auth)/login')}>
+              Iniciar Sesión
+            </Button>
+            <Button 
+              width="$full" 
+              variant="outline" 
+              onPress={() => router.push('/(auth)/signup')}
+            >
+              Registrarse
+            </Button>
+          </VStack>
+        ) : null}
+      </VStack>
+    </Box>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#4b5563',
-    marginBottom: 32,
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    gap: 12,
-  },
-  button: {
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonPrimary: {
-    backgroundColor: '#4f46e5',
-  },
-  buttonSecondary: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#4f46e5',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  buttonTextSecondary: {
-    color: '#4f46e5',
-  },
-});
-
-

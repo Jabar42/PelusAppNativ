@@ -8,12 +8,17 @@ export async function processUserUpdate(userId: string, role: 'B2B' | 'B2C'): Pr
   }
 
   try {
+    // Obtener el usuario actual para preservar metadatos existentes
+    const user = await clerkClient.users.getUser(userId);
+    
     await clerkClient.users.updateUser(userId, {
       publicMetadata: {
+        ...(user.publicMetadata || {}),
         role: role,
         hasCompletedOnboarding: true,
       },
       unsafeMetadata: {
+        ...(user.unsafeMetadata || {}),
         // Limpiar pendingRole después de procesar
         pendingRole: null,
       },

@@ -231,7 +231,7 @@ module.exports = {
         (resource) => {
           // Solo interceptar si viene de react-native-svg/extract
           if (resource.context && resource.context.includes('react-native-svg') && resource.context.includes('extract')) {
-            return path.resolve(projectRoot, 'storybook/mocks/reactNativeSvgTransformToRn.js');
+            resource.request = path.resolve(projectRoot, 'storybook/mocks/reactNativeSvgTransformToRn.js');
           }
         }
       )

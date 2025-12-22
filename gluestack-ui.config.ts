@@ -8,6 +8,7 @@ const myColors = {
   // Escala de grises personalizada
   gray100: '#F3F4F6',
   gray200: '#E5E7EB',
+  gray400: '#9CA3AF',
   gray500: '#6B7280',
   gray800: '#1F2937',
 
@@ -24,6 +25,14 @@ const myColors = {
   primary800: '#5b21b6',
   primary900: '#4c1d95',
   primary950: '#2e1065',
+
+  // Colores para roles
+  blue50: '#eff6ff',
+  blue200: '#bfdbfe',
+  blue500: '#3b82f6',
+  purple50: '#faf5ff',
+  purple200: '#e9d5ff',
+  purple500: '#a855f7',
 } as const;
 
 export const config = createConfig({
@@ -52,6 +61,9 @@ export const config = createConfig({
       '8': 32,
       '9': 36,
       '10': 40,
+      '12': 48,
+      '14': 56,
+      '16': 64,
     },
     fontSizes: {
       ...defaultConfig.tokens.fontSizes,

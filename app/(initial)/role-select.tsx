@@ -1,13 +1,17 @@
 import React from 'react';
 import { useRouter } from 'expo-router';
-import { Pressable, Platform } from 'react-native';
-import { VStack, Heading, Text, Box, HStack } from '@gluestack-ui/themed';
+import { Platform } from 'react-native';
+import { VStack, Heading, Text, Box, HStack, Pressable, useToken } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { useOnboardingStore } from '@/core/store/onboardingStore';
 
 export default function RoleSelectionScreen() {
   const router = useRouter();
   const { setPendingRole } = useOnboardingStore();
+
+  const blue500 = useToken('colors', 'blue500' as any);
+  const purple500 = useToken('colors', 'purple500' as any);
+  const gray400 = useToken('colors', 'gray400' as any);
 
   const handleSelect = (role: 'B2B' | 'B2C') => {
     setPendingRole(role);
@@ -23,53 +27,58 @@ export default function RoleSelectionScreen() {
       role: 'B2B' as const,
       title: 'Soy veterinario',
       subtitle: 'Gestiona tu clínica, pacientes y recordatorios.',
-      icon: 'medical-outline' as keyof typeof Ionicons.glyphMap,
-      bgColor: '#eff6ff', // blue-50
-      borderColor: '#bfdbfe', // blue-200
-      iconColor: '#3b82f6',
+      icon: 'medkit-outline' as keyof typeof Ionicons.glyphMap,
+      bgColor: '$blue50',
+      borderColor: '$blue200',
+      iconColor: '$blue500',
+      resolvedIconColor: blue500,
     },
     {
       role: 'B2C' as const,
       title: 'Soy dueño de mascotas',
       subtitle: 'Controla vacunas, citas y bienestar de tus peludos.',
       icon: 'heart-outline' as keyof typeof Ionicons.glyphMap,
-      bgColor: '#faf5ff', // purple-50
-      borderColor: '#e9d5ff', // purple-200
-      iconColor: '#a855f7',
+      bgColor: '$purple50',
+      borderColor: '$purple200',
+      iconColor: '$purple500',
+      resolvedIconColor: purple500,
     },
   ];
 
   return (
-    <Box className="flex-1 bg-white">
+    <Box flex={1} backgroundColor="$white">
       <VStack
-        gap={24}
-        className="flex-1 px-6 py-12 justify-center"
+        flex={1}
+        px="$6"
+        py="$12"
+        justifyContent="center"
+        gap="$6"
       >
-        <VStack gap={12} className="items-center mb-8">
-          <Heading className="text-center text-gray-900 font-bold" style={{ fontSize: 32 }}>
+        <VStack gap="$3" alignItems="center" mb="$8">
+          <Heading textAlign="center" color="$gray800" fontWeight="$bold" fontSize="$3xl">
             ¿Cómo quieres usar PelusApp?
           </Heading>
-          <Text className="text-center text-gray-600 max-w-sm" style={{ fontSize: 16 }}>
+          <Text textAlign="center" color="$gray500" maxWidth="$80" fontSize="$md">
             Selecciona el tipo de cuenta que mejor se adapte a tus necesidades
           </Text>
         </VStack>
 
-        <VStack gap={16} className="w-full">
-          {roleOptions.map((option, index) => (
+        <VStack gap="$4" width="$full">
+          {roleOptions.map((option) => (
             <Pressable
               key={option.role}
               onPress={() => handleSelect(option.role)}
-              className="w-full"
+              width="$full"
             >
               {({ pressed }) => (
                 <Box
-                  className="w-full"
+                  width="$full"
+                  p="$6"
+                  rounded="$2xl"
+                  borderWidth="$2"
+                  borderColor={option.borderColor}
+                  backgroundColor={option.bgColor}
                   style={{
-                    padding: 24,
-                    borderRadius: 16,
-                    borderWidth: 2,
-                    borderColor: option.borderColor,
-                    backgroundColor: option.bgColor,
                     opacity: pressed ? 0.8 : 1,
                     ...(Platform.OS === 'web' ? {
                       boxShadow: pressed 
@@ -82,37 +91,43 @@ export default function RoleSelectionScreen() {
                     }),
                   }}
                 >
-                  <HStack gap={16} className="items-center">
-                    <Box
-                      style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 28,
-                        backgroundColor: `${option.iconColor}20`,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      className="items-center justify-center"
-                    >
-                      <Ionicons
-                        name={option.icon}
-                        size={28}
-                        color={option.iconColor}
+                  <HStack gap="$4" alignItems="center" width="$full">
+                    <Box w="$12" h="$12" justifyContent="center" alignItems="center">
+                      <Box
+                        w="$12"
+                        h="$12"
+                        rounded="$full"
+                        backgroundColor={option.iconColor}
+                        style={{ opacity: 0.2 }}
                       />
+                      {/* Overlay para el icono sin opacidad */}
+                      <Box
+                        position="absolute"
+                        w="$12"
+                        h="$12"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Ionicons
+                          name={option.icon}
+                          size={28}
+                          color={option.resolvedIconColor as any}
+                        />
+                      </Box>
                     </Box>
-                    <VStack gap={4} className="flex-1">
-                      <Heading className="text-gray-900 font-semibold" style={{ fontSize: 20 }}>
+                    <VStack gap="$1" flex={1}>
+                      <Heading color="$gray800" fontWeight="$semibold" fontSize="$xl">
                         {option.title}
                       </Heading>
-                      <Text className="text-gray-600" style={{ fontSize: 14 }}>
+                      <Text color="$gray500" fontSize="$sm">
                         {option.subtitle}
                       </Text>
                     </VStack>
-                    <Box style={{ marginLeft: 'auto' }}>
+                    <Box>
                       <Ionicons
                         name="chevron-forward"
                         size={24}
-                        color="#9ca3af"
+                        color={gray400 as any}
                       />
                     </Box>
                   </HStack>
