@@ -23,7 +23,7 @@ npm run storybook-native
 El archivo `.storybook/preview.tsx` debe exportar un objeto `preview` con este formato:
 
 ```tsx
-import type { Preview } from '@storybook/react-native';
+import type { Preview } from '@storybook/react';
 
 const preview: Preview = {
   decorators: [...],

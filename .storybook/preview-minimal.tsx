@@ -1,6 +1,7 @@
 // Preview MINIMAL - Usa este archivo temporalmente para verificar que Storybook funciona
 // Si esto funciona, el problema está en GluestackUIProvider o SafeAreaProvider
-import type { Preview } from '@storybook/react-native';
+import React from 'react';
+import type { Preview } from '@storybook/react';
 import { View } from 'react-native';
 
 const preview: Preview = {
