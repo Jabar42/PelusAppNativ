@@ -225,6 +225,11 @@ module.exports = {
         /.*\/store\/authStore$/,
         path.resolve(projectRoot, 'storybook/mocks/authStoreMock.ts')
       ),
+      // MOCK PARA CLERK
+      new webpack.NormalModuleReplacementPlugin(
+        /@clerk\/(clerk-expo|clerk-react)/,
+        path.resolve(projectRoot, 'storybook/mocks/clerkMock.tsx')
+      ),
       // Interceptar imports relativos desde extractTransform.js
       new webpack.NormalModuleReplacementPlugin(
         /^\.\/transformToRn$/,

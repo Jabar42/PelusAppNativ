@@ -1,4 +1,12 @@
-{"location":"preview.tsx:12","message":"Checking AppRegistry","data":{"hasGetApplication":true},"timestamp":1766612906974,"sessionId":"debug-session","hypothesisId":"A"}
-{"location":"preview.tsx:12","message":"Checking AppRegistry","data":{"hasGetApplication":true},"timestamp":1766612915581,"sessionId":"debug-session","hypothesisId":"A"}
-{"location":"preview.tsx:12","message":"Checking AppRegistry","data":{"hasGetApplication":true},"timestamp":1766612919390,"sessionId":"debug-session","hypothesisId":"A"}
-{"location":"preview.tsx:12","message":"Checking AppRegistry","data":{"hasGetApplication":true},"timestamp":1766613114674,"sessionId":"debug-session","hypothesisId":"A"}
+{"location":"preview.tsx:12","message":"Checking AppRegistry","data":{"hasGetApplication":true},"timestamp":1766613249310,"sessionId":"debug-session","hypothesisId":"A"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613252544,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613252660,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613252695,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613252737,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613252778,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613290938,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613300179,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613301135,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"clerkMock.tsx:10","message":"Clerk useAuth mock called","data":{},"timestamp":1766613302288,"sessionId":"debug-session","hypothesisId":"B","runId":"post-fix"}
+{"location":"preview.tsx:12","message":"Checking AppRegistry","data":{"hasGetApplication":true},"timestamp":1766613362228,"sessionId":"debug-session","hypothesisId":"A"}
+{"location":"preview.tsx:12","message":"Checking AppRegistry","data":{"hasGetApplication":true},"timestamp":1766613935448,"sessionId":"debug-session","hypothesisId":"A"}
