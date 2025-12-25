@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, VStack, HStack, Heading, Text } from '@gluestack-ui/themed';
+import { Box, VStack, Heading, Text, Pressable } from '@gluestack-ui/themed';
 
 export interface CardProps {
   /**
@@ -47,32 +47,27 @@ export const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const paddingMap = {
-    xs: 8,
-    sm: 12,
-    md: 16,
-    lg: 20,
-    xl: 24,
-  };
-
-  const cardStyle = {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: paddingMap[padding],
-    ...(hasShadow && {
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
-    }),
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  };
+    xs: '$2',
+    sm: '$3',
+    md: '$4',
+    lg: '$5',
+    xl: '$6',
+  } as const;
 
   const content = (
-    <Box style={cardStyle} {...props}>
+    <Box
+      bg="$white"
+      rounded="$xl"
+      p={paddingMap[padding]}
+      borderWidth="$1"
+      borderColor="$borderLight200"
+      {...(hasShadow && {
+        softShadow: '2',
+      })}
+      {...props}
+    >
       {(title || subtitle) && (
-        <VStack space="xs" marginBottom={children ? 12 : 0}>
+        <VStack gap="$1" mb={children ? '$3' : '$0'}>
           {title && (
             <Heading size="md" color="$textLight900">
               {title}
@@ -91,9 +86,9 @@ export const Card: React.FC<CardProps> = ({
 
   if (isPressable && onPress) {
     return (
-      <Box onPress={onPress} style={{ cursor: 'pointer' }}>
+      <Pressable onPress={onPress} sx={{ _web: { cursor: 'pointer' } }}>
         {content}
-      </Box>
+      </Pressable>
     );
   }
 
@@ -101,6 +96,7 @@ export const Card: React.FC<CardProps> = ({
 };
 
 export default Card;
+
 
 
 
