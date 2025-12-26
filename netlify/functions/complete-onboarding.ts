@@ -24,6 +24,7 @@ export const handler: Handler = async (event) => {
   
   try {
     const { userId, userType } = JSON.parse(event.body || '{}');
+    console.log(`[complete-onboarding] Procesando reparación para usuario: ${userId}, tipo: ${userType}`);
 
     if (!userId || !userType) {
       return { 
@@ -33,6 +34,7 @@ export const handler: Handler = async (event) => {
     }
 
     // 2. Actualizar publicMetadata (Seguro)
+    console.log('[complete-onboarding] Llamando a clerkClient.users.updateUserMetadata...');
     await clerkClient.users.updateUserMetadata(userId, {
       publicMetadata: {
         user_type: userType,
@@ -44,6 +46,8 @@ export const handler: Handler = async (event) => {
         hasCompletedOnboarding: null,
       }
     });
+
+    console.log('[complete-onboarding] Sincronización exitosa en Clerk.');
 
     return {
       statusCode: 200,

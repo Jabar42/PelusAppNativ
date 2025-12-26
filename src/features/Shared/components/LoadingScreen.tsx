@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, Platform } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -7,10 +7,11 @@ import Animated, {
   withTiming, 
   withSequence,
   Easing,
-  withDelay
+  withDelay,
+  FadeIn
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Box, Text, useToken, Center, VStack } from '@gluestack-ui/themed';
+import { Box, Text, useToken, Center, VStack, Button, ButtonText, HStack, Icon } from '@gluestack-ui/themed';
 
 export default function LoadingScreen() {
   const brandColor = useToken('colors', 'brand600' as any);
@@ -19,6 +20,8 @@ export default function LoadingScreen() {
   const gray500 = useToken('colors', 'gray500' as any);
   const gray800 = useToken('colors', 'gray800' as any);
   const gray100 = useToken('colors', 'gray100' as any);
+
+  const [showRetry, setShowRetry] = useState(false);
 
   const scale = useSharedValue(1);
   const ring1Scale = useSharedValue(0.5);
@@ -29,6 +32,11 @@ export default function LoadingScreen() {
   const textOpacity = useSharedValue(0.4);
 
   useEffect(() => {
+    // Failsafe: Si tarda más de 15 segundos, mostrar botón de reintento
+    const timer = setTimeout(() => {
+      setShowRetry(true);
+    }, 15000);
+
     // Icon pulsing
     scale.value = withRepeat(
       withSequence(
@@ -85,7 +93,18 @@ export default function LoadingScreen() {
       -1,
       true
     );
+
+    return () => clearTimeout(timer);
   }, []);
+
+  const handleRetry = () => {
+    if (Platform.OS === 'web') {
+      // Limpiar banderas de sesión para permitir nuevo intento automático si falla
+      sessionStorage.removeItem('appErrorReloaded');
+      // Recarga forzada
+      window.location.reload();
+    }
+  };
 
   const iconStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -161,32 +180,56 @@ export default function LoadingScreen() {
         </Animated.View>
       </Box>
       
-      <VStack marginTop="$10" alignItems="center">
-        <Animated.View style={textAnimatedStyle}>
-          <Text 
-            fontSize="$2xl" 
-            fontWeight="$extrabold" 
-            color="$gray800" 
-            sx={{
-              _web: {
-                letterSpacing: 2,
-                textTransform: 'uppercase',
-              }
-            }}
-          >
-            Pelus
-          </Text>
-        </Animated.View>
-        <Animated.View style={textAnimatedStyle}>
-          <Text 
-            fontSize="$sm" 
-            color="$gray500" 
-            marginTop="$2"
-            fontWeight="$medium"
-          >
-            Cargando experiencias...
-          </Text>
-        </Animated.View>
+      <VStack marginTop="$10" alignItems="center" space="md">
+        <VStack alignItems="center">
+          <Animated.View style={textAnimatedStyle}>
+            <Text 
+              fontSize="$2xl" 
+              fontWeight="$extrabold" 
+              color="$gray800" 
+              sx={{
+                _web: {
+                  letterSpacing: 2,
+                  textTransform: 'uppercase',
+                }
+              }}
+            >
+              Pelus
+            </Text>
+          </Animated.View>
+          <Animated.View style={textAnimatedStyle}>
+            <Text 
+              fontSize="$sm" 
+              color="$gray500" 
+              marginTop="$2"
+              fontWeight="$medium"
+            >
+              {showRetry ? 'La conexión está tardando más de lo esperado' : 'Cargando experiencias...'}
+            </Text>
+          </Animated.View>
+        </VStack>
+
+        {showRetry && Platform.OS === 'web' && (
+          <Animated.View entering={FadeIn.duration(500)}>
+            <Button 
+              size="md" 
+              variant="outline" 
+              action="primary" 
+              onPress={handleRetry}
+              borderColor="$brand600"
+              sx={{
+                ':hover': {
+                  backgroundColor: '$brand50',
+                }
+              }}
+            >
+              <HStack space="xs" alignItems="center">
+                <Icon as={Ionicons} name="refresh" color="$brand600" />
+                <ButtonText color="$brand600">Reintentar conexión</ButtonText>
+              </HStack>
+            </Button>
+          </Animated.View>
+        )}
       </VStack>
     </Center>
   );

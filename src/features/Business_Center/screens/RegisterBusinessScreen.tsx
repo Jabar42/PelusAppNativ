@@ -71,14 +71,32 @@ export function RegisterBusinessScreen() {
     setIsLoading(true);
     setError('');
 
+    // Función auxiliar para reintentar la creación con backoff
+    const attemptCreateOrg = async (retries = 2): Promise<any> => {
+      try {
+        return await createOrganization({ name: businessName.trim() });
+      } catch (err: any) {
+        // Si es un error de red (Failed to fetch) y quedan reintentos
+        const errorMessage = err.message || '';
+        const isNetworkError = errorMessage.includes('fetch') || 
+                             errorMessage.includes('Network') || 
+                             errorMessage.includes('TypeError');
+        
+        if (retries > 0 && isNetworkError) {
+          console.warn(`Error de red detectado. Reintentando... (${retries} restantes)`);
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Esperar 2s para estabilizar
+          return attemptCreateOrg(retries - 1);
+        }
+        throw err;
+      }
+    };
+
     try {
       let orgId = createdOrgId;
 
       // 1. Crear la organización si no se ha creado aún
       if (!orgId) {
-        const organization = await createOrganization({
-          name: businessName.trim(),
-        });
+        const organization = await attemptCreateOrg();
         orgId = organization.id;
         setCreatedOrgId(orgId);
       }
@@ -86,6 +104,13 @@ export function RegisterBusinessScreen() {
       // 2. Intentar actualizar metadatos en el backend (publicMetadata)
       // Bloqueo de navegación: No seguimos hasta que esto sea exitoso
       await updateMetadataInBackend(orgId);
+
+      // 4. EXTRA: Asegurar que el usuario sea marcado como professional si es su primera org
+      const token = await getToken();
+      await apiClient.post('/complete-onboarding', {
+        userId: (await userLoaded && user?.id), // Usamos el ID del usuario actual
+        userType: 'professional'
+      }, token);
 
       // 3. Establecer como activa y navegar
       if (setActive) {
@@ -95,10 +120,18 @@ export function RegisterBusinessScreen() {
       router.replace('/(tabs)');
     } catch (err: any) {
       console.error('Error in business registration flow:', err);
+      
+      const errorMessage = err.message || '';
+      const isNetworkError = errorMessage.includes('fetch') || 
+                             errorMessage.includes('Network') || 
+                             errorMessage.includes('TypeError');
+
       setError(
-        createdOrgId 
-          ? 'La organización se creó pero no pudimos configurar el tipo de negocio. Por favor, reintenta.' 
-          : (err.errors?.[0]?.message || err.message || 'Error al crear el negocio')
+        isNetworkError 
+          ? 'Error de conexión con el servidor de autenticación. Por favor, asegúrate de no tener bloqueadores de anuncios activos e intenta de nuevo.' 
+          : createdOrgId 
+            ? 'La organización se creó pero no pudimos configurar el tipo de negocio. Por favor, reintenta.' 
+            : (err.errors?.[0]?.message || errorMessage || 'Error al crear el negocio')
       );
       setIsLoading(false);
     }

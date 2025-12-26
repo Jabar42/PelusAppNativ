@@ -24,52 +24,55 @@ function AuthSyncWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Manejo global de errores de chunk loading de Clerk
+// Manejo global de errores de carga (Clerk y Chunks)
 if (typeof window !== 'undefined') {
-  // Limpiar el flag de reload al cargar la página
+  // Limpiar el flag de reload al cargar la página exitosamente
   window.addEventListener('load', () => {
-    // Limpiar después de 5 segundos para permitir recargas futuras si es necesario
     setTimeout(() => {
-      sessionStorage.removeItem('chunkErrorReloaded');
+      sessionStorage.removeItem('appErrorReloaded');
     }, 5000);
   });
 
-  window.addEventListener('error', (event) => {
-    const errorMessage = event.message || event.error?.message || '';
-    if (errorMessage.includes('Loading chunk') || errorMessage.includes('chunk')) {
-      console.warn('Chunk loading error detected:', errorMessage);
-      // Solo recargar una vez para evitar loops infinitos
-      const hasReloaded = sessionStorage.getItem('chunkErrorReloaded');
+  const handleResourceError = (errorMessage: string) => {
+    const isCriticalError = 
+      errorMessage.includes('Loading chunk') || 
+      errorMessage.includes('chunk') ||
+      errorMessage.includes('clerk') ||
+      errorMessage.includes('failed_to_load_clerk');
+
+    if (isCriticalError) {
+      console.warn('Critical loading error detected:', errorMessage);
+      
+      const hasReloaded = sessionStorage.getItem('appErrorReloaded');
       if (!hasReloaded) {
-        console.log('Reloading page to fix chunk error...');
-        sessionStorage.setItem('chunkErrorReloaded', 'true');
+        console.log('Initiating recovery reload with extended backoff (3s)...');
+        sessionStorage.setItem('appErrorReloaded', 'true');
+        
+        // Extended backoff: dar más tiempo a la red local y a Clerk para estabilizarse
         setTimeout(() => {
-          window.location.reload();
-        }, 100);
+          // Solo recargar si no estamos en una sesión de depuración activa que pueda interferir
+          if (typeof window !== 'undefined' && !window.location.search.includes('debug')) {
+            window.location.reload();
+          }
+        }, 3000);
       } else {
-        console.error('Chunk error persists after reload. Please clear browser cache.');
+        console.error('Critical error persists after auto-reload. Please check your internet connection or ad-blockers.');
       }
     }
+  };
+
+  window.addEventListener('error', (event) => {
+    const errorMessage = event.message || event.error?.message || '';
+    handleResourceError(errorMessage);
   });
 
-  // También manejar errores no capturados de promesas
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason;
     const errorMessage = typeof reason === 'string' 
       ? reason 
       : reason?.message || reason?.toString() || '';
     
-    if (errorMessage.includes('Loading chunk') || errorMessage.includes('chunk')) {
-      console.warn('Chunk loading promise rejection detected:', errorMessage);
-      const hasReloaded = sessionStorage.getItem('chunkErrorReloaded');
-      if (!hasReloaded) {
-        console.log('Reloading page to fix chunk promise rejection...');
-        sessionStorage.setItem('chunkErrorReloaded', 'true');
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
-      }
-    }
+    handleResourceError(errorMessage);
   });
 }
 
