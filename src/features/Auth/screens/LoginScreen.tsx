@@ -20,10 +20,8 @@ import {
   FormControlError,
   FormControlErrorText,
   FormControlErrorIcon,
-  AlertCircleIcon,
-  Icon
+  AlertCircleIcon
 } from '@gluestack-ui/themed';
-import { useAuthSync } from '../hooks/useAuthSync';
 
 export function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -34,9 +32,6 @@ export function LoginScreen() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
-  // Sincronizar estado de onboarding
-  useAuthSync();
 
   // Si el usuario ya está autenticado, redirigir
   useEffect(() => {

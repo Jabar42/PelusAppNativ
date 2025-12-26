@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, Text, VStack, HStack, Pressable } from '@gluestack-ui/themed';
-import { useToken } from '@gluestack-style/react';
+import { Box, Text, VStack, HStack, Pressable, useToken } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { useOrganization } from '@clerk/clerk-expo';
 import { useAuthStore } from '@/core/store/authStore';
@@ -35,16 +34,19 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
   const inactiveColor = useToken('colors', 'textLight400');
   const iconSize = useToken('space', '6');
 
-  // Determinar el contexto actual
+  // Determinar el contexto actual. Si no ha cargado, asumimos B2C para evitar que las pestañas desaparezcan.
   const currentContext = organization ? 'B2B' : 'B2C';
 
   // Filtrar tabs según el contexto actual
   const getVisibleTabs = () => {
-    if (!orgLoaded || authLoading) return [];
+    // Si está cargando el perfil profesional, mostramos al menos las comunes
+    // para evitar que el menú desaparezca por completo (flickering).
+    const showOnlyBoth = !orgLoaded || authLoading;
     
-    return allTabs.filter(tab => 
-      tab.context === 'BOTH' || tab.context === currentContext
-    );
+    return allTabs.filter(tab => {
+      if (showOnlyBoth) return tab.context === 'BOTH';
+      return tab.context === 'BOTH' || tab.context === currentContext;
+    });
   };
 
   const visibleTabs = getVisibleTabs();

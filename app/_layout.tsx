@@ -4,6 +4,7 @@ import { tokenCache } from '@/core/services/storage';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { config } from '../gluestack-ui.config';
 import '../global.css';
+import { useAuthSync } from '@/features/Auth/hooks/useAuthSync';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
@@ -11,6 +12,16 @@ if (!publishableKey) {
   throw new Error(
     'Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env file'
   );
+}
+
+/**
+ * Wrapper para sincronizar el estado de autenticación de forma global.
+ * Asegura que useAuthSync esté activo en toda la aplicación, manteniendo
+ * el authStore actualizado con los datos de Clerk.
+ */
+function AuthSyncWrapper({ children }: { children: React.ReactNode }) {
+  useAuthSync();
+  return <>{children}</>;
 }
 
 // Manejo global de errores de chunk loading de Clerk
@@ -69,7 +80,9 @@ export default function RootLayout() {
       tokenCache={tokenCache}
     >
       <GluestackUIProvider config={config}>
-        <Slot />
+        <AuthSyncWrapper>
+          <Slot />
+        </AuthSyncWrapper>
       </GluestackUIProvider>
     </ClerkProvider>
   );

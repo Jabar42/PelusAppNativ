@@ -3,7 +3,6 @@ import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import LoadingScreen from '@/shared/components/LoadingScreen';
 import { useAuthStore } from '@/core/store/authStore';
-import { useAuthSync } from '@/features/Auth/hooks/useAuthSync';
 
 /**
  * Orquestador de carga inicial.
@@ -16,9 +15,6 @@ export default function InitialLoadingScreen() {
   const { isLoading: authLoading } = useAuthStore();
   const hasNavigatedRef = useRef(false);
   const previousSignedInRef = useRef<boolean | undefined>(undefined);
-
-  // Sincronizar estado de Clerk con Store local
-  useAuthSync();
 
   // Resetear el flag de navegación si el estado de autenticación cambia
   useEffect(() => {
@@ -42,13 +38,11 @@ export default function InitialLoadingScreen() {
 
     if (!isSignedIn) {
       // Si no hay sesión, ir al Login Universal
-      // NOTA: Se elimina role-select del flujo crítico
       router.replace('/(auth)/login');
       return;
     }
 
     // Si hay sesión, ir directamente al Dashboard (Tabs)
-    // El Dashboard se encargará de decidir qué vista mostrar (B2B o B2C)
     router.replace('/(tabs)');
     
   }, [isLoaded, authLoading, isSignedIn, router]);

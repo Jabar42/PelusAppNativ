@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, Text, VStack, HStack, Pressable, Heading } from '@gluestack-ui/themed';
-import { useToken } from '@gluestack-style/react';
+import { Box, Text, VStack, HStack, Pressable, Heading, useToken } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth as useClerkAuth, useOrganization } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
@@ -38,15 +37,19 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
   const inactiveIconColor = useToken('colors', 'textLight400');
   const errorColor = useToken('colors', 'error600');
 
-  // Determinar el contexto actual
+  // Determinar el contexto actual. Si no ha cargado, asumimos B2C para evitar que el menú desaparezca.
   const currentContext = organization ? 'B2B' : 'B2C';
 
   // Filtrar items del menú según el contexto actual
   const getVisibleMenuItems = () => {
-    if (!orgLoaded || authLoading) return [];
-    return allMenuItems.filter(item => 
-      item.context === 'BOTH' || item.context === currentContext
-    );
+    // Si está cargando el perfil profesional, mostramos al menos las comunes
+    // para evitar que el menú desaparezca por completo (flickering).
+    const showOnlyBoth = !orgLoaded || authLoading;
+
+    return allMenuItems.filter(item => {
+      if (showOnlyBoth) return item.context === 'BOTH';
+      return item.context === 'BOTH' || item.context === currentContext;
+    });
   };
 
   const visibleMenuItems = getVisibleMenuItems();
