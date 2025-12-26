@@ -14,6 +14,12 @@ if (!publishableKey) {
   );
 }
 
+// #region agent log
+if (typeof window !== 'undefined') {
+  fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/_layout.tsx:16',message:'Clerk initialization check',data:{hostname:window.location.hostname,href:window.location.href,publishableKey:publishableKey.substring(0,10)+'...'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+}
+// #endregion
+
 /**
  * Wrapper para sincronizar el estado de autenticación de forma global.
  * Asegura que useAuthSync esté activo en toda la aplicación, manteniendo

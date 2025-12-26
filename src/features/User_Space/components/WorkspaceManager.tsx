@@ -38,6 +38,10 @@ export default function WorkspaceManager() {
     },
   });
 
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkspaceManager.tsx:40',message:'WorkspaceManager State',data:{isLoaded, hasMemberships: !!userMemberships, activeOrg: activeOrg?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
+
   const [showActionsheet, setShowActionsheet] = useState(false);
   const handleClose = () => setShowActionsheet(false);
 
