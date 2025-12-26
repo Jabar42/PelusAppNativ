@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuthStore } from '@/core/store/authStore';
+import { useOrganization } from '@clerk/clerk-expo';
 import { UserRole } from '@/core/types/user';
 import LoadingScreen from './LoadingScreen';
 
@@ -10,26 +10,24 @@ interface RoleGateProps {
 }
 
 /**
- * Componente que renderiza contenido solo si el usuario tiene uno de los roles permitidos
+ * Componente que renderiza contenido solo si el usuario se encuentra en el contexto permitido.
+ * Mapeo:
+ * - 'B2B' -> Hay una organización activa en Clerk.
+ * - 'B2C' -> No hay organización activa (Perfil Personal).
  */
 export default function RoleGate({ allowedRoles, children, fallback = null }: RoleGateProps) {
-  const { userRole, isLoading } = useAuthStore();
+  const { organization, isLoaded } = useOrganization();
   
-  console.log('🛡️ RoleGate Rendering:', { 
-    userRole, 
-    isLoading, 
-    allowedRoles,
-    hasAccess: userRole ? allowedRoles.includes(userRole) : false 
-  });
+  // Determinar el contexto actual
+  const currentContext: UserRole = organization ? 'B2B' : 'B2C';
 
-  if (isLoading) {
+  if (!isLoaded) {
     return <LoadingScreen />;
   }
 
-  if (!userRole || !allowedRoles.includes(userRole)) {
+  if (!allowedRoles.includes(currentContext)) {
     return <>{fallback}</>;
   }
 
   return <>{children}</>;
 }
-

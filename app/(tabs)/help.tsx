@@ -1,17 +1,18 @@
 import React from 'react';
-import { useAuthStore } from '@/core/store/authStore';
-import { HelpScreen as HelpB2B } from '@/features/B2B_Dashboard/screens/HelpScreen';
-import { HelpScreen as HelpB2C } from '@/features/B2C_Shop/screens/HelpScreen';
+import { useOrganization } from '@clerk/clerk-expo';
+import { HelpScreen as HelpB2B } from '@/features/Business_Center/Veterinary/screens/HelpScreen';
+import { HelpScreen as HelpB2C } from '@/features/User_Space/screens/HelpScreen';
 import LoadingScreen from '@/shared/components/LoadingScreen';
 
 export default function HelpScreen() {
-  const { userRole, isLoading } = useAuthStore();
+  const { organization, isLoaded } = useOrganization();
 
-  if (isLoading) {
+  if (!isLoaded) {
     return <LoadingScreen />;
   }
 
-  if (userRole === 'B2B') {
+  // Renderizado condicional según el contexto (B2B o B2C)
+  if (organization) {
     return <HelpB2B />;
   }
 

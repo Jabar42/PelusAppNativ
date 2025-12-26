@@ -1,22 +1,32 @@
 import React from 'react';
+import { useOrganization } from '@clerk/clerk-expo';
 import { useAuthStore } from '@/core/store/authStore';
-import { HomeScreen as HomeB2B } from '@/features/B2B_Dashboard/screens/HomeScreen';
-import { HomeScreen as HomeB2C } from '@/features/B2C_Shop/screens/HomeScreen';
+import { HomeScreen as HomeB2C } from '@/features/User_Space/screens/HomeScreen';
+import BusinessCenterOrchestrator from '@/features/Business_Center/BusinessCenterOrchestrator';
 import LoadingScreen from '@/shared/components/LoadingScreen';
 
+/**
+ * Pantalla principal del sistema de Tabs.
+ * Actúa como el Switcher de Contexto Maestro (Identidad Unificada).
+ */
 export default function IndexScreen() {
-  const { userRole, isLoading } = useAuthStore();
+  const { isLoading: authLoading } = useAuthStore();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
 
-  // CRÍTICO: Esperar explícitamente a que isLoading === false antes de renderizar
-  if (isLoading) {
+  // 1. Esperar a que Clerk y nuestro store estén listos
+  if (authLoading || !orgLoaded) {
     return <LoadingScreen />;
   }
 
-  // Renderizar condicionalmente según el rol
-  if (userRole === 'B2B') {
-    return <HomeB2B />;
+  /**
+   * 2. Lógica de "Contexto Activo":
+   * - Si hay una organización activa en Clerk, estamos en modo profesional (B2B).
+   * - Si no hay organización activa, estamos en modo personal (B2C).
+   */
+  if (organization) {
+    return <BusinessCenterOrchestrator />;
   }
 
-  // Default a B2C
+  // Por defecto: Espacio Personal (B2C)
   return <HomeB2C />;
 }

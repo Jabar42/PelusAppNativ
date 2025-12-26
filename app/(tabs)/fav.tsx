@@ -1,23 +1,23 @@
 import React from 'react';
-import { useAuthStore } from '@/core/store/authStore';
-import { FavoritesScreen } from '@/features/B2C_Shop/screens/FavoritesScreen';
+import { useOrganization } from '@clerk/clerk-expo';
+import { FavoritesScreen } from '@/features/User_Space/screens/FavoritesScreen';
 import LoadingScreen from '@/shared/components/LoadingScreen';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function FavScreen() {
-  const { userRole, isLoading } = useAuthStore();
+  const { organization, isLoaded } = useOrganization();
 
-  if (isLoading) {
+  if (!isLoaded) {
     return <LoadingScreen />;
   }
 
-  // Only B2C users can access favorites
-  if (userRole !== 'B2C') {
+  // Favoritos solo disponibles en el Espacio Personal (B2C)
+  if (organization) {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Acceso no autorizado</Text>
         <Text style={styles.subtitle}>
-          Esta sección está disponible solo para clientes.
+          Esta sección está disponible solo en tu perfil personal.
         </Text>
       </View>
     );
@@ -25,6 +25,7 @@ export default function FavScreen() {
 
   return <FavoritesScreen />;
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -45,4 +46,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-

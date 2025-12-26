@@ -1,8 +1,8 @@
 import React from 'react';
-import { Platform } from 'react-native';
 import { Box, Text, VStack, HStack, Pressable } from '@gluestack-ui/themed';
 import { useToken } from '@gluestack-style/react';
 import { Ionicons } from '@expo/vector-icons';
+import { useOrganization } from '@clerk/clerk-expo';
 import { useAuthStore } from '@/core/store/authStore';
 
 interface TabItem {
@@ -10,7 +10,7 @@ interface TabItem {
   label: string;
   iconOutline: keyof typeof Ionicons.glyphMap;
   iconFilled: keyof typeof Ionicons.glyphMap;
-  roles?: ('B2B' | 'B2C')[]; // Roles que pueden ver este tab
+  context?: 'B2B' | 'B2C' | 'BOTH'; // Contexto en el que es visible
 }
 
 interface MobileMenuProps {
@@ -20,27 +20,31 @@ interface MobileMenuProps {
 }
 
 const allTabs: TabItem[] = [
-  { name: 'index', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home', roles: ['B2B', 'B2C'] },
-  { name: 'fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart', roles: ['B2C'] }, // Solo B2C
-  { name: 'pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person', roles: ['B2B', 'B2C'] },
-  { name: 'settings', label: 'CONFIG', iconOutline: 'settings-outline', iconFilled: 'settings', roles: ['B2B', 'B2C'] },
-  { name: 'help', label: 'AYUDA', iconOutline: 'help-circle-outline', iconFilled: 'help-circle', roles: ['B2B', 'B2C'] },
+  { name: 'index', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home', context: 'BOTH' },
+  { name: 'fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart', context: 'B2C' }, // Solo Personal
+  { name: 'pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person', context: 'BOTH' },
+  { name: 'settings', label: 'CONFIG', iconOutline: 'settings-outline', iconFilled: 'settings', context: 'BOTH' },
+  { name: 'help', label: 'AYUDA', iconOutline: 'help-circle-outline', iconFilled: 'help-circle', context: 'BOTH' },
 ];
 
 export default function MobileMenu({ state, descriptors, navigation }: MobileMenuProps) {
-  const { userRole, isLoading } = useAuthStore();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+  const { isLoading: authLoading } = useAuthStore();
+  
   const activeColor = useToken('colors', 'textLight900');
   const inactiveColor = useToken('colors', 'textLight400');
   const iconSize = useToken('space', '6');
 
-  console.log('📱 MobileMenu Stats:', { userRole, isLoading, stateRoutes: state.routes.length });
+  // Determinar el contexto actual
+  const currentContext = organization ? 'B2B' : 'B2C';
 
-  // Filtrar tabs según el rol del usuario
+  // Filtrar tabs según el contexto actual
   const getVisibleTabs = () => {
-    // Si no hay rol, forzar B2C para Storybook si detectamos que estamos en ese entorno
-    const currentRole = userRole || ((window as any).__STORYBOOK_ADDONS ? 'B2C' : null);
-    if (!currentRole) return [];
-    return allTabs.filter(tab => !tab.roles || tab.roles.includes(currentRole as any));
+    if (!orgLoaded || authLoading) return [];
+    
+    return allTabs.filter(tab => 
+      tab.context === 'BOTH' || tab.context === currentContext
+    );
   };
 
   const visibleTabs = getVisibleTabs();
@@ -65,7 +69,7 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
         }
       }}
     >
-      {visibleRoutes.map((route: any, index: number) => {
+      {visibleRoutes.map((route: any) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === state.routes.findIndex((r: any) => r.key === route.key);
 
@@ -128,5 +132,3 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
     </HStack>
   );
 }
-
-

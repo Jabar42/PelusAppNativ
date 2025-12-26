@@ -68,3 +68,4 @@ export const ClerkLoaded = ({ children }: { children: React.ReactNode }) => <>{c
 
 // Mocks para tipos si es necesario
 export const TokenCache = {};
+

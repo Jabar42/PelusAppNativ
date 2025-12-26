@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text, VStack, HStack, Pressable, Heading } from '@gluestack-ui/themed';
 import { useToken } from '@gluestack-style/react';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth as useClerkAuth } from '@clerk/clerk-expo';
+import { useAuth as useClerkAuth, useOrganization } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/core/store/authStore';
 
@@ -11,8 +11,7 @@ interface MenuItem {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   route: string;
-  isAction?: boolean;
-  roles?: ('B2B' | 'B2C')[]; // Roles que pueden ver este item
+  context?: 'B2B' | 'B2C' | 'BOTH';
 }
 
 interface SidebarProps {
@@ -22,26 +21,32 @@ interface SidebarProps {
 }
 
 const allMenuItems: MenuItem[] = [
-  { name: 'index', label: 'Home', icon: 'home', route: '/(tabs)/index', roles: ['B2B', 'B2C'] },
-  { name: 'fav', label: 'Favoritos', icon: 'heart', route: '/(tabs)/fav', roles: ['B2C'] }, // Solo B2C
-  { name: 'pro', label: 'Perfil', icon: 'person', route: '/(tabs)/pro', roles: ['B2B', 'B2C'] },
-  { name: 'settings', label: 'Configuración', icon: 'settings', route: '/(tabs)/settings', roles: ['B2B', 'B2C'] },
-  { name: 'help', label: 'Ayuda', icon: 'help-circle', route: '/(tabs)/help', roles: ['B2B', 'B2C'] },
+  { name: 'index', label: 'Home', icon: 'home', route: '/(tabs)/index', context: 'BOTH' },
+  { name: 'fav', label: 'Favoritos', icon: 'heart', route: '/(tabs)/fav', context: 'B2C' },
+  { name: 'pro', label: 'Perfil', icon: 'person', route: '/(tabs)/pro', context: 'BOTH' },
+  { name: 'settings', label: 'Configuración', icon: 'settings', route: '/(tabs)/settings', context: 'BOTH' },
+  { name: 'help', label: 'Ayuda', icon: 'help-circle', route: '/(tabs)/help', context: 'BOTH' },
 ];
 
 export default function Sidebar({ state, navigation }: SidebarProps) {
   const { signOut } = useClerkAuth();
+  const { organization, isLoaded: orgLoaded } = useOrganization();
+  const { isLoading: authLoading } = useAuthStore();
   const router = useRouter();
-  const { userRole, isLoading } = useAuthStore();
   
   const activeIconColor = useToken('colors', 'textLight900');
   const inactiveIconColor = useToken('colors', 'textLight400');
   const errorColor = useToken('colors', 'error600');
 
-  // Filtrar items del menú según el rol del usuario
+  // Determinar el contexto actual
+  const currentContext = organization ? 'B2B' : 'B2C';
+
+  // Filtrar items del menú según el contexto actual
   const getVisibleMenuItems = () => {
-    if (isLoading || !userRole) return [];
-    return allMenuItems.filter(item => !item.roles || item.roles.includes(userRole));
+    if (!orgLoaded || authLoading) return [];
+    return allMenuItems.filter(item => 
+      item.context === 'BOTH' || item.context === currentContext
+    );
   };
 
   const visibleMenuItems = getVisibleMenuItems();
@@ -104,6 +109,11 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
         <Heading size="md" color="$textLight900">
           PelusApp
         </Heading>
+        {organization && (
+          <Text size="xs" color="$primary600" fontWeight="$bold">
+            MODO PROFESIONAL: {organization.name}
+          </Text>
+        )}
       </Box>
       
       <VStack flex={1} paddingVertical="$2">
@@ -163,5 +173,3 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
     </Box>
   );
 }
-
-

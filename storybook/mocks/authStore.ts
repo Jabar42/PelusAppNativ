@@ -1,17 +1,13 @@
-import { UserRole } from '@/core/types/user';
-
 /**
  * Mock factory para useAuthStore de Zustand
  * Permite establecer el estado del store para cada story
  */
 export interface MockAuthState {
-  userRole: UserRole | null;
   isLoading: boolean;
   hasCompletedOnboarding: boolean;
 }
 
 let mockAuthState: MockAuthState = {
-  userRole: null,
   isLoading: false,
   hasCompletedOnboarding: false,
 };
@@ -35,7 +31,6 @@ export const getMockAuthState = (): MockAuthState => {
  */
 export const resetMockAuthState = () => {
   mockAuthState = {
-    userRole: null,
     isLoading: false,
     hasCompletedOnboarding: false,
   };
@@ -52,24 +47,11 @@ export const createMockUseAuthStore = (initialState?: Partial<MockAuthState>) =>
   
   return () => ({
     ...mockAuthState,
-    setUserRole: (role: UserRole | null) => setMockAuthState({ userRole: role }),
     setIsLoading: (loading: boolean) => setMockAuthState({ isLoading: loading }),
     setHasCompletedOnboarding: (value: boolean) => 
       setMockAuthState({ hasCompletedOnboarding: value }),
     clearAuth: () => resetMockAuthState(),
   });
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -1,17 +1,18 @@
 import React from 'react';
-import { useAuthStore } from '@/core/store/authStore';
-import { SettingsScreen as SettingsB2B } from '@/features/B2B_Dashboard/screens/SettingsScreen';
-import { SettingsScreen as SettingsB2C } from '@/features/B2C_Shop/screens/SettingsScreen';
+import { useOrganization } from '@clerk/clerk-expo';
+import { SettingsScreen as SettingsB2B } from '@/features/Business_Center/Veterinary/screens/SettingsScreen';
+import { SettingsScreen as SettingsB2C } from '@/features/User_Space/screens/SettingsScreen';
 import LoadingScreen from '@/shared/components/LoadingScreen';
 
 export default function SettingsScreen() {
-  const { userRole, isLoading } = useAuthStore();
+  const { organization, isLoaded } = useOrganization();
 
-  if (isLoading) {
+  if (!isLoaded) {
     return <LoadingScreen />;
   }
 
-  if (userRole === 'B2B') {
+  // Renderizado condicional según el contexto (B2B o B2C)
+  if (organization) {
     return <SettingsB2B />;
   }
 
