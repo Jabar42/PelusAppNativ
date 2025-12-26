@@ -1,7 +1,28 @@
-// Cliente API base para llamadas al backend (Netlify Functions)
-// Utiliza fetch nativo para máxima compatibilidad con Expo/React Native.
+import { Platform } from 'react-native';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || '/.netlify/functions';
+/**
+ * Cliente API base para llamadas al backend (Netlify Functions).
+ * 
+ * Lógica de URL:
+ * 1. En Web: Preferimos rutas relativas '/.netlify/functions' para evitar problemas de CORS y Mixed Content.
+ * 2. En Mobile: Necesitamos la URL absoluta definida en EXPO_PUBLIC_API_URL.
+ */
+const getBaseURL = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  
+  if (Platform.OS === 'web') {
+    // Si estamos en web y la URL de env apunta a localhost pero el navegador no,
+    // usamos una ruta relativa para que el proxy (o el mismo dominio) lo maneje.
+    if (typeof window !== 'undefined' && envUrl?.includes('localhost') && !window.location.hostname.includes('localhost')) {
+      return '/.netlify/functions';
+    }
+    return envUrl || '/.netlify/functions';
+  }
+  
+  return envUrl || 'http://localhost:8888/.netlify/functions';
+};
+
+const API_BASE_URL = getBaseURL();
 
 export interface ApiResponse<T> {
   data?: T;
