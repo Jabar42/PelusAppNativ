@@ -1,6 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { useOrganization, useOrganizationList } from '@clerk/clerk-expo';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withRepeat, 
+  withTiming, 
+  Easing 
+} from 'react-native-reanimated';
 import { 
   Box, 
   VStack, 
@@ -20,9 +27,61 @@ import {
   ButtonText,
   Divider,
   Center,
-  Spinner
 } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
+
+/**
+ * Componente de Esqueleto (Skeleton) para el WorkspaceManager.
+ * Proporciona una carga visual más elegante que un spinner.
+ */
+function WorkspaceSkeleton() {
+  const opacity = useSharedValue(0.4);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withTiming(0.8, { duration: 800, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
+  return (
+    <Box width="$full" mt="$4">
+      <VStack space="md">
+        {/* Texto de cabecera esqueleto */}
+        <Animated.View style={animatedStyle}>
+          <Box h="$4" w="$40" bg="$backgroundLight200" borderRadius="$sm" ml="$1" />
+        </Animated.View>
+
+        {/* Caja principal esqueleto */}
+        <Animated.View style={animatedStyle}>
+          <Box
+            p="$4"
+            borderWidth="$1"
+            borderColor="$borderLight100"
+            borderRadius="$xl"
+            backgroundColor="$white"
+          >
+            <HStack justifyContent="space-between" alignItems="center">
+              <HStack space="md" alignItems="center">
+                <Box w="$10" h="$10" bg="$backgroundLight100" borderRadius="$lg" />
+                <VStack space="xs">
+                  <Box h="$4" w="$32" bg="$backgroundLight200" borderRadius="$sm" />
+                  <Box h="$3" w="$48" bg="$backgroundLight100" borderRadius="$sm" />
+                </VStack>
+              </HStack>
+              <Box h="$5" w="$5" bg="$backgroundLight100" borderRadius="$full" />
+            </HStack>
+          </Box>
+        </Animated.View>
+      </VStack>
+    </Box>
+  );
+}
 
 /**
  * Gestor de Espacios de Trabajo (Workspace Manager).
@@ -31,15 +90,15 @@ import { Ionicons } from '@expo/vector-icons';
  */
 export default function WorkspaceManager() {
   const router = useRouter();
-  const { organization: activeOrg } = useOrganization();
-  const { userMemberships, isLoaded, setActive } = useOrganizationList({
-    userMemberships: {
-      infinite: true,
-    },
+  const { organization: activeOrg, isLoaded: orgLoaded } = useOrganization();
+  const { userMemberships, isLoaded: listLoaded, setActive } = useOrganizationList({
+    userMemberships: true,
   });
 
+  const isFullyLoaded = orgLoaded && listLoaded;
+
   // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkspaceManager.tsx:40',message:'WorkspaceManager State',data:{isLoaded, hasMemberships: !!userMemberships, activeOrg: activeOrg?.id},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
+  fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkspaceManager.tsx:43',message:'WorkspaceManager Full Load Check',data:{orgLoaded, listLoaded, isFullyLoaded, membershipsCount: userMemberships?.data?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'D'})}).catch(()=>{});
   // #endregion
 
   const [showActionsheet, setShowActionsheet] = useState(false);
@@ -58,8 +117,11 @@ export default function WorkspaceManager() {
     router.push('/(initial)/register-business');
   };
 
-  if (!isLoaded) {
-    return <Spinner color="$primary600" />;
+  if (!isFullyLoaded) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkspaceManager.tsx:112',message:'Rendering Skeleton',data:{orgLoaded, listLoaded},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    return <WorkspaceSkeleton />;
   }
 
   const memberships = userMemberships.data || [];
