@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useOrganizationList, useAuth } from '@clerk/clerk-expo';
+import { useOrganizationList, useAuth, useUser } from '@clerk/clerk-expo';
 import { 
   Box, 
   VStack, 
@@ -31,6 +31,7 @@ export function RegisterBusinessScreen() {
   const router = useRouter();
   const { createOrganization, isLoaded, setActive } = useOrganizationList();
   const { getToken } = useAuth();
+  const { user, isLoaded: userLoaded } = useUser();
   
   const [businessName, setBusinessName] = useState('');
   const [businessType, setBusinessType] = useState<BusinessType>('veterinary');
@@ -62,7 +63,7 @@ export function RegisterBusinessScreen() {
 
   const handleCreateBusiness = async () => {
     // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegisterBusinessScreen.tsx:64',message:'handleCreateBusiness entry',data:{isLoaded, businessName, createdOrgId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegisterBusinessScreen.tsx:64',message:'handleCreateBusiness entry',data:{isLoaded, businessName, createdOrgId},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
     // #endregion
     if (!isLoaded || !createOrganization) return;
 
@@ -111,12 +112,14 @@ export function RegisterBusinessScreen() {
       // 4. EXTRA: Asegurar que el usuario sea marcado como professional si es su primera org
       const token = await getToken();
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegisterBusinessScreen.tsx:110',message:'Attempting to call /complete-onboarding',data:{token: token ? 'EXISTS' : 'MISSING'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegisterBusinessScreen.tsx:110',message:'Attempting to call /complete-onboarding',data:{token: token ? 'EXISTS' : 'MISSING', userId: user?.id, userLoaded},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
       // #endregion
-      await apiClient.post('/complete-onboarding', {
-        userId: (await userLoaded && user?.id), // Usamos el ID del usuario actual
-        userType: 'professional'
-      }, token);
+      if (userLoaded && user) {
+        await apiClient.post('/complete-onboarding', {
+          userId: user.id, // Usamos el ID del usuario actual
+          userType: 'professional'
+        }, token);
+      }
 
       // 3. Establecer como activa y navegar
       if (setActive) {
@@ -126,7 +129,7 @@ export function RegisterBusinessScreen() {
       router.replace('/(tabs)');
     } catch (err: any) {
       // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegisterBusinessScreen.tsx:122',message:'Error caught in flow',data:{message: err.message, name: err.name, stack: err.stack},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
+      fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RegisterBusinessScreen.tsx:122',message:'Error caught in flow',data:{message: err.message, name: err.name, stack: err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
       // #endregion
       console.error('Error in business registration flow:', err);
       
