@@ -2,7 +2,7 @@ import React from 'react';
 import { useOrganization, useOrganizationList } from '@clerk/clerk-expo';
 import { HomeScreen as VeterinaryHome } from './Veterinary/screens/HomeScreen';
 import LoadingScreen from '@/shared/components/LoadingScreen';
-import { Box, Text, Center, Button, ButtonText, HStack, Icon } from '@gluestack-ui/themed';
+import { Box, Text, Center, Button, ButtonText, HStack, Heading, VStack } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 
 /**
@@ -25,13 +25,9 @@ export default function BusinessCenterOrchestrator() {
     );
   }
 
-  // Leer el tipo de negocio desde publicMetadata
-  const businessType = organization.publicMetadata?.type as string;
+  // SANEAMIENTO: Leer exclusivamente de publicMetadata (Backend-driven)
+  const businessType = organization.publicMetadata?.type as string | undefined;
 
-  /**
-   * Función para volver al modo personal (B2C).
-   * Desactiva la organización actual en Clerk.
-   */
   const handleSwitchToPersonal = async () => {
     if (setActive) {
       await setActive({ organization: null });
@@ -40,7 +36,6 @@ export default function BusinessCenterOrchestrator() {
 
   return (
     <Box flex={1}>
-      {/* Banner de Contexto Profesional con opción de Switch */}
       <HStack 
         backgroundColor="$primary600" 
         paddingVertical="$2" 
@@ -65,9 +60,22 @@ export default function BusinessCenterOrchestrator() {
         </Button>
       </HStack>
 
-      {/* Renderizado del módulo específico */}
       <Box flex={1}>
-        {businessType === 'veterinary' || !businessType ? (
+        {/* Si no hay tipo aún, mostramos un mensaje de advertencia o configuración incompleta */}
+        {!businessType ? (
+          <Center flex={1} p="$6">
+            <VStack space="md" alignItems="center">
+              <Ionicons name="construct-outline" size={48} color="$warning600" />
+              <Heading size="md" textAlign="center">Configuración Incompleta</Heading>
+              <Text textAlign="center" color="$text600">
+                Este espacio de trabajo no ha sido configurado correctamente.
+              </Text>
+              <Button action="secondary" variant="outline" onPress={handleSwitchToPersonal}>
+                <ButtonText>Volver al perfil personal</ButtonText>
+              </Button>
+            </VStack>
+          </Center>
+        ) : businessType === 'veterinary' ? (
           <VeterinaryHome />
         ) : (
           <Center flex={1}>

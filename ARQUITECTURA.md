@@ -1,4 +1,4 @@
-# Arquitectura PelusApp - Identidad Unificada y Multi-Contexto (v2)
+# Arquitectura PelusApp - Identidad Unificada y Multi-Contexto (v2.1)
 
 ## 📋 Resumen Ejecutivo
 
@@ -11,22 +11,19 @@ PelusApp ha evolucionado de un modelo de "Roles Fijos" a un ecosistema de **Iden
 ```
 src/
 ├── core/                   # 💎 Infraestructura Inmutable
-│   ├── store/             # Zustand (Solo flags globales: isLoading, onboarding)
-│   └── types/             # Tipos base (User, Organization)
+│   ├── store/             # Zustand (Solo flags globales: isLoading)
+│   └── types/             # Tipos base (User, Organization, UserType)
 │
 ├── features/               # 🔑 Módulos por Contexto
 │   ├── Auth/              # Login Universal y Sincronización
 │   │
 │   ├── User_Space/        # 🏠 Espacio Personal (B2C)
 │   │   ├── screens/       # Home, Favoritos, Perfil Personal
-│   │   └── components/    # UI para dueños de mascotas
+│   │   └── components/    # WorkspaceManager (Selector de Orgs)
 │   │
 │   ├── Business_Center/   # 💼 Orquestador Profesional (B2B)
 │   │   ├── BusinessCenterOrchestrator.tsx # Decide qué módulo profesional cargar
-│   │   │
-│   │   ├── Veterinary/    # 🩺 Vertical Médica (Antes B2B_Dashboard)
-│   │   ├── Walking/       # 🦮 Vertical Paseos (Futuro)
-│   │   └── Grooming/      # ✂️ Vertical Estética (Futuro)
+│   │   └── screens/       # RegisterBusinessScreen
 │   │
 │   └── Shared/            # UI Components & Navigation
 ```
@@ -35,9 +32,15 @@ src/
 
 ## 🔄 Lógica de Contextos (Source of Truth)
 
-La fuente de verdad absoluta ya no es un "rol" en el usuario, sino la **Organización Activa** en Clerk.
+La fuente de verdad absoluta para el contexto profesional es la **Organización Activa** en Clerk. Para el perfil universal, se utiliza una segmentación inicial.
 
-### 1. El Switcher Maestro (`app/(tabs)/index.tsx`)
+### 1. Segmentación de Usuario (`user_type`)
+Durante el onboarding, el usuario define su perfil base:
+- `pet_owner`: Usuario estándar (Dueño).
+- `professional`: Usuario que ofrece servicios.
+Esta información se guarda en `user.publicMetadata.user_type`.
+
+### 2. El Switcher Maestro (`app/(tabs)/index.tsx`)
 El dashboard principal utiliza el patrón **Strategy** para decidir qué renderizar basándose en la reactividad de Clerk:
 
 ```mermaid
@@ -49,12 +52,12 @@ graph TD
     D -- No --> E[User_Space / HomeB2C]
     D -- Sí --> F[Business_Center / Orchestrator]
     
-    F --> G{Metadata: org_type}
+    F --> G{Metadata: type}
     G -- veterinary --> H[Módulo Veterinaria]
     G -- walking --> I[Módulo Paseadores]
 ```
 
-### 2. Navegación Sensible al Contexto
+### 3. Navegación Sensible al Contexto
 Los componentes `MobileMenu` y `Sidebar` filtran las opciones dinámicamente:
 - **Contexto Personal:** Muestra pestañas como "Favoritos".
 - **Contexto Profesional:** Oculta pestañas personales y muestra herramientas de gestión de negocio.
@@ -63,10 +66,10 @@ Los componentes `MobileMenu` y `Sidebar` filtran las opciones dinámicamente:
 
 ## 🚀 Beneficios de la Nueva Arquitectura
 
-1.  **Identidad Híbrida:** Un veterinario puede ser también dueño de mascota sin cambiar de cuenta. Solo cambia de "espacio".
-2.  **Escalabilidad Horizontal:** Añadir una nueva vertical de negocio (ej. Paseadores) no requiere tocar la autenticación ni el login; solo se añade un nuevo módulo en `Business_Center`.
-3.  **Herencia de Roles:** Al usar Organizaciones, los empleados invitados heredan el contexto del negocio automáticamente a través de la metadata de la organización (`org.publicMetadata.type`).
-4.  **Zero Race Conditions:** Se eliminó el `pendingRole`. Si Clerk confirma la organización, el cambio de UI es atómico y garantizado por el JWT.
+1.  **Identidad Híbrida:** Un veterinario puede ser también dueño de mascota sin cambiar de cuenta. Solo cambia de "espacio" usando el `WorkspaceManager` (ActionSheet).
+2.  **Escalabilidad Horizontal:** Añadir una nueva vertical de negocio (ej. Paseadores) no requiere tocar la autenticación; solo se añade un nuevo módulo en `Business_Center` con su correspondiente metadata `type`.
+3.  **Herencia de Roles:** Los empleados invitados heredan el contexto del negocio automáticamente a través de la metadata de la organización (`org.publicMetadata.type`).
+4.  **Zero Race Conditions:** Se eliminó el `pendingRole`. La segmentación es atómica y la creación de organización cambia el contexto inmediatamente.
 
 ---
 
@@ -74,9 +77,8 @@ Los componentes `MobileMenu` y `Sidebar` filtran las opciones dinámicamente:
 Todos los componentes nuevos deben seguir estrictamente las reglas en `.cursor/rules/gluestack-styling.md`:
 - **Tokens de Diseño:** Uso obligatorio del prefijo `$` (ej. `$primary600`).
 - **Componentes Tematizados:** Prioridad total a `@gluestack-ui/themed`.
-- **Responsive:** Layouts adaptativos integrados en `TabsLayoutWrapper`.
+- **Experiencia Pro:** Uso de componentes avanzados como `Actionsheet` para selectores de contexto.
 
 ---
 **Última actualización**: Diciembre 2024
-**Versión de Arquitectura**: 2.0 (Unified Identity)
-
+**Versión de Arquitectura**: 2.1 (Segmented Identity)
