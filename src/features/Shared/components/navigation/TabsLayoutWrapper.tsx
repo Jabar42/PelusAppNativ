@@ -71,11 +71,10 @@ export default function TabsLayoutWrapper() {
           }}
         >
           {/* Definir todas las rutas de tabs de forma estática.
-              La visibilidad por rol se maneja en MobileMenu / Sidebar */}
+              La visibilidad por contexto se maneja en MobileMenu / Sidebar */}
           <Tabs.Screen name="index" options={{ title: 'Home' }} />
           <Tabs.Screen name="fav" options={{ title: 'Favoritos' }} />
           <Tabs.Screen name="pro" options={{ title: 'Perfil' }} />
-          {/* AYUDA antes que CONFIG para que el orden se refleje en MobileMenu */}
           <Tabs.Screen
             name="help"
             options={{ title: 'Ayuda', tabBarButton: () => null }}

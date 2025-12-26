@@ -22,8 +22,8 @@ const allTabs: TabItem[] = [
   { name: 'index', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home', context: 'BOTH' },
   { name: 'fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart', context: 'B2C' }, // Solo Personal
   { name: 'pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person', context: 'BOTH' },
-  { name: 'settings', label: 'CONFIG', iconOutline: 'settings-outline', iconFilled: 'settings', context: 'BOTH' },
   { name: 'help', label: 'AYUDA', iconOutline: 'help-circle-outline', iconFilled: 'help-circle', context: 'BOTH' },
+  { name: 'settings', label: 'CONFIG', iconOutline: 'settings-outline', iconFilled: 'settings', context: 'BOTH' },
 ];
 
 export default function MobileMenu({ state, descriptors, navigation }: MobileMenuProps) {
@@ -53,9 +53,11 @@ export default function MobileMenu({ state, descriptors, navigation }: MobileMen
   const visibleTabNames = visibleTabs.map(t => t.name);
 
   // Filtrar las rutas del state para mostrar solo las visibles
-  const visibleRoutes = state.routes.filter((route: any) => 
-    visibleTabNames.includes(route.name)
-  );
+  // IMPORTANTE: El orden de renderizado en MobileMenu depende del orden en visibleTabNames
+  // para que sea consistente con Sidebar, en lugar de depender del orden en state.routes
+  const visibleRoutes = visibleTabNames
+    .map(name => state.routes.find((r: any) => r.name === name))
+    .filter(Boolean);
 
   return (
     <HStack

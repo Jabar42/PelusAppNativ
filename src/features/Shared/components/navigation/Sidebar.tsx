@@ -23,8 +23,8 @@ const allMenuItems: MenuItem[] = [
   { name: 'index', label: 'Home', icon: 'home', route: '/(tabs)/index', context: 'BOTH' },
   { name: 'fav', label: 'Favoritos', icon: 'heart', route: '/(tabs)/fav', context: 'B2C' },
   { name: 'pro', label: 'Perfil', icon: 'person', route: '/(tabs)/pro', context: 'BOTH' },
-  { name: 'settings', label: 'Configuración', icon: 'settings', route: '/(tabs)/settings', context: 'BOTH' },
   { name: 'help', label: 'Ayuda', icon: 'help-circle', route: '/(tabs)/help', context: 'BOTH' },
+  { name: 'settings', label: 'Configuración', icon: 'settings', route: '/(tabs)/settings', context: 'BOTH' },
 ];
 
 export default function Sidebar({ state, navigation }: SidebarProps) {
