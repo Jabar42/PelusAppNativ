@@ -36,9 +36,15 @@ export default function UserAvatarHeader() {
   const [showMenu, setShowMenu] = useState(false);
 
   const handleSignOut = async () => {
-    setShowMenu(false);
-    await signOut();
-    router.replace('/(auth)/login');
+    try {
+      setShowMenu(false);
+      // Navegamos inmediatamente a la raíz para que el orquestador InitialLoadingScreen
+      // tome el control y nos mande al login sin parpadeos en las pestañas.
+      router.replace('/');
+      await signOut();
+    } catch (error) {
+      console.error('Error durante el cierre de sesión:', error);
+    }
   };
 
   const goToSettings = () => {

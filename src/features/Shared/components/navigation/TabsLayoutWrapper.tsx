@@ -1,10 +1,11 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { Box, Text } from '@gluestack-ui/themed';
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import ResponsiveNavigation from './ResponsiveNavigation';
 import UserAvatarHeader from './UserAvatarHeader';
-import { useOrganization } from '@clerk/clerk-expo';
+import { useOrganization, useAuth } from '@clerk/clerk-expo';
+import LoadingScreen from '@/shared/components/LoadingScreen';
 
 export default function TabsLayoutWrapper() {
   const { width } = useWindowDimensions();
@@ -13,6 +14,14 @@ export default function TabsLayoutWrapper() {
   const navPropsRef = useRef<any>(null);
   const updateScheduledRef = useRef(false);
   const { organization } = useOrganization();
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const router = useRouter();
+
+  // Protección de sesión: si el usuario no está logueado y Clerk ya cargó,
+  // evitamos renderizar las pestañas para prevenir parpadeos durante el logout.
+  if (authLoaded && !isSignedIn) {
+    return <LoadingScreen />;
+  }
 
   // Función para capturar las props del tabBar sin causar loops
   const handleTabBar = useCallback((props: any) => {
