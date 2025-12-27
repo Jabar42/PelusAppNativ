@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Box, Text, useToken, Center, VStack, Button, ButtonText, HStack, Icon } from '@gluestack-ui/themed';
 
 export default function LoadingScreen() {
-  const brandColor = useToken('colors', 'brand600' as any);
+  const brandColor = useToken('colors', 'primary600' as any);
   const primaryBg = useToken('colors', 'primary0' as any);
   const gray200 = useToken('colors', 'gray200' as any);
   const gray500 = useToken('colors', 'gray500' as any);
@@ -216,16 +216,16 @@ export default function LoadingScreen() {
               variant="outline" 
               action="primary" 
               onPress={handleRetry}
-              borderColor="$brand600"
+              borderColor="$primary600"
               sx={{
                 ':hover': {
-                  backgroundColor: '$brand50',
+                  backgroundColor: '$primary50',
                 }
               }}
             >
               <HStack space="xs" alignItems="center">
-                <Icon as={Ionicons} name="refresh" color="$brand600" />
-                <ButtonText color="$brand600">Reintentar conexión</ButtonText>
+                <Icon as={Ionicons} name="refresh" color="$primary600" />
+                <ButtonText color="$primary600">Reintentar conexión</ButtonText>
               </HStack>
             </Button>
           </Animated.View>

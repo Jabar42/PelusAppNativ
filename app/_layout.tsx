@@ -1,4 +1,4 @@
-import { ClerkProvider } from '@clerk/clerk-expo';
+import { ClerkProvider, useOrganization } from '@clerk/clerk-expo';
 import { Slot } from 'expo-router';
 import { tokenCache } from '@/core/services/storage';
 import { GluestackUIProvider } from '@gluestack-ui/themed';
@@ -19,6 +19,21 @@ if (typeof window !== 'undefined') {
   fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/_layout.tsx:16',message:'Clerk initialization check',data:{hostname:window.location.hostname,href:window.location.href,publishableKey:publishableKey.substring(0,10)+'...'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
 }
 // #endregion
+
+/**
+ * Componente que gestiona el tema dinámico de Gluestack UI.
+ * Alterna entre 'light' (personal) y 'professional' basándose en la organización activa.
+ */
+function DynamicThemeProvider({ children }: { children: React.ReactNode }) {
+  const { organization } = useOrganization();
+  const currentTheme = organization ? 'professional' : 'light';
+
+  return (
+    <GluestackUIProvider config={config} theme={currentTheme}>
+      {children}
+    </GluestackUIProvider>
+  );
+}
 
 /**
  * Wrapper para sincronizar el estado de autenticación de forma global.
@@ -88,11 +103,11 @@ export default function RootLayout() {
       publishableKey={publishableKey}
       tokenCache={tokenCache}
     >
-      <GluestackUIProvider config={config}>
+      <DynamicThemeProvider>
         <AuthSyncWrapper>
           <Slot />
         </AuthSyncWrapper>
-      </GluestackUIProvider>
+      </DynamicThemeProvider>
     </ClerkProvider>
   );
 }

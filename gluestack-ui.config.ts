@@ -1,18 +1,25 @@
 import { createConfig } from '@gluestack-style/react';
 import { config as defaultConfig } from '@gluestack-ui/config';
 
-const myColors = {
-  // Color principal de la marca
-  brand600: '#4F46E5',
-
-  // Escala de grises personalizada
+const commonColors = {
+  // Escala de grises compartida
   gray100: '#F3F4F6',
   gray200: '#E5E7EB',
   gray400: '#9CA3AF',
   gray500: '#6B7280',
   gray800: '#1F2937',
 
-  // Sobrescribir o añadir colores personalizados
+  // Otros colores fijos si son necesarios
+  blue50: '#eff6ff',
+  blue200: '#bfdbfe',
+  blue500: '#3b82f6',
+  purple50: '#faf5ff',
+  purple200: '#e9d5ff',
+  purple500: '#a855f7',
+} as const;
+
+// Escala Morada (Tema Personal/Light)
+const lightPrimary = {
   primary0: '#ffffff',
   primary50: '#f5f3ff',
   primary100: '#ede9fe',
@@ -25,15 +32,23 @@ const myColors = {
   primary800: '#5b21b6',
   primary900: '#4c1d95',
   primary950: '#2e1065',
+};
 
-  // Colores para roles
-  blue50: '#eff6ff',
-  blue200: '#bfdbfe',
-  blue500: '#3b82f6',
-  purple50: '#faf5ff',
-  purple200: '#e9d5ff',
-  purple500: '#a855f7',
-} as const;
+// Escala Esmeralda (Tema Profesional)
+const professionalPrimary = {
+  primary0: '#ffffff',
+  primary50: '#ecfdf5',
+  primary100: '#d1fae5',
+  primary200: '#a7f3d0',
+  primary300: '#6ee7b7',
+  primary400: '#34d399',
+  primary500: '#10b981',
+  primary600: '#059669', // El verde esmeralda profesional
+  primary700: '#047857',
+  primary800: '#065f46',
+  primary900: '#064e3b',
+  primary950: '#022c22',
+};
 
 export const config = createConfig({
   ...defaultConfig,
@@ -41,7 +56,9 @@ export const config = createConfig({
     ...defaultConfig.tokens,
     colors: {
       ...defaultConfig.tokens.colors,
-      ...myColors,
+      ...commonColors,
+      // Los tokens a nivel de raíz actúan como fallback
+      ...lightPrimary,
     },
     space: {
       ...defaultConfig.tokens.space,
@@ -78,6 +95,14 @@ export const config = createConfig({
       '4xl': 36,
     },
   },
+  themes: {
+    light: {
+      colors: lightPrimary,
+    },
+    professional: {
+      colors: professionalPrimary,
+    },
+  },
 } as const);
 
 type Config = typeof config;
@@ -89,11 +114,3 @@ declare module '@gluestack-ui/themed' {
 declare module '@gluestack-style/react' {
   interface ICustomConfig extends Config {}
 }
-
-
-
-
-
-
-
-
