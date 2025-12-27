@@ -1,8 +1,10 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useWindowDimensions } from 'react-native';
-import { Box } from '@gluestack-ui/themed';
+import { Box, Text } from '@gluestack-ui/themed';
 import { Tabs } from 'expo-router';
 import ResponsiveNavigation from './ResponsiveNavigation';
+import UserAvatarHeader from './UserAvatarHeader';
+import { useOrganization } from '@clerk/clerk-expo';
 
 export default function TabsLayoutWrapper() {
   const { width } = useWindowDimensions();
@@ -10,6 +12,7 @@ export default function TabsLayoutWrapper() {
   const [navProps, setNavProps] = useState<any>(null);
   const navPropsRef = useRef<any>(null);
   const updateScheduledRef = useRef(false);
+  const { organization } = useOrganization();
 
   // Función para capturar las props del tabBar sin causar loops
   const handleTabBar = useCallback((props: any) => {
@@ -56,7 +59,27 @@ export default function TabsLayoutWrapper() {
         <Tabs
           tabBar={handleTabBar}
           screenOptions={{ 
-            headerShown: false,
+            headerShown: true,
+            headerTitleAlign: 'center',
+            headerRight: () => <UserAvatarHeader />,
+            headerTitle: () => (
+              <Box maxWidth="$64">
+                <Text 
+                  fontWeight="$bold" 
+                  size="lg" 
+                  color="$text900" 
+                  numberOfLines={1} 
+                  ellipsizeMode="tail"
+                >
+                  {organization?.name ?? "Mis Mascotas"}
+                </Text>
+              </Box>
+            ),
+            headerStyle: {
+              backgroundColor: '#fff',
+              borderBottomWidth: 1,
+              borderBottomColor: '#f3f4f6',
+            },
             tabBarStyle: isLargeScreen 
               ? { display: 'none' } // Ocultar tab bar nativo en desktop
               : {
@@ -74,7 +97,13 @@ export default function TabsLayoutWrapper() {
               La visibilidad por contexto se maneja en MobileMenu / Sidebar */}
           <Tabs.Screen name="index" options={{ title: 'Home' }} />
           <Tabs.Screen name="fav" options={{ title: 'Favoritos' }} />
-          <Tabs.Screen name="pro" options={{ title: 'Perfil' }} />
+          <Tabs.Screen 
+            name="pro" 
+            options={{ 
+              title: 'Perfil',
+              tabBarButton: () => null, // Ocultar de la barra inferior
+            }} 
+          />
           <Tabs.Screen
             name="help"
             options={{ title: 'Ayuda', tabBarButton: () => null }}

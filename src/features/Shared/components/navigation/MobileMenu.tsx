@@ -21,9 +21,7 @@ interface MobileMenuProps {
 const allTabs: TabItem[] = [
   { name: 'index', label: 'HOME', iconOutline: 'home-outline', iconFilled: 'home', context: 'BOTH' },
   { name: 'fav', label: 'FAV', iconOutline: 'heart-outline', iconFilled: 'heart', context: 'B2C' }, // Solo Personal
-  { name: 'pro', label: 'PRO', iconOutline: 'person-outline', iconFilled: 'person', context: 'BOTH' },
   { name: 'help', label: 'AYUDA', iconOutline: 'help-circle-outline', iconFilled: 'help-circle', context: 'BOTH' },
-  { name: 'settings', label: 'CONFIG', iconOutline: 'settings-outline', iconFilled: 'settings', context: 'BOTH' },
 ];
 
 export default function MobileMenu({ state, descriptors, navigation }: MobileMenuProps) {
