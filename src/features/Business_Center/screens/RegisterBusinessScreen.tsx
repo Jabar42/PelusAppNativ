@@ -104,6 +104,7 @@ export function RegisterBusinessScreen() {
 
       // 2. Intentar actualizar metadatos en el backend (publicMetadata)
       // Bloqueo de navegación: No seguimos hasta que esto sea exitoso
+      if (!orgId) throw new Error('No se pudo identificar la organización');
       await updateMetadataInBackend(orgId);
 
       // 4. EXTRA: Asegurar que el usuario sea marcado como professional si es su primera org
@@ -112,7 +113,7 @@ export function RegisterBusinessScreen() {
         await apiClient.post('/complete-onboarding', {
           userId: user.id, // Usamos el ID del usuario actual
           userType: 'professional'
-        }, token);
+        }, token ?? undefined);
       }
 
       // 3. Establecer como activa y navegar

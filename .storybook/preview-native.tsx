@@ -13,7 +13,6 @@ export const decorators = [
     // Resetear mock de authStore antes de cada story
     const authArgs = context.parameters?.mockAuthState || {};
     setMockState({
-      userRole: authArgs.userRole || null,
       isLoading: false,
       hasCompletedOnboarding: authArgs.hasCompletedOnboarding !== undefined ? authArgs.hasCompletedOnboarding : false,
     });
@@ -44,6 +43,7 @@ export const parameters = {
     ],
   },
 };
+
 
 
 
