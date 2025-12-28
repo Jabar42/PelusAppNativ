@@ -22,6 +22,7 @@ import {
   FormControlErrorIcon,
   AlertCircleIcon
 } from '@gluestack-ui/themed';
+import { BRAND_NAME } from '@/core/config/brand';
 
 export function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -76,7 +77,7 @@ export function LoginScreen() {
       <VStack space="xl" width="$full" maxWidth={400} alignSelf="center">
         <VStack space="xs">
           <Heading size="3xl" color="$text900">Bienvenido</Heading>
-          <Text size="md" color="$text500">Inicia sesión para continuar en PelusApp</Text>
+          <Text size="md" color="$text500">Inicia sesión para continuar en {BRAND_NAME}</Text>
         </VStack>
 
         <VStack space="md" mt="$4">

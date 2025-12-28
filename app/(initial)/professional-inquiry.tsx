@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { UserType } from '@/core/types/user';
 import { apiClient } from '@/core/services/api';
+import { BRAND_NAME } from '@/core/config/brand';
 
 export default function ProfessionalInquiryScreen() {
   const router = useRouter();
@@ -72,7 +73,7 @@ export default function ProfessionalInquiryScreen() {
             ¡Ya casi estamos!
           </Heading>
           <Text size="md" color="$text500" textAlign="center">
-            Ayúdanos a personalizar tu experiencia en PelusApp
+            Ayúdanos a personalizar tu experiencia en {BRAND_NAME}
           </Text>
         </VStack>
 

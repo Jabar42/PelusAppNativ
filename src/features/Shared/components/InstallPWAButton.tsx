@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { Button, ButtonText, VStack, Text } from '@gluestack-ui/themed';
+import { BRAND_NAME } from '@/core/config/brand';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -74,10 +75,10 @@ export default function InstallPWAButton() {
         size="lg"
         borderRadius="$lg"
       >
-        <ButtonText>📱 Instalar PelusApp</ButtonText>
+        <ButtonText>📱 Instalar {BRAND_NAME}</ButtonText>
       </Button>
       <Text size="xs" color="$textLight500">
-        Agrega PelusApp a tu pantalla de inicio
+        Agrega {BRAND_NAME} a tu pantalla de inicio
       </Text>
     </VStack>
   );

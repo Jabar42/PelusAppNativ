@@ -22,6 +22,7 @@ import {
   FormControlErrorIcon,
   AlertCircleIcon
 } from '@gluestack-ui/themed';
+import { BRAND_NAME } from '@/core/config/brand';
 
 export function SignUpScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();
@@ -76,7 +77,7 @@ export function SignUpScreen() {
       <VStack space="xl" width="$full" maxWidth={400} alignSelf="center">
         <VStack space="xs">
           <Heading size="3xl" color="$text900">Crea tu cuenta</Heading>
-          <Text size="md" color="$text500">Únete a la comunidad de PelusApp</Text>
+          <Text size="md" color="$text500">Únete a la comunidad de {BRAND_NAME}</Text>
         </VStack>
 
         <VStack space="md" mt="$4">

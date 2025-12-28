@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import WorkspaceManager from '../components/WorkspaceManager';
+import { BRAND_NAME } from '@/core/config/brand';
 
 export function ProfileScreen() {
   const { user, isLoaded: userLoaded } = useUser();
@@ -38,7 +39,7 @@ export function ProfileScreen() {
               {user?.imageUrl && <AvatarImage source={{ uri: user.imageUrl }} alt="Profile Image" />}
             </Avatar>
             <Heading size="xl" mt="$4" color="$text900">
-              {user?.fullName || 'Usuario de PelusApp'}
+              {user?.fullName || `Usuario de ${BRAND_NAME}`}
             </Heading>
             <Text size="sm" color="$text500">
               {user?.primaryEmailAddress?.emailAddress}

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth as useClerkAuth, useOrganization } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/core/store/authStore';
+import { BRAND_NAME } from '@/core/config/brand';
 
 interface MenuItem {
   name: string;
@@ -108,7 +109,7 @@ export default function Sidebar({ state, navigation }: SidebarProps) {
         borderBottomColor="$borderLight200"
       >
         <Heading size="md" color="$textLight900">
-          PelusApp
+          {BRAND_NAME}
         </Heading>
         {organization && (
           <Text size="xs" color="$primary600" fontWeight="$bold">

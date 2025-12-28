@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react';
 import React from 'react';
+import { BRAND_NAME } from '@/core/config/brand';
 
 const SanityComponent = () => {
   return (
@@ -11,7 +12,7 @@ const SanityComponent = () => {
       border: '2px solid #4F46E5',
       fontFamily: 'sans-serif'
     }}>
-      <h1 style={{ color: '#4F46E5', margin: '0 0 10px 0' }}>🚀 PelusApp Sanity Check</h1>
+      <h1 style={{ color: '#4F46E5', margin: '0 0 10px 0' }}>🚀 {BRAND_NAME} Sanity Check</h1>
       <p style={{ color: '#333', fontSize: '16px' }}>
         Si ves este cuadro, el <strong>Preview de Storybook</strong> está funcionando correctamente.
       </p>
@@ -44,6 +45,7 @@ export default meta;
 type Story = StoryObj<typeof SanityComponent>;
 
 export const Default: Story = {};
+
 
 
 

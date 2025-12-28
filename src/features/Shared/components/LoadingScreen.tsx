@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { Box, Text, useToken, Center, VStack, Button, ButtonText, HStack, Icon } from '@gluestack-ui/themed';
+import { BRAND_NAME } from '@/core/config/brand';
 
 export default function LoadingScreen() {
   const brandColor = useToken('colors', 'primary600' as any);
@@ -194,7 +195,7 @@ export default function LoadingScreen() {
                 }
               }}
             >
-              Pelus
+              {BRAND_NAME.replace('App', '')}
             </Text>
           </Animated.View>
           <Animated.View style={textAnimatedStyle}>

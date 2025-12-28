@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "PelusAppNative",
+    "name": "PelusApp",
     "slug": "pelus-app-native",
     "version": "1.0.0",
     "scheme": "pelus-app",
@@ -31,7 +31,7 @@
     "web": {
       "bundler": "metro",
       "favicon": "./assets/favicon.png",
-      "name": "PelusAppNative",
+      "name": "PelusApp",
       "shortName": "PelusApp",
       "display": "standalone",
       "startUrl": "/",
