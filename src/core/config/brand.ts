@@ -8,6 +8,6 @@ export const APP_SLOGAN = "La mejor forma de gestionar tus tareas";
 export const BRAND_CONFIG = {
   name: BRAND_NAME,
   slogan: APP_SLOGAN,
-  emailSupport: "soporte@pelusapp.com", // Opcional: centraliza también correos
+  emailSupport: "soporte@vetifly.com", // Opcional: centraliza también correos
 };
 
