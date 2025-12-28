@@ -1,7 +1,7 @@
 import { ClerkProvider, useOrganization } from '@clerk/clerk-expo';
 import { Slot } from 'expo-router';
 import { tokenCache } from '@/core/services/storage';
-import { GluestackUIProvider } from '@gluestack-ui/themed';
+import { GluestackUIProvider, Box } from '@gluestack-ui/themed';
 import { config } from '../gluestack-ui.config';
 import '../global.css';
 import { useAuthSync } from '@/features/Auth/hooks/useAuthSync';
@@ -20,12 +20,16 @@ if (!publishableKey) {
  */
 function DynamicThemeProvider({ children }: { children: React.ReactNode }) {
   const { organization } = useOrganization();
+  // Gluestack UI themed no usa la prop 'theme' directamente en el Provider.
+  // En su lugar, se inyecta la clase o estado del tema en un contenedor padre.
   const currentTheme = organization ? 'professional' : 'light';
 
   return (
-    <GluestackUIProvider config={config} theme={currentTheme}>
-      {children}
-    </GluestackUIProvider>
+    <Box flex={1} className={currentTheme}>
+      <GluestackUIProvider config={config}>
+        {children}
+      </GluestackUIProvider>
+    </Box>
   );
 }
 
