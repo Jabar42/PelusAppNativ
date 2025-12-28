@@ -20,16 +20,14 @@ if (!publishableKey) {
  */
 function DynamicThemeProvider({ children }: { children: React.ReactNode }) {
   const { organization } = useOrganization();
-  // Gluestack UI themed no usa la prop 'theme' directamente en el Provider.
-  // En su lugar, se inyecta la clase o estado del tema en un contenedor padre.
   const currentTheme = organization ? 'professional' : 'light';
 
   return (
-    <Box flex={1} className={currentTheme}>
-      <GluestackUIProvider config={config}>
+    <GluestackUIProvider config={config}>
+      <Box flex={1} className={currentTheme}>
         {children}
-      </GluestackUIProvider>
-    </Box>
+      </Box>
+    </GluestackUIProvider>
   );
 }
 
