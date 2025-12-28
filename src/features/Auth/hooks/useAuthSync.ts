@@ -14,9 +14,6 @@ export function useAuthSync() {
   const { setIsLoading, setHasCompletedOnboarding } = useAuthStore();
 
   useEffect(() => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'useAuthSync.ts:17',message:'Auth Sync State Update',data:{isLoaded, isSignedIn, userId: user?.id, userLoaded, authStoreLoading: useAuthStore.getState().isLoading},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     // 1. Esperar a que Clerk cargue los datos básicos
     if (!isLoaded || !userLoaded) {
       setIsLoading(true);

@@ -97,10 +97,6 @@ export default function WorkspaceManager() {
 
   const isFullyLoaded = orgLoaded && listLoaded;
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkspaceManager.tsx:43',message:'WorkspaceManager Full Load Check',data:{orgLoaded, listLoaded, isFullyLoaded, membershipsCount: userMemberships?.data?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
-
   const [showActionsheet, setShowActionsheet] = useState(false);
   const handleClose = () => setShowActionsheet(false);
 
@@ -118,9 +114,6 @@ export default function WorkspaceManager() {
   };
 
   if (!isFullyLoaded) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkspaceManager.tsx:112',message:'Rendering Skeleton',data:{orgLoaded, listLoaded},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     return <WorkspaceSkeleton />;
   }
 

@@ -9,9 +9,6 @@ import type { Preview } from '@storybook/react';
 
 // Registro de App para React Native Web
 AppRegistry.registerComponent('Storybook', () => () => null);
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'preview.tsx:12',message:'Checking AppRegistry',data:{hasGetApplication:typeof (AppRegistry as any).getApplication === 'function'},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
-// #endregion
 const { getStyleElement } = (AppRegistry as any).getApplication('Storybook');
 
 // Inyectar estilos base de RNW y Gluestack

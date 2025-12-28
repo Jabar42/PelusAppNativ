@@ -23,9 +23,19 @@ export const InsideMobileFrame: Story = {
         width={375} 
         height={667} 
         backgroundColor="$white" 
-        shadowColor="$black" 
-        shadowOpacity={0.2} 
-        shadowRadius={20}
+        sx={{
+          _ios: {
+            shadowColor: "$black",
+            shadowOpacity: 0.2,
+            shadowRadius: 20,
+          },
+          _android: {
+            elevation: 10,
+          },
+          _web: {
+            boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.2)",
+          }
+        }}
         borderRadius="$3xl"
         overflow="hidden"
         borderWidth={8}

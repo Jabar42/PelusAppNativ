@@ -24,10 +24,6 @@ export function ProfileScreen() {
   const { user, isLoaded: userLoaded } = useUser();
   const { signOut } = useAuth();
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProfileScreen.tsx:26',message:'ProfileScreen render state',data:{userLoaded, hasUser: !!user},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'D'})}).catch(()=>{});
-  // #endregion
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
       <ScrollView>

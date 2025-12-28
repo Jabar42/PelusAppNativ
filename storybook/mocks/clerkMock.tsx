@@ -5,9 +5,6 @@ export const ClerkProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useAuth = () => {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'clerkMock.tsx:10',message:'Clerk useAuth mock called',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B',runId:'post-fix'})}).catch(()=>{});
-  // #endregion
   return {
     isLoaded: true,
     isSignedIn: true,
@@ -21,9 +18,6 @@ export const useAuth = () => {
 };
 
 export const useUser = () => {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/9fc7e58b-91ea-405c-841e-a7cd0c1803e0',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'clerkMock.tsx:21',message:'Clerk useUser mock called',data:{},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B',runId:'post-fix'})}).catch(()=>{});
-  // #endregion
   return {
     isLoaded: true,
     isSignedIn: true,
@@ -68,6 +62,7 @@ export const ClerkLoaded = ({ children }: { children: React.ReactNode }) => <>{c
 
 // Mocks para tipos si es necesario
 export const TokenCache = {};
+
 
 
 

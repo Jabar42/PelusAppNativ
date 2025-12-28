@@ -170,12 +170,21 @@ export default function LoadingScreen() {
           justifyContent: 'center',
           alignItems: 'center',
           zIndex: 10,
-          // Sombras nativas
-          shadowColor: brandColor,
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.1,
-          shadowRadius: 20,
-          elevation: 10,
+          ...Platform.select({
+            ios: {
+              shadowColor: brandColor,
+              shadowOffset: { width: 0, height: 10 },
+              shadowOpacity: 0.1,
+              shadowRadius: 20,
+            },
+            android: {
+              elevation: 10,
+            },
+            web: {
+              // @ts-ignore - boxShadow is valid on web
+              boxShadow: `0px 10px 20px rgba(0, 0, 0, 0.1)`,
+            }
+          }),
         }, iconStyle]}>
           <Ionicons name="paw" size={42} color={brandColor} />
         </Animated.View>
