@@ -58,3 +58,13 @@ export { NativeSvgRenderableModule, NativeSvgViewModule };
 
 
 
+
+
+
+
+
+
+
+
+
+

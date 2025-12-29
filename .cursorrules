@@ -1,0 +1,41 @@
+# Constitución de Desarrollo PelusApp
+
+Como IA de Cursor, debes adherirte estrictamente a estas reglas para mantener la integridad de la arquitectura de Identidad Unificada.
+
+## 1. Gobernanza de Arquitectura y Documentación
+- **Cita las Fuentes**: Antes de proponer cambios estructurales, consulta `ARQUITECTURA.md` y los documentos en `docs/`.
+- **Registro de Decisiones**: Si sugieres un cambio en la lógica central (Auth, Roles, Metadatos), debes pedir permiso para registrarlo en `docs/DECISION_LOG.md`.
+- **Sincronización**: Al terminar una tarea, verifica si los diagramas Mermaid en la documentación necesitan actualización.
+
+## 2. Reglas de Identidad y Seguridad (Clerk)
+- **Backend-Only Metadata**: NUNCA intentes escribir en `publicMetadata` desde el frontend. Usa `apiClient.post` hacia las Netlify Functions correspondientes.
+- **Jerarquía de Metadatos**: Respeta `docs/BACKEND_SECURITY.md`. Prohibido usar `unsafeMetadata` para lógica de permisos o navegación.
+- **Contexto Activo**: La existencia de `organization` de Clerk es la única fuente de verdad para el modo B2B.
+
+## 3. Estructura de Capas (Barrera de Capas)
+- **Aislamiento**: Los archivos en `src/features/Shared/` NO pueden importar nada de otras subcarpetas de `features/`.
+- **Auditoría de Features**: Al crear un nuevo archivo en `src/features/`, verifica que cumpla con la jerarquía definida en `docs/FEATURE_STRUCTURE.md`.
+- **Path Aliases**: Usa siempre el alias `@/` para importaciones internas.
+
+## 4. Diseño y Estilos (Gluestack UI)
+- **Protección de Temas**: Prohibido usar colores hardcodeados (ej. `color="#FF0000"`). Usa siempre tokens de diseño (ej. `$error600`).
+- **Conciencia de Contexto**: Antes de modificar estilos, verifica `gluestack-ui.config.ts`. Respeta los temas visuales diferenciados para B2C y B2B.
+- **Componentes Nativos**: Prioriza los componentes de `@gluestack-ui/themed`. Usa `ActionSheet` para selectores de contexto en móvil.
+
+## 5. Persistencia y Base de Datos (Supabase)
+- **Zero Static Tokens**: PROHIBIDO usar el cliente estático de Supabase para operaciones autenticadas. Usa siempre el hook `useSupabaseClient`.
+- **RLS Obligatorio**: Cada vez que crees una tabla en Supabase, DEBES definir políticas RLS basadas en los claims de Clerk (`sub` para B2C, `org_id` para B2B).
+- **Single Source of Auth**: Supabase Auth está desactivado. Toda validación de identidad se hace mediante el JWT de Clerk.
+- **Consultas Seguras**: Al realizar queries, asegúrate de que el filtro por `owner_id` o `org_id` esté implícito en el RLS, pero agrégalo en la query si ayuda a la legibilidad o performance.
+
+## 6. Regla de Auditoría Proactiva
+- Cada vez que el usuario te pida una nueva funcionalidad, verifica:
+  1. ¿Cumple con la estructura de capas?
+  2. ¿Requiere cambios en la lógica de permisos? (Consulta `BACKEND_SECURITY.md`).
+  3. ¿Cómo afecta a la navegación sensible al contexto?
+
+
+
+
+
+
