@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { useSignIn, useAuth, useUser, useOAuth } from '@clerk/clerk-expo';
+import { useSignIn, useAuth, useUser, useSSO } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { 
   Box, 
@@ -28,7 +28,7 @@ export function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const { user } = useUser();
-  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
+  const { startSSOFlow } = useSSO();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -81,7 +81,7 @@ export function LoginScreen() {
     setIsOAuthLoading(true);
 
     try {
-      const { createdSessionId, setActive: setActiveSession } = await startOAuthFlow();
+      const { createdSessionId, setActive: setActiveSession } = await startSSOFlow({ strategy: 'oauth_google' });
 
       if (createdSessionId && setActiveSession) {
         await setActiveSession({ session: createdSessionId });
