@@ -2,6 +2,12 @@ import { clerkClient } from '@clerk/clerk-sdk-node';
 import { Handler } from '@netlify/functions';
 import { withCors, handleOptions } from './utils/cors';
 
+// Inicializar Clerk Client con la secret key del entorno
+// Netlify Dev carga las variables de .env automáticamente
+if (!process.env.CLERK_SECRET_KEY) {
+  throw new Error('CLERK_SECRET_KEY is required. Make sure it is set in your .env file.');
+}
+
 /**
  * Función para actualizar los metadatos de una organización de forma segura.
  * Establece el tipo de negocio en publicMetadata.
@@ -32,14 +38,11 @@ export const handler: Handler = async (event) => {
     }
 
     // 1. Actualizar publicMetadata de la organización (Seguro)
+    // Nota: Las organizaciones no soportan unsafeMetadata en la API de Clerk
     await clerkClient.organizations.updateOrganizationMetadata(orgId, {
       publicMetadata: {
         type: type,
       },
-      // 2. Limpiar unsafeMetadata (Saneamiento)
-      unsafeMetadata: {
-        type: null,
-      }
     });
 
     return withCors({

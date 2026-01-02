@@ -1,5 +1,9 @@
-import { BRAND_NAME } from './src/core/config/brand.ts';
 import { ExpoConfig, ConfigContext } from 'expo/config';
+
+// Brand name - debe coincidir con src/core/config/brand.ts
+// Nota: No podemos importar desde otros archivos TypeScript aquí porque
+// Expo ejecuta este archivo directamente con Node.js sin transpilación
+const BRAND_NAME = "Vetifly";
 
 // Generamos un slug válido (minúsculas y guiones) basado en el nombre
 const slug = BRAND_NAME.toLowerCase().replace(/\s+/g, '-');

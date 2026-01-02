@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { useSignIn, useAuth, useUser } from '@clerk/clerk-expo';
+import { useSignIn, useAuth, useUser, useOAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { 
   Box, 
@@ -28,10 +28,12 @@ export function LoginScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const { user } = useUser();
+  const { startOAuthFlow } = useOAuth({ strategy: 'oauth_google' });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState(false);
   const router = useRouter();
 
   // Si el usuario ya está autenticado, redirigir
@@ -68,6 +70,28 @@ export function LoginScreen() {
     } catch (err: any) {
       setIsLoading(false);
       const clerkError = err.errors?.[0]?.message || 'Error al iniciar sesión';
+      setError(clerkError);
+    }
+  };
+
+  const onGoogleSignInPress = async () => {
+    if (!isLoaded) return;
+
+    setError('');
+    setIsOAuthLoading(true);
+
+    try {
+      const { createdSessionId, setActive: setActiveSession } = await startOAuthFlow();
+
+      if (createdSessionId) {
+        await setActiveSession({ session: createdSessionId });
+        router.replace('/(initial)/loading');
+      } else {
+        setIsOAuthLoading(false);
+      }
+    } catch (err: any) {
+      setIsOAuthLoading(false);
+      const clerkError = err.errors?.[0]?.message || 'Error al iniciar sesión con Google';
       setError(clerkError);
     }
   };
@@ -121,13 +145,31 @@ export function LoginScreen() {
           size="lg" 
           variant="solid" 
           action="primary" 
-          isDisabled={isLoading || !isLoaded}
+          isDisabled={isLoading || isOAuthLoading || !isLoaded}
           onPress={onSignInPress}
           mt="$4"
           backgroundColor="$primary600"
         >
           {isLoading ? <ButtonSpinner mr="$2" /> : null}
           <ButtonText>Iniciar Sesión</ButtonText>
+        </Button>
+
+        <HStack justifyContent="center" alignItems="center" mt="$4" space="md">
+          <Box flex={1} height="$0.5" backgroundColor="$border300" />
+          <Text size="sm" color="$text400" px="$2">o</Text>
+          <Box flex={1} height="$0.5" backgroundColor="$border300" />
+        </HStack>
+
+        <Button 
+          size="lg" 
+          variant="outline" 
+          isDisabled={isLoading || isOAuthLoading || !isLoaded}
+          onPress={onGoogleSignInPress}
+          mt="$4"
+          borderColor="$border400"
+        >
+          {isOAuthLoading ? <ButtonSpinner mr="$2" /> : null}
+          <ButtonText color="$text900">Continuar con Google</ButtonText>
         </Button>
 
         <HStack justifyContent="center" alignItems="center" mt="$6" space="xs">

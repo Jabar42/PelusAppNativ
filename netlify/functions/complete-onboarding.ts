@@ -2,9 +2,15 @@ import { clerkClient } from '@clerk/clerk-sdk-node';
 import { Handler } from '@netlify/functions';
 import { withCors, handleOptions } from './utils/cors';
 
+// Inicializar Clerk Client con la secret key del entorno
+// Netlify Dev carga las variables de .env automáticamente
+if (!process.env.CLERK_SECRET_KEY) {
+  throw new Error('CLERK_SECRET_KEY is required. Make sure it is set in your .env file.');
+}
+
 /**
  * Función para completar el onboarding de un usuario de forma segura.
- * Migra los datos de unsafeMetadata a publicMetadata.
+ * Establece user_type y hasCompletedOnboarding en publicMetadata.
  */
 export const handler: Handler = async (event) => {
   // Manejar Preflight (OPTIONS)
@@ -41,11 +47,6 @@ export const handler: Handler = async (event) => {
         user_type: userType,
         hasCompletedOnboarding: true,
       },
-      // 3. Limpiar unsafeMetadata (Saneamiento)
-      unsafeMetadata: {
-        user_type: null,
-        hasCompletedOnboarding: null,
-      }
     });
 
     console.log('[complete-onboarding] Sincronización exitosa en Clerk.');
