@@ -83,7 +83,7 @@ export function LoginScreen() {
     try {
       const { createdSessionId, setActive: setActiveSession } = await startOAuthFlow();
 
-      if (createdSessionId) {
+      if (createdSessionId && setActiveSession) {
         await setActiveSession({ session: createdSessionId });
         router.replace('/(initial)/loading');
       } else {
