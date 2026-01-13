@@ -69,3 +69,4 @@ web-build/
 # Environment files
 .env.local
 .env*.local
+.env
