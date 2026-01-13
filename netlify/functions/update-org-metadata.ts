@@ -28,21 +28,39 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const { orgId, type } = JSON.parse(event.body || '{}');
+    const body = JSON.parse(event.body || '{}');
+    const { orgId, type, active_location_id } = body;
 
-    if (!orgId || !type) {
+    if (!orgId) {
       return withCors({ 
         statusCode: 400, 
-        body: JSON.stringify({ error: 'orgId y type son requeridos' }) 
+        body: JSON.stringify({ error: 'orgId es requerido' }) 
       });
     }
 
-    // 1. Actualizar publicMetadata de la organización (Seguro)
+    // Construir objeto de metadatos dinámicamente
+    const publicMetadata: Record<string, any> = {};
+    
+    if (type !== undefined) {
+      publicMetadata.type = type;
+    }
+    
+    if (active_location_id !== undefined) {
+      publicMetadata.active_location_id = active_location_id;
+    }
+
+    // Si no hay nada que actualizar
+    if (Object.keys(publicMetadata).length === 0) {
+      return withCors({ 
+        statusCode: 400, 
+        body: JSON.stringify({ error: 'Debe proporcionar al menos type o active_location_id' }) 
+      });
+    }
+
+    // Actualizar publicMetadata de la organización (Seguro)
     // Nota: Las organizaciones no soportan unsafeMetadata en la API de Clerk
     await clerkClient.organizations.updateOrganizationMetadata(orgId, {
-      publicMetadata: {
-        type: type,
-      },
+      publicMetadata,
     });
 
     return withCors({

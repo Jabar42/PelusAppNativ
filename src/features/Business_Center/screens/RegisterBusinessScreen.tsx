@@ -61,6 +61,27 @@ export function RegisterBusinessScreen() {
     return true;
   };
 
+  /**
+   * Crea la primera sede de la organización automáticamente.
+   * Marca la sede como principal (is_main = true) y asigna al creador como admin.
+   */
+  const createFirstLocation = async (orgId: string) => {
+    const token = await getToken();
+    if (!token) throw new Error('No se pudo obtener el token de sesión');
+
+    const response = await apiClient.post('/manage-location', {
+      orgId,
+      name: businessName.trim() || 'Sede Principal',
+      isMain: true,
+    }, token);
+
+    if (response.error) {
+      throw new Error(response.error || 'Error al crear la primera sede');
+    }
+
+    return response.data?.location;
+  };
+
   const handleCreateBusiness = async () => {
     if (!isLoaded || !createOrganization) return;
 
@@ -107,6 +128,11 @@ export function RegisterBusinessScreen() {
       if (!orgId) throw new Error('No se pudo identificar la organización');
       await updateMetadataInBackend(orgId);
 
+      // 3. Crear la primera sede automáticamente
+      // La función manage-location marcará is_main=true, asignará al creador como admin
+      // y actualizará active_location_id en Clerk
+      await createFirstLocation(orgId);
+
       // 4. EXTRA: Asegurar que el usuario sea marcado como professional si es su primera org
       const token = await getToken();
       if (userLoaded && user) {
@@ -116,7 +142,7 @@ export function RegisterBusinessScreen() {
         }, token ?? undefined);
       }
 
-      // 3. Establecer como activa y navegar
+      // 5. Establecer como activa y navegar
       if (setActive) {
         await setActive({ organization: orgId });
       }

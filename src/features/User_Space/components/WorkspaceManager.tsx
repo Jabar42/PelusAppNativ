@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { useOrganization, useOrganizationList } from '@clerk/clerk-expo';
+import { useOrganization, useOrganizationList, useAuth } from '@clerk/clerk-expo';
+import { useSupabaseClient } from '@/core/hooks/useSupabaseClient';
+import { apiClient } from '@/core/services/api';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -88,22 +90,114 @@ function WorkspaceSkeleton() {
  * Permite cambiar de organización o crear una nueva desde el perfil.
  * Utiliza un Actionsheet para una experiencia móvil limpia.
  */
+interface Location {
+  location_id: string;
+  location_name: string;
+  role: string;
+  is_main: boolean;
+}
+
 export default function WorkspaceManager() {
   const router = useRouter();
   const { organization: activeOrg, isLoaded: orgLoaded } = useOrganization();
   const { userMemberships, isLoaded: listLoaded, setActive } = useOrganizationList({
     userMemberships: true,
   });
+  const { getToken, userId } = useAuth();
+  const supabase = useSupabaseClient();
 
   const isFullyLoaded = orgLoaded && listLoaded;
 
   const [showActionsheet, setShowActionsheet] = useState(false);
+  const [showLocationSheet, setShowLocationSheet] = useState(false);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+  const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
+
   const handleClose = () => setShowActionsheet(false);
+  const handleCloseLocationSheet = () => setShowLocationSheet(false);
+
+  // Cargar sedes del usuario en la organización activa
+  const loadUserLocations = async () => {
+    if (!activeOrg?.id || !userId) {
+      setLocations([]);
+      setActiveLocationId(null);
+      return;
+    }
+
+    setIsLoadingLocations(true);
+    try {
+      const { data, error } = await supabase.rpc('get_user_locations_in_org', {
+        p_user_id: userId,
+        p_org_id: activeOrg.id,
+      });
+
+      if (error) throw error;
+
+      setLocations(data || []);
+      
+      // Obtener active_location_id de los metadatos de la organización
+      const currentActiveLocationId = activeOrg.publicMetadata?.active_location_id as string | undefined;
+      setActiveLocationId(currentActiveLocationId || null);
+    } catch (error) {
+      console.error('Error loading locations:', error);
+      setLocations([]);
+    } finally {
+      setIsLoadingLocations(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isFullyLoaded && activeOrg) {
+      loadUserLocations();
+    } else {
+      setLocations([]);
+      setActiveLocationId(null);
+    }
+  }, [isFullyLoaded, activeOrg?.id, userId]);
 
   const handleSwitchOrg = async (orgId: string | null) => {
     if (setActive) {
       await setActive({ organization: orgId });
       handleClose();
+    }
+  };
+
+  // Cambiar sede activa
+  const handleSwitchLocation = async (locationId: string) => {
+    if (!activeOrg?.id) return;
+
+    try {
+      const token = await getToken();
+      if (!token) throw new Error('No se pudo obtener el token');
+
+      // Actualizar active_location_id en Clerk
+      const response = await apiClient.put(
+        '/update-org-metadata',
+        {
+          orgId: activeOrg.id,
+          active_location_id: locationId,
+        },
+        token
+      );
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      // Forzar refresh del token para que el nuevo location_id esté disponible inmediatamente
+      await getToken({ template: 'supabase', skipCache: true });
+
+      setActiveLocationId(locationId);
+      handleCloseLocationSheet();
+
+      // Recargar la organización para obtener los metadatos actualizados
+      // Nota: Clerk debería actualizar automáticamente, pero forzamos recarga
+      if (setActive) {
+        await setActive({ organization: activeOrg.id });
+      }
+    } catch (error) {
+      console.error('Error switching location:', error);
     }
   };
 
@@ -137,7 +231,7 @@ export default function WorkspaceManager() {
               backgroundColor={pressed ? '$backgroundLight50' : '$white'}
             >
               <HStack justifyContent="space-between" alignItems="center">
-                <HStack space="md" alignItems="center">
+                <HStack space="md" alignItems="center" flex={1}>
                   <Center 
                     w="$10" 
                     h="$10" 
@@ -150,12 +244,18 @@ export default function WorkspaceManager() {
                       color={activeOrg ? "$primary600" : "$text400"} 
                     />
                   </Center>
-                  <VStack>
+                  <VStack flex={1}>
                     <Text fontWeight="$bold" size="md" color="$text900">
                       {activeOrg ? activeOrg.name : "Espacio Personal"}
                     </Text>
                     <Text size="xs" color="$text500">
-                      {activeOrg ? "Modo Profesional Activo" : "Gestionando mis mascotas"}
+                      {activeOrg 
+                        ? (locations.length > 1 
+                            ? `${locations.length} sedes disponibles`
+                            : locations.length === 1
+                            ? locations[0].location_name
+                            : "Modo Profesional Activo")
+                        : "Gestionando mis mascotas"}
                     </Text>
                   </VStack>
                 </HStack>
@@ -164,6 +264,33 @@ export default function WorkspaceManager() {
             </Box>
           )}
         </Pressable>
+
+        {/* Selector de sede si hay múltiples sedes */}
+        {activeOrg && locations.length > 1 && (
+          <Pressable onPress={() => setShowLocationSheet(true)} mt="$2">
+            {({ pressed }) => (
+              <Box
+                p="$3"
+                borderWidth="$1"
+                borderColor="$borderLight200"
+                borderRadius="$lg"
+                backgroundColor={pressed ? '$backgroundLight50' : '$white'}
+              >
+                <HStack justifyContent="space-between" alignItems="center">
+                  <HStack space="sm" alignItems="center" flex={1}>
+                    <Ionicons name="location" size={16} color="$primary600" />
+                    <Text size="sm" color="$text700" fontWeight="$medium">
+                      {locations.find(l => l.location_id === activeLocationId)?.location_name || 
+                       locations.find(l => l.is_main)?.location_name || 
+                       'Seleccionar sede'}
+                    </Text>
+                  </HStack>
+                  <Ionicons name="chevron-forward" size={16} color="$text400" />
+                </HStack>
+              </Box>
+            )}
+          </Pressable>
+        )}
       </VStack>
 
       <Actionsheet isOpen={showActionsheet} onClose={handleClose}>
@@ -226,6 +353,60 @@ export default function WorkspaceManager() {
               </ActionsheetItemText>
             </HStack>
           </ActionsheetItem>
+        </ActionsheetContent>
+      </Actionsheet>
+
+      {/* Actionsheet para seleccionar sede */}
+      <Actionsheet isOpen={showLocationSheet} onClose={handleCloseLocationSheet}>
+        <ActionsheetBackdrop />
+        <ActionsheetContent>
+          <ActionsheetDragIndicatorWrapper>
+            <ActionsheetDragIndicator />
+          </ActionsheetDragIndicatorWrapper>
+          
+          <VStack space="xs" p="$4" width="$full">
+            <Heading size="md">Seleccionar Sede</Heading>
+            <Text size="sm" color="$text500">Elige la sede en la que trabajarás</Text>
+          </VStack>
+
+          <Divider />
+
+          {isLoadingLocations ? (
+            <Center p="$8">
+              <Text>Cargando sedes...</Text>
+            </Center>
+          ) : (
+            locations.map((location) => (
+              <ActionsheetItem 
+                key={location.location_id}
+                onPress={() => handleSwitchLocation(location.location_id)}
+              >
+                <HStack space="md" alignItems="center" width="$full">
+                  <Ionicons 
+                    name="location" 
+                    size={20} 
+                    color={activeLocationId === location.location_id ? "$primary600" : "$text500"} 
+                  />
+                  <VStack flex={1}>
+                    <ActionsheetItemText
+                      fontWeight={activeLocationId === location.location_id ? "$bold" : "$normal"}
+                      color={activeLocationId === location.location_id ? "$primary700" : "$text900"}
+                    >
+                      {location.location_name}
+                    </ActionsheetItemText>
+                    {location.is_main && (
+                      <Text size="xs" color="$primary600">
+                        Sede Principal
+                      </Text>
+                    )}
+                  </VStack>
+                  {activeLocationId === location.location_id && (
+                    <Ionicons name="checkmark-circle" size={20} color="$primary600" />
+                  )}
+                </HStack>
+              </ActionsheetItem>
+            ))
+          )}
         </ActionsheetContent>
       </Actionsheet>
     </Box>

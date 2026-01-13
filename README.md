@@ -15,6 +15,21 @@ Aplicación multiplataforma (iOS, Android, Web) construida con React Native y Ex
 npm install
 ```
 
+2. Configura las variables de entorno:
+   - Crea un archivo `.env` en la raíz del proyecto
+   - Consulta [ENV_TEMPLATE.md](./ENV_TEMPLATE.md) para ver todas las variables necesarias
+   - **Importante**: Necesitas configurar al menos:
+     - `CLERK_SECRET_KEY` (desde Clerk Dashboard)
+     - `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY` (ver sección Supabase Local abajo)
+
+3. Para desarrollo local con Supabase:
+   ```bash
+   # Asegúrate de tener Docker Desktop corriendo
+   npm run supabase:start
+   # Copia el "anon key" del output y pégalo en .env
+   npm run supabase:migrate
+   ```
+
 ## Ejecutar la aplicación
 
 ### Desarrollo

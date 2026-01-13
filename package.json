@@ -12,7 +12,12 @@
     "build": "expo export -p web && node scripts/add-manifest-link.js",
     "storybook": "node --max-old-space-size=4096 --trace-warnings node_modules/.bin/storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "storybook-native": "npx expo start --dev-client"
+    "storybook-native": "npx expo start --dev-client",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:reset": "supabase db reset",
+    "supabase:migrate": "supabase migration up",
+    "supabase:status": "supabase status"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.19.10",
@@ -69,9 +74,10 @@
     "babel-loader": "^10.0.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-react-native-web": "^0.21.2",
+    "netlify-cli": "^17.0.0",
     "regenerator-runtime": "^0.14.1",
     "storybook": "^7.6.21",
-    "netlify-cli": "^17.0.0",
+    "supabase": "^2.72.1",
     "tailwindcss": "^3.4.19",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3"

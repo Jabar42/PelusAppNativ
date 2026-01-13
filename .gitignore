@@ -62,3 +62,10 @@ web-build/
 # Local Netlify folder
 .netlify
 .cursor/debug.log
+
+# Supabase local
+.supabase/
+
+# Environment files
+.env.local
+.env*.local

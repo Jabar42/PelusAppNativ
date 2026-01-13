@@ -88,7 +88,32 @@ Cada petición a la base de datos se realiza con un token fresco inyectado autom
 ### 2. Seguridad Multi-Tenant
 - **B2C**: Filtro automático por `auth.uid()` (mapeado al ID de Clerk).
 - **B2B**: Filtro dinámico usando el claim `org_id` del JWT de Clerk.
+- **Multisede**: Filtro adicional por `active_location_id` cuando el usuario tiene múltiples sedes asignadas.
+
+### 3. Sistema de Sedes (Locations) - Modelo Diamante
+
+PelusApp soporta organizaciones con múltiples sedes mediante el **"Modelo Diamante"**:
+
+- **Flexibilidad**: Un veterinario puede trabajar en "Sede Norte" los lunes y en "Sede Sur" los miércoles
+- **Seguridad**: El RLS filtra por sede activa del JWT, pero la base de datos sabe que el usuario tiene permiso para ambas
+- **Escalabilidad**: Fácil agregar nuevas sedes sin reestructurar datos existentes
+
+#### Estructura de Datos
+- `locations`: Almacena las sedes de cada organización
+- `user_location_assignments`: Relación muchos-a-muchos entre usuarios y sedes (Modelo Diamante)
+
+#### Flujo de Contexto de Sede
+1. Usuario selecciona sede activa en `WorkspaceManager`
+2. Se actualiza `org.publicMetadata.active_location_id` mediante Netlify Function
+3. Clerk detecta el cambio y refresca el token automáticamente
+4. El interceptor de Supabase usa el nuevo token con `active_location_id`
+5. Las políticas RLS filtran datos por `active_location_id`
+
+#### RLS Dinámico para Tablas de Negocio
+Las tablas de negocio (ej: `medical_histories`, `appointments`) deben incluir `location_id` y políticas RLS dinámicas:
+- **Staff**: Ve solo registros de su sede activa (`active_location_id`)
+- **Admins**: Ven todas las sedes de su organización
 
 ---
-**Última actualización**: Diciembre 2025
-**Versión de Arquitectura**: 2.3 (Supabase Native Integration)
+**Última actualización**: Enero 2025
+**Versión de Arquitectura**: 2.4 (Sistema de Sedes Multisede)
