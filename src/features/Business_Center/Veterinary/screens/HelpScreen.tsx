@@ -6,8 +6,8 @@ import {
   Text,
   Heading,
   ScrollView,
-  Icon,
   Pressable,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,6 +52,9 @@ const faqs: FAQ[] = [
 ];
 
 function FAQItem({ faq, isOpen, onToggle }: { faq: FAQ; isOpen: boolean; onToggle: () => void }) {
+  const text600 = useToken('colors', 'textLight600');
+  const iconMd = useToken('space', '6');
+
   return (
     <Box
       borderWidth="$1"
@@ -71,11 +74,10 @@ function FAQItem({ faq, isOpen, onToggle }: { faq: FAQ; isOpen: boolean; onToggl
               <Text flex={1} size="md" fontWeight="$semibold" color="$text900">
                 {faq.question}
               </Text>
-              <Icon
-                as={Ionicons}
+              <Ionicons
                 name={isOpen ? 'chevron-up' : 'chevron-down'}
-                size="$md"
-                color="$text600"
+                size={iconMd}
+                color={text600}
               />
             </HStack>
             {isOpen && (
@@ -101,6 +103,10 @@ function HelpMenuItem({
   description?: string;
   onPress?: () => void;
 }) {
+  const text400 = useToken('colors', 'textLight400');
+  const primary600 = useToken('colors', 'primary600');
+  const iconMd = useToken('space', '6');
+
   return (
     <Pressable onPress={onPress}>
       {({ pressed }) => (
@@ -121,7 +127,7 @@ function HelpMenuItem({
               justifyContent="center"
               alignItems="center"
             >
-              <Icon as={Ionicons} name={icon} size="$md" color="$primary600" />
+              <Ionicons name={icon} size={iconMd} color={primary600} />
             </Box>
             <VStack flex={1} gap="$1">
               <Text size="md" fontWeight="$semibold" color="$text900">
@@ -133,7 +139,7 @@ function HelpMenuItem({
                 </Text>
               )}
             </VStack>
-            <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+            <Ionicons name="chevron-forward" size={iconMd} color={text400} />
           </HStack>
         </Box>
       )}

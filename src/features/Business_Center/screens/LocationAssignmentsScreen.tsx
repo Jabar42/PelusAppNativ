@@ -11,24 +11,21 @@ import {
   HStack,
   Pressable,
   Alert,
-  AlertIcon,
   AlertText,
   ScrollView,
   Card,
-  CardHeader,
-  CardBody,
   Spinner,
   Center,
   Select,
   SelectTrigger,
   SelectInput,
-  SelectIcon,
   SelectPortal,
   SelectBackdrop,
   SelectContent,
   SelectDragIndicatorWrapper,
   SelectDragIndicator,
   SelectItem,
+  useToken,
 } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '@/core/services/api';
@@ -56,11 +53,19 @@ interface OrgMember {
   role: string;
 }
 
+interface LocationsResponse {
+  locations: Location[];
+}
+
 export function LocationAssignmentsScreen() {
   const { organization, isLoaded: orgLoaded } = useOrganization();
   const { userMemberships } = useOrganizationList();
   const { getToken } = useAuth();
   const supabase = useSupabaseClient();
+  const text400 = useToken('colors', 'textLight400');
+  const error600 = useToken('colors', 'error600');
+  const alertIconSize = useToken('space', '6');
+  const selectIconSize = useToken('space', '5');
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [members, setMembers] = useState<OrgMember[]>([]);
@@ -84,7 +89,7 @@ export function LocationAssignmentsScreen() {
       if (!token) throw new Error('No se pudo obtener el token');
 
       // Cargar sedes
-      const locationsResponse = await apiClient.get(
+      const locationsResponse = await apiClient.get<LocationsResponse>(
         `/manage-location/list?orgId=${organization.id}`,
         token
       );
@@ -98,17 +103,18 @@ export function LocationAssignmentsScreen() {
       // Cargar miembros de la organización desde Clerk
       // Nota: Esto requiere acceso a la lista de miembros, que puede requerir permisos especiales
       // Por ahora, usamos los miembros visibles desde userMemberships
-      if (userMemberships) {
-        const orgMembership = userMemberships.find(m => m.organization.id === organization.id);
+      const memberships = userMemberships?.data ?? [];
+      if (memberships.length) {
+        const orgMembership = memberships.find((m) => m.organization.id === organization.id);
         if (orgMembership) {
           // Esto es una aproximación - en producción necesitarías obtener la lista completa de miembros
           // desde Clerk Admin API o desde Supabase si los guardas allí
           setMembers([
             {
               userId: orgMembership.publicUserData?.userId || '',
-              firstName: orgMembership.publicUserData?.firstName,
-              lastName: orgMembership.publicUserData?.lastName,
-              emailAddress: orgMembership.publicUserData?.identifier,
+              firstName: orgMembership.publicUserData?.firstName || undefined,
+              lastName: orgMembership.publicUserData?.lastName || undefined,
+              emailAddress: orgMembership.publicUserData?.identifier || undefined,
               role: orgMembership.role || 'member',
             },
           ]);
@@ -254,17 +260,19 @@ export function LocationAssignmentsScreen() {
 
           {error ? (
             <Alert action="error" variant="outline">
-              <AlertIcon as={Ionicons} name="alert-circle" mr="$3" />
-              <AlertText>{error}</AlertText>
+              <HStack alignItems="center" gap="$3">
+                <Ionicons name="alert-circle" size={alertIconSize} color={error600} />
+                <AlertText>{error}</AlertText>
+              </HStack>
             </Alert>
           ) : null}
 
           {/* Formulario de asignación */}
           <Card>
-            <CardHeader>
+            <Box padding="$4" borderBottomWidth="$1" borderColor="$borderLight200">
               <Heading size="md">Asignar Usuario a Sede</Heading>
-            </CardHeader>
-            <CardBody>
+            </Box>
+            <Box padding="$4">
               <VStack space="md">
                 <Select
                   selectedValue={selectedUserId}
@@ -272,9 +280,9 @@ export function LocationAssignmentsScreen() {
                 >
                   <SelectTrigger variant="outline" size="md">
                     <SelectInput placeholder="Seleccionar usuario" />
-                    <SelectIcon mr="$3">
-                      <Ionicons name="chevron-down" size={16} />
-                    </SelectIcon>
+                    <Box marginRight="$3">
+                      <Ionicons name="chevron-down" size={selectIconSize} color={text400} />
+                    </Box>
                   </SelectTrigger>
                   <SelectPortal>
                     <SelectBackdrop />
@@ -299,9 +307,9 @@ export function LocationAssignmentsScreen() {
                 >
                   <SelectTrigger variant="outline" size="md">
                     <SelectInput placeholder="Seleccionar sede" />
-                    <SelectIcon mr="$3">
-                      <Ionicons name="chevron-down" size={16} />
-                    </SelectIcon>
+                    <Box marginRight="$3">
+                      <Ionicons name="chevron-down" size={selectIconSize} color={text400} />
+                    </Box>
                   </SelectTrigger>
                   <SelectPortal>
                     <SelectBackdrop />
@@ -326,9 +334,9 @@ export function LocationAssignmentsScreen() {
                 >
                   <SelectTrigger variant="outline" size="md">
                     <SelectInput placeholder="Seleccionar rol" />
-                    <SelectIcon mr="$3">
-                      <Ionicons name="chevron-down" size={16} />
-                    </SelectIcon>
+                    <Box marginRight="$3">
+                      <Ionicons name="chevron-down" size={selectIconSize} color={text400} />
+                    </Box>
                   </SelectTrigger>
                   <SelectPortal>
                     <SelectBackdrop />
@@ -354,7 +362,7 @@ export function LocationAssignmentsScreen() {
                   <ButtonText>Asignar</ButtonText>
                 </Button>
               </VStack>
-            </CardBody>
+            </Box>
           </Card>
 
           {/* Lista de asignaciones */}
@@ -365,7 +373,7 @@ export function LocationAssignmentsScreen() {
           ) : assignments.length === 0 ? (
             <Center p="$8">
               <VStack space="md" alignItems="center">
-                <Ionicons name="people-outline" size={48} color="#999" />
+                <Ionicons name="people-outline" size={48} color={text400} />
                 <Text color="$text600" textAlign="center">
                   No hay asignaciones. Asigna usuarios a sedes para comenzar.
                 </Text>
@@ -378,12 +386,12 @@ export function LocationAssignmentsScreen() {
                 const userAssignments = getUserAssignments(userId);
                 return (
                   <Card key={userId}>
-                    <CardHeader>
+                    <Box padding="$4" borderBottomWidth="$1" borderColor="$borderLight200">
                       <HStack justifyContent="space-between" alignItems="center">
                         <Heading size="sm">{getUserName(userId)}</Heading>
                       </HStack>
-                    </CardHeader>
-                    <CardBody>
+                    </Box>
+                    <Box padding="$4">
                       <VStack space="sm">
                         {userAssignments.map((assignment) => (
                           <HStack
@@ -405,12 +413,12 @@ export function LocationAssignmentsScreen() {
                             <Pressable
                               onPress={() => handleRemoveAssignment(assignment.id)}
                             >
-                              <Ionicons name="close-circle" size={20} color="#DC2626" />
+                              <Ionicons name="close-circle" size={20} color={error600} />
                             </Pressable>
                           </HStack>
                         ))}
                       </VStack>
-                    </CardBody>
+                    </Box>
                   </Card>
                 );
               })}

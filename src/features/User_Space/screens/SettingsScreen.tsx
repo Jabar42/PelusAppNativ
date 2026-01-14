@@ -7,8 +7,8 @@ import {
   Heading,
   ScrollView,
   Switch,
-  Icon,
   Pressable,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +28,11 @@ function SettingsMenuItem({
   onPress?: () => void;
   showArrow?: boolean;
 }) {
+  const text600 = useToken('colors', 'textLight600');
+  const text400 = useToken('colors', 'textLight400');
+  const iconLg = useToken('space', '6');
+  const iconSm = useToken('space', '4');
+
   return (
     <Pressable onPress={onPress}>
       {({ pressed }) => (
@@ -38,7 +43,7 @@ function SettingsMenuItem({
           borderRadius="$lg"
           backgroundColor={pressed ? '$backgroundLight100' : 'transparent'}
         >
-          <Icon as={Ionicons} name={icon} size="$lg" color="$text600" />
+          <Ionicons name={icon} size={iconLg} color={text600} />
           <VStack flex={1} gap="$1">
             <Text size="md" color="$text800">
               {label}
@@ -50,7 +55,7 @@ function SettingsMenuItem({
             )}
           </VStack>
           {showArrow && (
-            <Icon as={Ionicons} name="chevron-forward" size="$sm" color="$text400" />
+            <Ionicons name="chevron-forward" size={iconSm} color={text400} />
           )}
         </HStack>
       )}
@@ -71,6 +76,9 @@ function SettingsToggle({
   onValueChange: (value: boolean) => void;
   description?: string;
 }) {
+  const text600 = useToken('colors', 'textLight600');
+  const iconLg = useToken('space', '6');
+
   return (
     <HStack
       padding="$3"
@@ -80,7 +88,7 @@ function SettingsToggle({
       justifyContent="space-between"
     >
       <HStack flex={1} gap="$3" alignItems="center">
-        <Icon as={Ionicons} name={icon} size="$lg" color="$text600" />
+        <Ionicons name={icon} size={iconLg} color={text600} />
         <VStack flex={1} gap="$1">
           <Text size="md" color="$text800">
             {label}
@@ -101,6 +109,8 @@ export function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
+  const primary600 = useToken('colors', 'primary600');
+  const infoIconSize = useToken('space', '6');
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={['top']}>
@@ -201,7 +211,7 @@ export function SettingsScreen() {
             borderColor="$primary200"
           >
             <HStack alignItems="center" gap="$3">
-              <Icon as={Ionicons} name="information-circle" size="$md" color="$primary600" />
+              <Ionicons name="information-circle" size={infoIconSize} color={primary600} />
               <VStack flex={1} gap="$1">
                 <Text size="sm" fontWeight="$semibold" color="$primary700">
                   {BRAND_NAME}

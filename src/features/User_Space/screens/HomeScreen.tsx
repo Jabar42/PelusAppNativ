@@ -9,8 +9,8 @@ import {
   SafeAreaView,
   Center,
   Spinner,
-  Icon,
   Pressable,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from 'react-native';
@@ -43,6 +43,10 @@ export function HomeScreen() {
   const router = useRouter();
   const supabase = useSupabaseClient();
   const { userId } = useAuth();
+  const iconMd = useToken('space', '6');
+  const errorIconColor = useToken('colors', 'error600');
+  const primaryIconColor = useToken('colors', 'primary600');
+  const textIconColor = useToken('colors', 'textLight400');
   const [pets, setPets] = useState<Pet[]>([]);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -185,7 +189,7 @@ export function HomeScreen() {
                 borderColor="$error200"
               >
                 <HStack alignItems="center" gap="$3">
-                  <Icon as={Ionicons} name="alert-circle" size="$md" color="$error600" />
+                  <Ionicons name="alert-circle" size={iconMd} color={errorIconColor} />
                   <Text size="sm" color="$error700" flex={1}>
                     {error}
                   </Text>
@@ -259,7 +263,7 @@ export function HomeScreen() {
                       justifyContent="center"
                       alignItems="center"
                     >
-                      <Icon as={Ionicons} name="heart" size="$md" color="$primary600" />
+                      <Ionicons name="heart" size={iconMd} color={primaryIconColor} />
                     </Box>
                     <VStack flex={1} gap="$1">
                       <Text size="md" fontWeight="$semibold" color="$text900">
@@ -269,7 +273,7 @@ export function HomeScreen() {
                         Tus servicios favoritos
                       </Text>
                     </VStack>
-                    <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                    <Ionicons name="chevron-forward" size={iconMd} color={textIconColor} />
                   </HStack>
                 </Box>
               </Pressable>
@@ -298,7 +302,7 @@ export function HomeScreen() {
                       justifyContent="center"
                       alignItems="center"
                     >
-                      <Icon as={Ionicons} name="help-circle" size="$md" color="$primary600" />
+                      <Ionicons name="help-circle" size={iconMd} color={primaryIconColor} />
                     </Box>
                     <VStack flex={1} gap="$1">
                       <Text size="md" fontWeight="$semibold" color="$text900">
@@ -308,7 +312,7 @@ export function HomeScreen() {
                         Preguntas frecuentes y soporte
                       </Text>
                     </VStack>
-                    <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                    <Ionicons name="chevron-forward" size={iconMd} color={textIconColor} />
                   </HStack>
                 </Box>
               </Pressable>

@@ -16,10 +16,10 @@ import {
   SafeAreaView,
   Button,
   ButtonText,
-  Icon,
   Pressable,
   Textarea,
   TextareaInput,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -44,6 +44,8 @@ export function AddEditMedicalHistoryScreen() {
   const supabase = useSupabaseClient();
   const { userId, getToken } = useAuth();
   const { colors } = useThemeContext();
+  const iconMd = useToken('space', '6');
+  const text900 = useToken('colors', 'textLight900');
   const isEditing = !!params.id;
 
   const [formData, setFormData] = useState<MedicalHistoryFormData>({
@@ -195,7 +197,7 @@ export function AddEditMedicalHistoryScreen() {
           {/* Header */}
           <HStack alignItems="center" gap="$4">
             <Pressable onPress={() => router.back()}>
-              <Icon as={Ionicons} name="arrow-back" size="$xl" color="$text900" />
+              <Ionicons name="arrow-back" size={iconMd} color={text900} />
             </Pressable>
             <Heading size="xl" color="$text900" flex={1}>
               {isEditing ? 'Editar Historial' : 'Nuevo Historial Médico'}

@@ -13,7 +13,7 @@ import {
   Button,
   ButtonText,
   Pressable,
-  Icon,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -32,6 +32,11 @@ function ProfileMenuItem({
   label: string;
   onPress?: () => void;
 }) {
+  const text600 = useToken('colors', 'textLight600');
+  const text400 = useToken('colors', 'textLight400');
+  const iconLg = useToken('space', '6');
+  const iconSm = useToken('space', '4');
+
   return (
     <Pressable onPress={onPress}>
       {({ pressed }) => (
@@ -42,11 +47,11 @@ function ProfileMenuItem({
           borderRadius="$lg"
           backgroundColor={pressed ? '$backgroundLight100' : 'transparent'}
         >
-          <Icon as={Ionicons} name={icon} size="$lg" color="$text600" />
+          <Ionicons name={icon} size={iconLg} color={text600} />
           <Text flex={1} size="md" color="$text800">
             {label}
           </Text>
-          <Icon as={Ionicons} name="chevron-forward" size="$sm" color="$text400" />
+          <Ionicons name="chevron-forward" size={iconSm} color={text400} />
         </HStack>
       )}
     </Pressable>
@@ -58,6 +63,8 @@ export function ProfileScreen() {
   const { user, isLoaded: userLoaded } = useUser();
   const { organization, isLoaded: orgLoaded } = useOrganization();
   const { signOut } = useAuth();
+  const iconLg = useToken('space', '6');
+  const text600 = useToken('colors', 'textLight600');
 
   const handleNavigateToLocations = () => {
     // Navegar a pantalla de gestión de sedes
@@ -125,7 +132,7 @@ export function ProfileScreen() {
                   justifyContent="center"
                   alignItems="center"
                 >
-                  <Icon as={Ionicons} name="briefcase" size="$md" color="$primary700" />
+                  <Ionicons name="briefcase" size={iconLg} color={text600} />
                 </Box>
                 <VStack flex={1} gap="$1">
                   <Text size="sm" fontWeight="$semibold" color="$primary700">
@@ -134,11 +141,11 @@ export function ProfileScreen() {
                   <Text size="md" fontWeight="$bold" color="$primary900">
                     {organization.name}
                   </Text>
-                  {organization.publicMetadata?.type && (
+                  {organization.publicMetadata?.type ? (
                     <Text size="xs" color="$primary600">
-                      Tipo: {organization.publicMetadata.type as string}
+                      Tipo: {String(organization.publicMetadata.type)}
                     </Text>
-                  )}
+                  ) : null}
                 </VStack>
               </HStack>
             </Box>

@@ -27,6 +27,12 @@ import { apiClient } from '@/core/services/api';
 
 type BusinessType = 'veterinary' | 'walking' | 'grooming';
 
+interface CreateLocationResponse {
+  location: {
+    id: string;
+  };
+}
+
 export function RegisterBusinessScreen() {
   const router = useRouter();
   const { createOrganization, isLoaded, setActive } = useOrganizationList();
@@ -69,7 +75,7 @@ export function RegisterBusinessScreen() {
     const token = await getToken();
     if (!token) throw new Error('No se pudo obtener el token de sesión');
 
-    const response = await apiClient.post('/manage-location', {
+    const response = await apiClient.post<CreateLocationResponse>('/manage-location', {
       orgId,
       name: businessName.trim() || 'Sede Principal',
       isMain: true,

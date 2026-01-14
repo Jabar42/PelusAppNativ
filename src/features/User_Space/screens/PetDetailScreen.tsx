@@ -14,10 +14,10 @@ import {
   SafeAreaView,
   Button,
   ButtonText,
-  Icon,
   Pressable,
   Image,
   Divider,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -103,6 +103,10 @@ export function PetDetailScreen() {
   const supabase = useSupabaseClient();
   const { userId } = useAuth();
   const { colors } = useThemeContext();
+  const iconMd = useToken('space', '6');
+  const iconLg = useToken('space', '12');
+  const text900 = useToken('colors', 'textLight900');
+  const primaryColor = useToken('colors', colors.primary.replace('$', '') as any);
 
   const [pet, setPet] = useState<Pet | null>(null);
   const [photoDisplayUrl, setPhotoDisplayUrl] = useState<string | null>(null);
@@ -240,7 +244,7 @@ export function PetDetailScreen() {
           {/* Header */}
           <HStack alignItems="center" gap="$4">
             <Pressable onPress={() => router.back()}>
-              <Icon as={Ionicons} name="arrow-back" size="$xl" color="$text900" />
+              <Ionicons name="arrow-back" size={iconMd} color={text900} />
             </Pressable>
             <Heading size="xl" color="$text900" flex={1}>
               {pet.name}
@@ -264,17 +268,12 @@ export function PetDetailScreen() {
                 <Image
                   source={{ uri: photoDisplayUrl }}
                   alt={pet.name}
-                  width="100%"
-                  height="100%"
+                  width={200}
+                  height={200}
                   resizeMode="cover"
                 />
               ) : (
-                <Icon
-                  as={Ionicons}
-                  name="paw"
-                  size="$4xl"
-                  color={colors.primary}
-                />
+                <Ionicons name="paw" size={iconLg} color={primaryColor} />
               )}
             </Box>
           </Box>

@@ -15,8 +15,8 @@ import {
   SafeAreaView,
   Input,
   InputField,
-  Icon,
   Pressable,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -47,6 +47,11 @@ export function MedicalHistoriesScreen() {
   const router = useRouter();
   const supabase = useSupabaseClient();
   const { userId } = useAuth();
+  const iconMd = useToken('space', '6');
+  const iconLg = useToken('space', '8');
+  const text900 = useToken('colors', 'textLight900');
+  const emerald600 = useToken('colors', 'emerald600');
+  const error600 = useToken('colors', 'error600');
   const [histories, setHistories] = useState<MedicalHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,13 +126,13 @@ export function MedicalHistoriesScreen() {
           {/* Header */}
           <HStack alignItems="center" gap="$4">
             <Pressable onPress={() => router.back()}>
-              <Icon as={Ionicons} name="arrow-back" size="$xl" color="$text900" />
+              <Ionicons name="arrow-back" size={iconLg} color={text900} />
             </Pressable>
             <Heading size="xl" color="$text900" flex={1}>
               Historiales Médicos
             </Heading>
             <Pressable onPress={handleAddHistory}>
-              <Icon as={Ionicons} name="add-circle" size="$xl" color="$emerald600" />
+              <Ionicons name="add-circle" size={iconLg} color={emerald600} />
             </Pressable>
           </HStack>
 
@@ -156,7 +161,7 @@ export function MedicalHistoriesScreen() {
               borderColor="$error200"
             >
               <HStack alignItems="center" gap="$3">
-                <Icon as={Ionicons} name="alert-circle" size="$md" color="$error600" />
+                <Ionicons name="alert-circle" size={iconMd} color={error600} />
                 <Text size="sm" color="$error700" flex={1}>
                   {error}
                 </Text>

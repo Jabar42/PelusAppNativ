@@ -16,14 +16,12 @@ import {
   HStack,
   Pressable,
   Alert,
-  AlertIcon,
   AlertText,
   ScrollView,
   Card,
-  CardHeader,
-  CardBody,
   Spinner,
   Center,
+  useToken,
 } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '@/core/services/api';
@@ -45,10 +43,17 @@ interface Location {
   updated_at: string;
 }
 
+interface LocationsResponse {
+  locations: Location[];
+}
+
 export function LocationsManagementScreen() {
   const { organization, isLoaded: orgLoaded } = useOrganization();
   const { getToken } = useAuth();
   const supabase = useSupabaseClient();
+  const text400 = useToken('colors', 'textLight400');
+  const error600 = useToken('colors', 'error600');
+  const alertIconSize = useToken('space', '6');
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,7 +80,7 @@ export function LocationsManagementScreen() {
       const token = await getToken();
       if (!token) throw new Error('No se pudo obtener el token');
 
-      const response = await apiClient.get(
+      const response = await apiClient.get<LocationsResponse>(
         `/manage-location/list?orgId=${organization.id}`,
         token
       );
@@ -216,17 +221,19 @@ export function LocationsManagementScreen() {
 
           {error ? (
             <Alert action="error" variant="outline">
-              <AlertIcon as={Ionicons} name="alert-circle" mr="$3" />
-              <AlertText>{error}</AlertText>
+              <HStack alignItems="center" gap="$3">
+                <Ionicons name="alert-circle" size={alertIconSize} color={error600} />
+                <AlertText>{error}</AlertText>
+              </HStack>
             </Alert>
           ) : null}
 
           {showCreateForm && (
             <Card>
-              <CardHeader>
+              <Box padding="$4" borderBottomWidth="$1" borderColor="$borderLight200">
                 <Heading size="md">Crear Nueva Sede</Heading>
-              </CardHeader>
-              <CardBody>
+              </Box>
+              <Box padding="$4">
                 <VStack space="md">
                   <FormControl isRequired>
                     <FormControlLabel>
@@ -336,7 +343,7 @@ export function LocationsManagementScreen() {
                     </Button>
                   </HStack>
                 </VStack>
-              </CardBody>
+              </Box>
             </Card>
           )}
 
@@ -357,13 +364,13 @@ export function LocationsManagementScreen() {
             <VStack space="md">
               {locations.map((location) => (
                 <Card key={location.id}>
-                  <CardHeader>
+                  <Box padding="$4" borderBottomWidth="$1" borderColor="$borderLight200">
                     <HStack justifyContent="space-between" alignItems="center">
                       <HStack alignItems="center" space="sm">
                         <Ionicons
                           name="location"
                           size={20}
-                          color={location.is_main ? '#0066CC' : '#666'}
+                          color={location.is_main ? text400 : text400}
                         />
                         <Heading size="md">{location.name}</Heading>
                         {location.is_main && (
@@ -380,15 +387,15 @@ export function LocationsManagementScreen() {
                         )}
                       </HStack>
                       <Pressable onPress={() => handleDeleteLocation(location.id)}>
-                        <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                        <Ionicons name="trash-outline" size={20} color={error600} />
                       </Pressable>
                     </HStack>
-                  </CardHeader>
-                  <CardBody>
+                  </Box>
+                  <Box padding="$4">
                     <VStack space="xs">
                       {location.address && (
                         <HStack alignItems="center" space="xs">
-                          <Ionicons name="map-outline" size={16} color="#666" />
+                          <Ionicons name="map-outline" size={16} color={text400} />
                           <Text fontSize="$sm" color="$text600">
                             {location.address}
                             {location.city && `, ${location.city}`}
@@ -398,7 +405,7 @@ export function LocationsManagementScreen() {
                       )}
                       {location.phone && (
                         <HStack alignItems="center" space="xs">
-                          <Ionicons name="call-outline" size={16} color="#666" />
+                          <Ionicons name="call-outline" size={16} color={text400} />
                           <Text fontSize="$sm" color="$text600">
                             {location.phone}
                           </Text>
@@ -406,14 +413,14 @@ export function LocationsManagementScreen() {
                       )}
                       {location.email && (
                         <HStack alignItems="center" space="xs">
-                          <Ionicons name="mail-outline" size={16} color="#666" />
+                          <Ionicons name="mail-outline" size={16} color={text400} />
                           <Text fontSize="$sm" color="$text600">
                             {location.email}
                           </Text>
                         </HStack>
                       )}
                     </VStack>
-                  </CardBody>
+                  </Box>
                 </Card>
               ))}
             </VStack>

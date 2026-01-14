@@ -7,8 +7,8 @@ import {
   Heading,
   ScrollView,
   Center,
-  Icon,
   Pressable,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -30,6 +30,11 @@ export function HomeScreen() {
   const router = useRouter();
   const { organization, isLoaded: orgLoaded } = useOrganization();
   const supabase = useSupabaseClient();
+  const iconMd = useToken('space', '6');
+  const warning600 = useToken('colors', 'warning600');
+  const warning700 = useToken('colors', 'warning700');
+  const primary600 = useToken('colors', 'primary600');
+  const text400 = useToken('colors', 'textLight400');
   const [activeLocation, setActiveLocation] = useState<Location | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
@@ -127,12 +132,12 @@ export function HomeScreen() {
               borderColor="$warning200"
             >
               <HStack alignItems="center" gap="$3">
-                <Icon as={Ionicons} name="alert-circle" size="$md" color="$warning600" />
+                <Ionicons name="alert-circle" size={iconMd} color={warning600} />
                 <VStack flex={1} gap="$1">
-                  <Text size="sm" fontWeight="$semibold" color="$warning700">
+                  <Text size="sm" fontWeight="$semibold" color={warning700}>
                     No hay sede activa
                   </Text>
-                  <Text size="xs" color="$warning600">
+                  <Text size="xs" color={warning600}>
                     Configura una sede para comenzar
                   </Text>
                 </VStack>
@@ -199,7 +204,7 @@ export function HomeScreen() {
                       justifyContent="center"
                       alignItems="center"
                     >
-                      <Icon as={Ionicons} name="location" size="$md" color="$primary600" />
+                      <Ionicons name="location" size={iconMd} color={primary600} />
                     </Box>
                     <VStack flex={1} gap="$1">
                       <Text size="md" fontWeight="$semibold" color="$text900">
@@ -209,7 +214,7 @@ export function HomeScreen() {
                         Administra las sedes de tu organización
                       </Text>
                     </VStack>
-                    <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                    <Ionicons name="chevron-forward" size={iconMd} color={text400} />
                   </HStack>
                 </Box>
               </Pressable>
@@ -238,7 +243,7 @@ export function HomeScreen() {
                       justifyContent="center"
                       alignItems="center"
                     >
-                      <Icon as={Ionicons} name="people" size="$md" color="$primary600" />
+                      <Ionicons name="people" size={iconMd} color={primary600} />
                     </Box>
                     <VStack flex={1} gap="$1">
                       <Text size="md" fontWeight="$semibold" color="$text900">
@@ -248,7 +253,7 @@ export function HomeScreen() {
                         Gestiona el acceso de tu equipo
                       </Text>
                     </VStack>
-                    <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                    <Ionicons name="chevron-forward" size={iconMd} color={text400} />
                   </HStack>
                 </Box>
               </Pressable>
@@ -277,7 +282,7 @@ export function HomeScreen() {
                       justifyContent="center"
                       alignItems="center"
                     >
-                      <Icon as={Ionicons} name="help-circle" size="$md" color="$primary600" />
+                      <Ionicons name="help-circle" size={iconMd} color={primary600} />
                     </Box>
                     <VStack flex={1} gap="$1">
                       <Text size="md" fontWeight="$semibold" color="$text900">
@@ -287,7 +292,7 @@ export function HomeScreen() {
                         Guías y documentación profesional
                       </Text>
                     </VStack>
-                    <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                    <Ionicons name="chevron-forward" size={iconMd} color={text400} />
                   </HStack>
                 </Box>
               </Pressable>
@@ -303,7 +308,7 @@ export function HomeScreen() {
             borderColor="$primary200"
           >
             <HStack alignItems="flex-start" gap="$3">
-              <Icon as={Ionicons} name="information-circle" size="$md" color="$primary600" />
+              <Ionicons name="information-circle" size={iconMd} color={primary600} />
               <VStack flex={1} gap="$1">
                 <Text size="sm" fontWeight="$semibold" color="$primary700">
                   Modo Profesional Activo
