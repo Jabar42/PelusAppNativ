@@ -1,41 +1,47 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  Box,
+  VStack,
+  ScrollView,
+} from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import EmptyState from '@/features/Shared/components/EmptyState';
+import SectionHeader from '@/features/Shared/components/SectionHeader';
 
 export function FavoritesScreen() {
+  // Por ahora, siempre mostramos empty state
+  // En el futuro, aquí se cargarían los favoritos desde Supabase
+  const favorites: any[] = [];
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.container}>
-        <Text style={styles.title}>FAVORITOS</Text>
-        <Text style={styles.subtitle}>Tus Productos Favoritos</Text>
-      </View>
+    <SafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <ScrollView flex={1} backgroundColor="$backgroundLight50">
+        <Box padding="$6" gap="$6">
+          <SectionHeader
+            title="Mis Favoritos"
+            subtitle="Servicios y productos guardados"
+            variant="default"
+          />
+
+          {favorites.length === 0 ? (
+            <EmptyState
+              icon="heart-outline"
+              title="No tienes favoritos aún"
+              description="Explora servicios veterinarios, paseadores y otros profesionales. Guarda tus favoritos para acceder rápidamente más tarde."
+              actionLabel="Explorar Servicios"
+              onAction={() => {
+                // Navegar a exploración de servicios (cuando esté implementada)
+                // router.push('/explore');
+              }}
+            />
+          ) : (
+            <VStack gap="$3">
+              {/* Aquí se renderizarían los favoritos cuando existan */}
+              {/* Por ahora está vacío porque no hay datos */}
+            </VStack>
+          )}
+        </Box>
+      </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  container: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 56,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1C1B1F',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-  },
-});
-

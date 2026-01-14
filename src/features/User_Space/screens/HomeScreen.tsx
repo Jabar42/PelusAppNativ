@@ -1,43 +1,281 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import InstallPWAButton from '@/shared/components/InstallPWAButton';
+import React, { useEffect, useState } from 'react';
+import {
+  Box,
+  VStack,
+  HStack,
+  Text,
+  Heading,
+  ScrollView,
+  SafeAreaView,
+  Center,
+  Spinner,
+  Icon,
+} from '@gluestack-ui/themed';
+import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useSupabaseClient } from '@/core/hooks/useSupabaseClient';
+import { useAuth } from '@clerk/clerk-expo';
+import WorkspaceManager from '../components/WorkspaceManager';
+import EmptyState from '@/features/Shared/components/EmptyState';
+import InfoCard from '@/features/Shared/components/InfoCard';
+import SectionHeader from '@/features/Shared/components/SectionHeader';
+import { LoadingSkeletonCard } from '@/features/Shared/components/LoadingSkeleton';
+import InstallPWAButton from '@/features/Shared/components/InstallPWAButton';
 
-export function HomeScreen() {
-  return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.container}>
-        <Text style={styles.title}>TIENDA B2C</Text>
-        <Text style={styles.subtitle}>Bienvenido a la Tienda</Text>
-        <InstallPWAButton />
-      </View>
-    </SafeAreaView>
-  );
+interface Pet {
+  id: string;
+  name: string;
+  species?: string;
+  breed?: string;
+  birth_date?: string;
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    width: '100%',
-    overflow: 'hidden',
-  },
-  container: {
-    flex: 1,
-    width: '100%',
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 56,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#1C1B1F',
-    marginBottom: 16,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-  },
-});
+export function HomeScreen() {
+  const router = useRouter();
+  const supabase = useSupabaseClient();
+  const { userId } = useAuth();
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    loadPets();
+  }, [userId]);
+
+  const loadPets = async () => {
+    if (!userId) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('pets')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      setPets(data || []);
+    } catch (err: any) {
+      console.error('Error loading pets:', err);
+      setError(err.message || 'Error al cargar las mascotas');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddPet = () => {
+    // Navegar a pantalla de agregar mascota (cuando esté implementada)
+    // router.push('/add-pet');
+  };
+
+  return (
+    <RNSafeAreaView style={{ flex: 1 }} edges={['top']}>
+      <ScrollView flex={1} backgroundColor="$backgroundLight50">
+        <Box padding="$6" gap="$6">
+          {/* Header */}
+          <VStack gap="$2">
+            <Heading size="2xl" color="$text900" fontWeight="$bold">
+              Bienvenido
+            </Heading>
+            <Text size="md" color="$text600">
+              Gestiona tus mascotas y encuentra servicios
+            </Text>
+          </VStack>
+
+          {/* Workspace Manager */}
+          <WorkspaceManager />
+
+          {/* Estadísticas Rápidas */}
+          <VStack gap="$4">
+            <SectionHeader
+              title="Resumen"
+              subtitle="Tus mascotas registradas"
+              variant="compact"
+            />
+
+            {isLoading ? (
+              <VStack gap="$3">
+                <LoadingSkeletonCard lines={2} />
+                <LoadingSkeletonCard lines={2} />
+              </VStack>
+            ) : error ? (
+              <Box
+                padding="$4"
+                borderRadius="$lg"
+                backgroundColor="$error50"
+                borderWidth="$1"
+                borderColor="$error200"
+              >
+                <HStack alignItems="center" gap="$3">
+                  <Icon as={Ionicons} name="alert-circle" size="$md" color="$error600" />
+                  <Text size="sm" color="$error700" flex={1}>
+                    {error}
+                  </Text>
+                </HStack>
+              </Box>
+            ) : pets.length === 0 ? (
+              <EmptyState
+                icon="paw-outline"
+                title="No tienes mascotas registradas"
+                description="Agrega tu primera mascota para comenzar a gestionar su información y encontrar servicios veterinarios."
+                actionLabel="Agregar Mascota"
+                onAction={handleAddPet}
+              />
+            ) : (
+              <VStack gap="$3">
+                <InfoCard
+                  title="Total de Mascotas"
+                  value={pets.length}
+                  icon="paw"
+                  variant="primary"
+                />
+
+                {pets.slice(0, 3).map((pet) => (
+                  <Box
+                    key={pet.id}
+                    padding="$4"
+                    borderRadius="$lg"
+                    backgroundColor="$white"
+                    borderWidth="$1"
+                    borderColor="$borderLight200"
+                  >
+                    <HStack alignItems="center" gap="$3">
+                      <Box
+                        width="$12"
+                        height="$12"
+                        borderRadius="$full"
+                        backgroundColor="$primary100"
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Icon as={Ionicons} name="paw" size="$xl" color="$primary600" />
+                      </Box>
+                      <VStack flex={1} gap="$1">
+                        <Text size="md" fontWeight="$semibold" color="$text900">
+                          {pet.name}
+                        </Text>
+                        {pet.species && (
+                          <Text size="sm" color="$text600">
+                            {pet.species}
+                            {pet.breed && ` • ${pet.breed}`}
+                          </Text>
+                        )}
+                      </VStack>
+                    </HStack>
+                  </Box>
+                ))}
+
+                {pets.length > 3 && (
+                  <Box
+                    padding="$3"
+                    borderRadius="$md"
+                    backgroundColor="$primary50"
+                    borderWidth="$1"
+                    borderColor="$primary200"
+                  >
+                    <Text size="sm" color="$primary700" textAlign="center">
+                      Y {pets.length - 3} mascota{pets.length - 3 > 1 ? 's' : ''} más
+                    </Text>
+                  </Box>
+                )}
+              </VStack>
+            )}
+          </VStack>
+
+          {/* Accesos Rápidos */}
+          <VStack gap="$4">
+            <SectionHeader
+              title="Accesos Rápidos"
+              variant="compact"
+            />
+
+            <VStack gap="$3">
+              <Box
+                as="button"
+                padding="$4"
+                borderRadius="$lg"
+                backgroundColor="$white"
+                borderWidth="$1"
+                borderColor="$borderLight200"
+                onPress={() => router.push('/(tabs)/fav')}
+                sx={{
+                  ':active': {
+                    backgroundColor: '$backgroundLight50',
+                  },
+                }}
+              >
+                <HStack alignItems="center" gap="$4">
+                  <Box
+                    width="$10"
+                    height="$10"
+                    borderRadius="$lg"
+                    backgroundColor="$primary100"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <Icon as={Ionicons} name="heart" size="$md" color="$primary600" />
+                  </Box>
+                  <VStack flex={1} gap="$1">
+                    <Text size="md" fontWeight="$semibold" color="$text900">
+                      Favoritos
+                    </Text>
+                    <Text size="sm" color="$text600">
+                      Tus servicios favoritos
+                    </Text>
+                  </VStack>
+                  <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                </HStack>
+              </Box>
+
+              <Box
+                as="button"
+                padding="$4"
+                borderRadius="$lg"
+                backgroundColor="$white"
+                borderWidth="$1"
+                borderColor="$borderLight200"
+                onPress={() => router.push('/(tabs)/help')}
+                sx={{
+                  ':active': {
+                    backgroundColor: '$backgroundLight50',
+                  },
+                }}
+              >
+                <HStack alignItems="center" gap="$4">
+                  <Box
+                    width="$10"
+                    height="$10"
+                    borderRadius="$lg"
+                    backgroundColor="$primary100"
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <Icon as={Ionicons} name="help-circle" size="$md" color="$primary600" />
+                  </Box>
+                  <VStack flex={1} gap="$1">
+                    <Text size="md" fontWeight="$semibold" color="$text900">
+                      Ayuda
+                    </Text>
+                    <Text size="sm" color="$text600">
+                      Preguntas frecuentes y soporte
+                    </Text>
+                  </VStack>
+                  <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                </HStack>
+              </Box>
+            </VStack>
+          </VStack>
+
+          {/* Install PWA Button (solo web) */}
+          <InstallPWAButton />
+        </Box>
+      </ScrollView>
+    </RNSafeAreaView>
+  );
+}
