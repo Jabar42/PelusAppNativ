@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, HStack, Text, Heading, Icon, Pressable } from '@gluestack-ui/themed';
+import { Box, VStack, HStack, Text, Heading, Icon, Pressable } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 
 interface SectionHeaderProps {
