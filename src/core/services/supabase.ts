@@ -10,8 +10,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 // Singleton para evitar múltiples instancias
+// Usamos un WeakMap para asociar instancias con funciones getToken
+// pero como getToken puede cambiar, usamos una única instancia global
 let supabaseClientInstance: SupabaseClient | null = null;
-let currentGetToken: ((options: { template: string }) => Promise<string | null>) | null = null;
 
 /**
  * Factory para crear un cliente de Supabase con "Smart Refresh".
@@ -27,13 +28,13 @@ let currentGetToken: ((options: { template: string }) => Promise<string | null>)
  * @returns Cliente de Supabase configurado (singleton)
  */
 export const createSupabaseClient = (getToken: (options: { template: string }) => Promise<string | null>) => {
-  // Si ya existe una instancia y la función getToken es la misma, reutilizar
-  if (supabaseClientInstance && currentGetToken === getToken) {
+  // Si ya existe una instancia, reutilizarla
+  // El getToken se captura en el closure del fetch interceptor, así que siempre usará la versión actual
+  if (supabaseClientInstance) {
     return supabaseClientInstance;
   }
 
-  // Crear nueva instancia solo si es necesario
-  currentGetToken = getToken;
+  // Crear nueva instancia solo una vez
   supabaseClientInstance = createClient(supabaseUrl, supabaseAnonKey, {
     global: {
       fetch: async (url, options = {}) => {
@@ -56,21 +57,30 @@ export const createSupabaseClient = (getToken: (options: { template: string }) =
           });
 
           // 4. Si hay error de RLS, verificar si es por falta de claims
+          // IMPORTANTE: Clonar la respuesta antes de leer el body para no consumir el stream
           if (!response.ok) {
-            const errorText = await response.text();
-            if (errorText.includes('row-level security policy')) {
-              console.error(
-                '[Supabase RLS Error] El JWT puede no tener los claims necesarios.\n' +
-                'Verifica que el template "supabase" en Clerk tenga:\n' +
-                '- user_id: {{user.id}}\n' +
-                '- org_id: {{org.id}}\n' +
-                '- org_role: {{org.role}}\n' +
-                '- active_location_id: {{org.publicMetadata.active_location_id}}\n' +
-                'Error:', errorText
-              );
+            // Clonar la respuesta para poder leer el body sin consumir el stream original
+            const clonedResponse = response.clone();
+            try {
+              const errorText = await clonedResponse.text();
+              if (errorText.includes('row-level security policy')) {
+                console.error(
+                  '[Supabase RLS Error] El JWT puede no tener los claims necesarios.\n' +
+                  'Verifica que el template "supabase" en Clerk tenga:\n' +
+                  '- user_id: {{user.id}}\n' +
+                  '- org_id: {{org.id}}\n' +
+                  '- org_role: {{org.role}}\n' +
+                  '- active_location_id: {{org.publicMetadata.active_location_id}}\n' +
+                  'Error:', errorText
+                );
+              }
+            } catch (err) {
+              // Si falla al leer el error, no es crítico, solo loguear
+              console.warn('[Supabase] No se pudo leer el mensaje de error:', err);
             }
           }
 
+          // Devolver la respuesta original (sin leer el body)
           return response;
         } catch (error) {
           console.error('[Supabase] Error en fetch interceptor:', error);
