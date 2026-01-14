@@ -123,10 +123,21 @@ export function RegisterBusinessScreen() {
         setCreatedOrgId(orgId);
       }
 
+      // 1.5. CRÍTICO: Forzar refresh del token para que incluya org_id y org_role
+      // Después de crear la organización, Clerk necesita actualizar el token
+      // con la nueva membresía. Sin esto, el RLS fallará.
+      await getToken({ template: 'supabase', skipCache: true });
+      
+      // Pequeña pausa para asegurar que Clerk procese la membresía
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // 2. Intentar actualizar metadatos en el backend (publicMetadata)
       // Bloqueo de navegación: No seguimos hasta que esto sea exitoso
       if (!orgId) throw new Error('No se pudo identificar la organización');
       await updateMetadataInBackend(orgId);
+
+      // 2.5. Forzar otro refresh después de actualizar metadatos
+      await getToken({ template: 'supabase', skipCache: true });
 
       // 3. Crear la primera sede automáticamente
       // La función manage-location marcará is_main=true, asignará al creador como admin

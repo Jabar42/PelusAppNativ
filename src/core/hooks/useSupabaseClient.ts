@@ -1,5 +1,5 @@
 import { useAuth } from '@clerk/clerk-expo';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { createSupabaseClient } from '../services/supabase';
 
 /**
@@ -9,14 +9,26 @@ import { createSupabaseClient } from '../services/supabase';
  * El cliente devuelto tiene un interceptor que inyecta automáticamente 
  * el JWT de Clerk (template 'supabase') en cada petición.
  * 
- * @returns SupabaseClient autenticado
+ * Implementa un patrón Singleton para evitar múltiples instancias.
+ * 
+ * @returns SupabaseClient autenticado (singleton)
  */
 export const useSupabaseClient = () => {
   const { getToken } = useAuth();
+  const getTokenRef = useRef(getToken);
+
+  // Actualizar la referencia cuando getToken cambia
+  getTokenRef.current = getToken;
+
+  // Crear una función estable que siempre use la referencia actual
+  const stableGetToken = useMemo(
+    () => (options: { template: string }) => getTokenRef.current(options),
+    []
+  );
 
   return useMemo(() => {
-    return createSupabaseClient(getToken);
-  }, [getToken]);
+    return createSupabaseClient(stableGetToken);
+  }, [stableGetToken]);
 };
 
 

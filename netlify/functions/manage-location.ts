@@ -11,6 +11,7 @@ if (!process.env.CLERK_SECRET_KEY) {
 // Variables de Supabase
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '';
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Supabase URL and Anon Key are required. Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in .env');
@@ -27,6 +28,17 @@ function createAuthenticatedSupabaseClient(token: string) {
       },
     },
   });
+}
+
+/**
+ * Crea un cliente de Supabase con service_role key (bypass RLS)
+ * SOLO para uso en operaciones administrativas donde ya validamos permisos
+ */
+function createAdminSupabaseClient() {
+  if (!supabaseServiceRoleKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations');
+  }
+  return createClient(supabaseUrl, supabaseServiceRoleKey);
 }
 
 /**
@@ -166,44 +178,98 @@ export const handler: Handler = async (event) => {
 
       // Verificar si ya existe una sede principal
       let shouldBeMain = isMain !== false; // Por defecto true si no se especifica
+      
+      // Usar admin client para verificar (bypass RLS) ya que validamos permisos arriba
+      const adminSupabase = supabaseServiceRoleKey ? createAdminSupabaseClient() : supabase;
+      
       if (shouldBeMain) {
-        const { data: existingMain } = await supabase
+        const { data: existingMain } = await adminSupabase
           .from('locations')
           .select('id')
           .eq('org_id', orgId)
           .eq('is_main', true)
-          .single();
+          .maybeSingle();
 
         if (existingMain) {
           shouldBeMain = false; // Ya existe una sede principal
         }
       }
 
-      const { data: location, error } = await supabase
-        .from('locations')
-        .insert({
-          org_id: orgId,
-          name,
-          address,
-          city,
-          state,
-          country: country || 'Colombia',
-          phone,
-          email,
-          is_primary: false, // Solo la primera sede creada será primary
-          is_main: shouldBeMain,
-        })
-        .select()
-        .single();
+      // Crear la sede usando admin client para evitar problemas de RLS con token no actualizado
+      // Esto es seguro porque ya validamos que el usuario es admin arriba
+      let location;
+      let error;
+      
+      if (supabaseServiceRoleKey) {
+        // Usar admin client (bypass RLS) - más confiable para primera sede
+        const result = await adminSupabase
+          .from('locations')
+          .insert({
+            org_id: orgId,
+            name,
+            address,
+            city,
+            state,
+            country: country || 'Colombia',
+            phone,
+            email,
+            is_primary: false, // Solo la primera sede creada será primary
+            is_main: shouldBeMain,
+          })
+          .select()
+          .single();
+        
+        location = result.data;
+        error = result.error;
+      } else {
+        // Fallback: usar cliente autenticado si no hay service_role key
+        const result = await supabase
+          .from('locations')
+          .insert({
+            org_id: orgId,
+            name,
+            address,
+            city,
+            state,
+            country: country || 'Colombia',
+            phone,
+            email,
+            is_primary: false,
+            is_main: shouldBeMain,
+          })
+          .select()
+          .single();
+        
+        location = result.data;
+        error = result.error;
+      }
 
-      if (error) {
-        throw error;
+      if (error || !location) {
+        // Si el error es de RLS, proporcionar un mensaje más útil
+        if (error?.message?.includes('row-level security policy')) {
+          const rlsError = new Error(
+            'Error de seguridad (RLS): El JWT no tiene los claims necesarios.\n\n' +
+            'SOLUCIÓN:\n' +
+            '1. Verifica que el template "supabase" existe en Clerk Dashboard\n' +
+            '2. Asegúrate de que el template tenga estos claims:\n' +
+            '   - user_id: {{user.id}}\n' +
+            '   - org_id: {{org.id}}\n' +
+            '   - org_role: {{org.role}}\n' +
+            '   - active_location_id: {{org.publicMetadata.active_location_id}}\n' +
+            '3. Si usas SUPABASE_SERVICE_ROLE_KEY, verifica que esté configurado en Netlify\n\n' +
+            `Error original: ${error.message}`
+          );
+          rlsError.name = 'RLSError';
+          throw rlsError;
+        }
+        throw error || new Error('No se pudo crear la sede');
       }
 
       // Si es la primera sede, marcarla como principal y asignar al creador
       if (shouldBeMain) {
-        // Asignar al creador como admin de la sede
-        await supabase
+        // Asignar al creador como admin de la sede usando admin client
+        const adminSupabaseForAssignment = supabaseServiceRoleKey ? createAdminSupabaseClient() : supabase;
+        const { error: assignmentError } = await adminSupabaseForAssignment
           .from('user_location_assignments')
           .insert({
             user_id: userId,
@@ -212,6 +278,11 @@ export const handler: Handler = async (event) => {
             role: 'admin',
             assigned_by: userId,
           });
+        
+        if (assignmentError) {
+          console.error('Error asignando usuario a sede:', assignmentError);
+          // No fallar completamente, pero loguear el error
+        }
 
         // Actualizar active_location_id en Clerk
         await clerkClient.organizations.updateOrganizationMetadata(orgId, {

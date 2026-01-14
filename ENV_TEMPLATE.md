@@ -35,6 +35,11 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 # Para producción (Supabase Cloud):
 # EXPO_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 # EXPO_PUBLIC_SUPABASE_ANON_KEY=your-production-anon-key
+
+# Service Role Key (OPCIONAL - Solo para backend/Netlify Functions)
+# Se usa para operaciones administrativas donde ya validamos permisos
+# NUNCA exponer en el frontend
+# SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 ## Cómo Obtener las Credenciales

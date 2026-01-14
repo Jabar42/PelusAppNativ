@@ -15,16 +15,22 @@ No utilizamos una conexión estática con Supabase. En su lugar, el cliente se g
 
 ## 2. Configuración en Clerk (Manual)
 
-Para que la integración funcione, debes configurar un **JWT Template** en el Dashboard de Clerk:
+Para que la integración funcione, debes configurar un **JWT Template** en el Dashboard de Clerk.
 
-1. Ve a **JWT Templates** -> **New Template** -> **Supabase**.
-2. Nombre: `supabase`.
-3. Claims recomendados:
+**📖 Guía Completa**: Consulta [CLERK_JWT_SETUP.md](./CLERK_JWT_SETUP.md) para instrucciones detalladas paso a paso.
+
+### Resumen Rápido
+
+1. Ve a Clerk Dashboard → **Configure** → **JWT Templates**
+2. Crea o edita el template llamado `supabase`
+3. Agrega los siguientes claims:
    - `user_id`: `{{user.id}}`
    - `org_id`: `{{org.id}}`
    - `org_role`: `{{org.role}}`
    - `user_type`: `{{user.public_metadata.user_type}}`
-   - `active_location_id`: `{{org.publicMetadata.active_location_id}}` (Opcional - para sistema de sedes)
+   - `active_location_id`: `{{org.publicMetadata.active_location_id}}` (Requerido para sistema de sedes)
+
+**⚠️ IMPORTANTE**: Sin estos claims, las políticas RLS fallarán y verás errores como "new row violates row-level security policy".
 
 ## 3. Uso en el Frontend (React Native / Expo)
 

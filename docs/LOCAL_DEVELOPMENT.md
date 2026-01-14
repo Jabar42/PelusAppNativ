@@ -182,9 +182,10 @@ npm run supabase:stop
    ```
 
    **Importante**: 
-   - Usa el `anon key` (NO el `service_role key`)
+   - Usa el `anon key` (NO el `service_role key`) para el frontend
    - El `anon key` es seguro para usar en el frontend
    - El `service_role key` tiene permisos de administrador y NUNCA debe usarse en el frontend
+   - **Opcional**: Para Netlify Functions, puedes agregar `SUPABASE_SERVICE_ROLE_KEY` en `.env` para operaciones administrativas (solo backend)
 
 5. **Aplicar migraciones**:
    ```bash
