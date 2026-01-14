@@ -113,6 +113,38 @@ Si necesitas una solución rápida mientras configuras el template:
 
 He corregido el problema de múltiples instancias de Supabase implementando un patrón Singleton. Esto debería eliminar los warnings de "Multiple GoTrueClient instances".
 
+## Error Específico: `22P02 invalid input syntax for type uuid`
+
+### Síntomas
+```
+Error: invalid input syntax for type uuid: "user_351tu1j6Vvu5qkF83bJ2fcFljQe"
+```
+
+Este error ocurre cuando:
+1. Una columna en la base de datos está definida como `uuid` pero recibe un ID de Clerk (que es `text`)
+2. Una política RLS usa `auth.uid()` que intenta castear el `sub` de Clerk a UUID
+
+### Solución
+
+**Causa 1: Tipo de columna incorrecto**
+- Verifica que las columnas que almacenan IDs de usuario sean `text`, no `uuid`
+- Ejemplo: `owner_id text NOT NULL` (correcto) vs `owner_id uuid NOT NULL` (incorrecto)
+
+**Causa 2: Política RLS usando `auth.uid()`**
+- Reemplaza `auth.uid()` por `auth.jwt() ->> 'user_id'` en todas las políticas RLS
+- Ejemplo:
+  ```sql
+  -- ❌ Incorrecto
+  USING (auth.uid()::text = owner_id)
+  
+  -- ✅ Correcto
+  USING ((auth.jwt() ->> 'user_id') = owner_id)
+  ```
+
+**Migración aplicada (Enero 2025)**
+- Todas las políticas RLS han sido migradas de `auth.uid()` a `auth.jwt() ->> 'user_id'`
+- Las columnas `owner_id` en `pets` y `user_id` en `user_location_assignments` son ahora `text`
+
 ## Si el Problema Persiste
 
 1. Verifica que el template se llama exactamente `supabase` (case-sensitive)
@@ -122,3 +154,5 @@ He corregido el problema de múltiples instancias de Supabase implementando un p
    - `{{org.publicMetadata.active_location_id}}` (con `publicMetadata` en camelCase)
 3. Verifica los logs de Netlify Functions para ver el error exacto
 4. Asegúrate de que el usuario sea admin/creator de la organización
+5. Verifica que las columnas de ID de usuario sean `text`, no `uuid`
+6. Verifica que las políticas RLS usen `auth.jwt() ->> 'user_id'`, no `auth.uid()`

@@ -53,9 +53,20 @@ const MyComponent = () => {
 
 Todas las tablas deben tener RLS habilitado. Las políticas se basan en los claims de Clerk:
 
-- **Acceso B2C (Personal)**: Se usa `auth.uid()` que Supabase mapea automáticamente del claim `sub` de Clerk.
+- **Acceso B2C (Personal)**: Se usa `auth.jwt() ->> 'user_id'` para obtener el ID del usuario desde el JWT de Clerk.
+  - ⚠️ **IMPORTANTE**: NO usar `auth.uid()` porque Clerk usa IDs de tipo `text` (ej: `"user_..."`), no UUIDs. `auth.uid()` intenta castear a UUID y falla con error `22P02`.
 - **Acceso B2B (Profesional)**: Se usa `auth.jwt() ->> 'org_id'` para filtrar datos por organización.
 - **Acceso por Sede (Multisede)**: Se usa `auth.jwt() ->> 'active_location_id'` para filtrar datos por sede activa.
+
+### 4.0 Tipos de Datos para IDs de Usuario
+
+**Regla crítica**: Todas las columnas que almacenan IDs de usuario de Clerk deben ser de tipo `text`, NO `uuid`.
+
+- ✅ **Correcto**: `owner_id text NOT NULL` (para `pets`)
+- ✅ **Correcto**: `user_id text NOT NULL` (para `user_location_assignments`)
+- ❌ **Incorrecto**: `owner_id uuid NOT NULL` (causará error `22P02`)
+
+Los IDs de Clerk son strings como `"user_351tu1j6Vvu5qkF83bJ2fcFljQe"`, no UUIDs.
 
 ### 4.1 RLS Dinámico para Tablas de Negocio
 
@@ -87,9 +98,18 @@ USING (
 
 **Patrón para nuevas tablas de negocio:**
 1. Agregar columna `location_id uuid REFERENCES locations(id)`
-2. Crear políticas RLS que respeten `active_location_id` del JWT
-3. Admins siempre ven todas las sedes de su org
-4. Staff ve solo su sede activa
+2. Si la tabla tiene relación con usuarios, usar `user_id text` (NO `uuid`) para IDs de Clerk
+3. Crear políticas RLS que respeten `active_location_id` del JWT usando `auth.jwt() ->> 'user_id'` (NO `auth.uid()`)
+4. Admins siempre ven todas las sedes de su org
+5. Staff ve solo su sede activa
+
+**Ejemplo de política RLS correcta para tablas B2C:**
+```sql
+CREATE POLICY "Users can manage their own data"
+ON public.mi_tabla FOR ALL
+USING ((auth.jwt() ->> 'user_id') = user_id)
+WITH CHECK ((auth.jwt() ->> 'user_id') = user_id);
+```
 
 ## 5. Sistema de Sedes (Locations)
 

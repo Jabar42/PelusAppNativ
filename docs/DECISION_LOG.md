@@ -210,6 +210,49 @@ Implementar una **Barrera de Capas** estricta:
 
 ---
 
+## ADR 009: Migración de auth.uid() a auth.jwt() ->> 'user_id' y Tipos de Columna
+**Estado: Aceptado**
+**Fecha: Enero 2025**
+
+### Contexto
+Clerk utiliza IDs de usuario de tipo `text` (ej: `"user_351tu1j6Vvu5qkF83bJ2fcFljQe"`), no UUIDs. Las políticas RLS que usaban `auth.uid()` intentaban castear estos IDs a UUID, causando el error `22P02: invalid input syntax for type uuid`. Además, algunas columnas en la base de datos estaban definidas como `uuid` cuando deberían ser `text` para coincidir con los IDs de Clerk.
+
+### Decisión
+Migrar completamente de `auth.uid()` a `auth.jwt() ->> 'user_id'` en todas las políticas RLS y cambiar los tipos de columna de `uuid` a `text` para IDs de usuario.
+
+**Cambios aplicados:**
+1. **Políticas RLS**: Reemplazadas todas las referencias a `auth.uid()` por `auth.jwt() ->> 'user_id'`
+   - `pets`: Policy "Owners can manage their pets"
+   - `profiles`: Policies "Users can view their own profile" y "Users can update their own profile"
+   - `user_location_assignments`: Policy "Users can view relevant assignments"
+2. **Tipos de columna**: Cambiados de `uuid` a `text`
+   - `pets.owner_id`: `uuid` → `text`
+   - `user_location_assignments.user_id`: Ya era `text` (correcto)
+
+**Alternativas consideradas:**
+- Mantener `auth.uid()` y convertir IDs de Clerk a UUID: ❌ Requeriría lógica compleja y pérdida de información
+- Usar un campo separado `clerk_user_id text` además de `id uuid`: ❌ Duplicación innecesaria
+- Mantener tipos `uuid` y convertir en el frontend: ❌ No resuelve el problema en RLS
+
+### Consecuencias
+- **Positivas**: 
+  - Eliminación completa del error `22P02`
+  - Alineación directa entre tipos de datos de Clerk y Supabase
+  - Políticas RLS más simples y directas
+  - Compatibilidad total con el formato de IDs de Clerk
+- **Negativas**: 
+  - Requiere migración de datos existentes (si los hay)
+  - Cambio en todas las políticas RLS existentes
+  - Documentación debe actualizarse para reflejar el nuevo patrón
+
+**Regla para desarrolladores futuros:**
+- ✅ **SIEMPRE** usar `auth.jwt() ->> 'user_id'` en políticas RLS para acceso B2C
+- ✅ **SIEMPRE** usar tipo `text` para columnas que almacenan IDs de Clerk
+- ❌ **NUNCA** usar `auth.uid()` en políticas RLS cuando se integra con Clerk
+- ❌ **NUNCA** usar tipo `uuid` para IDs de usuario de Clerk
+
+---
+
 
 
 

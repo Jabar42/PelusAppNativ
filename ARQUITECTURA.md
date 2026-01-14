@@ -86,9 +86,14 @@ La persistencia de datos se gestiona mediante **Supabase**, utilizando un sistem
 Cada petición a la base de datos se realiza con un token fresco inyectado automáticamente. Esto permite que Supabase identifique al usuario y aplique políticas de seguridad a nivel de fila (RLS) sin necesidad de un backend intermediario para cada consulta.
 
 ### 2. Seguridad Multi-Tenant
-- **B2C**: Filtro automático por `auth.uid()` (mapeado al ID de Clerk).
+- **B2C**: Filtro automático por `auth.jwt() ->> 'user_id'` (obtenido del claim `user_id` del JWT de Clerk).
+  - ⚠️ **IMPORTANTE**: NO usar `auth.uid()` porque Clerk usa IDs de tipo `text`, no UUIDs. `auth.uid()` intenta castear a UUID y falla.
 - **B2B**: Filtro dinámico usando el claim `org_id` del JWT de Clerk.
 - **Multisede**: Filtro adicional por `active_location_id` cuando el usuario tiene múltiples sedes asignadas.
+
+**Tipos de Datos para IDs:**
+- Todas las columnas que almacenan IDs de usuario de Clerk deben ser `text`, NO `uuid`
+- Ejemplo: `pets.owner_id text NOT NULL` (correcto) vs `pets.owner_id uuid NOT NULL` (incorrecto)
 
 ### 3. Sistema de Sedes (Locations) - Modelo Diamante
 
