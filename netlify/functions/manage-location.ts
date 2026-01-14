@@ -179,11 +179,14 @@ export const handler: Handler = async (event) => {
       // Verificar si ya existe una sede principal
       let shouldBeMain = isMain !== false; // Por defecto true si no se especifica
       
-      // Usar admin client para verificar (bypass RLS) ya que validamos permisos arriba
-      const adminSupabase = supabaseServiceRoleKey ? createAdminSupabaseClient() : supabase;
+      // Determinar qué cliente usar: admin (service_role) o autenticado (JWT)
+      // Si no hay service_role key, debemos usar el cliente autenticado con el token del usuario
+      const clientToUse = supabaseServiceRoleKey 
+        ? createAdminSupabaseClient() 
+        : createAuthenticatedSupabaseClient(token);
       
       if (shouldBeMain) {
-        const { data: existingMain } = await adminSupabase
+        const { data: existingMain } = await clientToUse
           .from('locations')
           .select('id')
           .eq('org_id', orgId)
@@ -195,54 +198,25 @@ export const handler: Handler = async (event) => {
         }
       }
 
-      // Crear la sede usando admin client para evitar problemas de RLS con token no actualizado
-      // Esto es seguro porque ya validamos que el usuario es admin arriba
-      let location;
-      let error;
-      
-      if (supabaseServiceRoleKey) {
-        // Usar admin client (bypass RLS) - más confiable para primera sede
-        const result = await adminSupabase
-          .from('locations')
-          .insert({
-            org_id: orgId,
-            name,
-            address,
-            city,
-            state,
-            country: country || 'Colombia',
-            phone,
-            email,
-            is_primary: false, // Solo la primera sede creada será primary
-            is_main: shouldBeMain,
-          })
-          .select()
-          .single();
-        
-        location = result.data;
-        error = result.error;
-      } else {
-        // Fallback: usar cliente autenticado si no hay service_role key
-        const result = await supabase
-          .from('locations')
-          .insert({
-            org_id: orgId,
-            name,
-            address,
-            city,
-            state,
-            country: country || 'Colombia',
-            phone,
-            email,
-            is_primary: false,
-            is_main: shouldBeMain,
-          })
-          .select()
-          .single();
-        
-        location = result.data;
-        error = result.error;
-      }
+      // Crear la sede
+      // Si tenemos service_role key, usamos admin client (bypass RLS)
+      // Si no, usamos cliente autenticado (requiere JWT con claims correctos)
+      const { data: location, error } = await clientToUse
+        .from('locations')
+        .insert({
+          org_id: orgId,
+          name,
+          address,
+          city,
+          state,
+          country: country || 'Colombia',
+          phone,
+          email,
+          is_primary: false, // Solo la primera sede creada será primary
+          is_main: shouldBeMain,
+        })
+        .select()
+        .single();
 
       if (error || !location) {
         // Si el error es de RLS, proporcionar un mensaje más útil
@@ -266,10 +240,9 @@ export const handler: Handler = async (event) => {
       }
 
       // Si es la primera sede, marcarla como principal y asignar al creador
-      if (shouldBeMain) {
-        // Asignar al creador como admin de la sede usando admin client
-        const adminSupabaseForAssignment = supabaseServiceRoleKey ? createAdminSupabaseClient() : supabase;
-        const { error: assignmentError } = await adminSupabaseForAssignment
+      if (shouldBeMain && location) {
+        // Asignar al creador como admin de la sede usando el mismo cliente
+        const { error: assignmentError } = await clientToUse
           .from('user_location_assignments')
           .insert({
             user_id: userId,
@@ -282,6 +255,7 @@ export const handler: Handler = async (event) => {
         if (assignmentError) {
           console.error('Error asignando usuario a sede:', assignmentError);
           // No fallar completamente, pero loguear el error
+          // La sede se creó exitosamente, solo falló la asignación
         }
 
         // Actualizar active_location_id en Clerk
