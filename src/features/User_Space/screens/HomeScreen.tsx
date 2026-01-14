@@ -12,6 +12,7 @@ import {
   Icon,
 } from '@gluestack-ui/themed';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
+import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSupabaseClient } from '@/core/hooks/useSupabaseClient';
@@ -22,6 +23,7 @@ import InfoCard from '@/features/Shared/components/InfoCard';
 import SectionHeader from '@/features/Shared/components/SectionHeader';
 import { LoadingSkeletonCard } from '@/features/Shared/components/LoadingSkeleton';
 import InstallPWAButton from '@/features/Shared/components/InstallPWAButton';
+import PetCard from '../components/PetCard';
 
 interface Pet {
   id: string;
@@ -29,6 +31,11 @@ interface Pet {
   species?: string;
   breed?: string;
   birth_date?: string;
+  photo_url?: string;
+  weight?: number;
+  gender?: string;
+  color?: string;
+  notes?: string;
 }
 
 export function HomeScreen() {
@@ -70,8 +77,52 @@ export function HomeScreen() {
   };
 
   const handleAddPet = () => {
-    // Navegar a pantalla de agregar mascota (cuando esté implementada)
-    // router.push('/add-pet');
+    router.push('/add-edit-pet');
+  };
+
+  const handlePetPress = (petId: string) => {
+    router.push({
+      pathname: '/pet-detail',
+      params: { id: petId },
+    });
+  };
+
+  const handleEditPet = (petId: string) => {
+    router.push({
+      pathname: '/add-edit-pet',
+      params: { id: petId },
+    });
+  };
+
+  const handleDeletePet = async (petId: string) => {
+    Alert.alert(
+      'Eliminar Mascota',
+      '¿Estás seguro de que deseas eliminar esta mascota? Esta acción no se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('pets')
+                .delete()
+                .eq('id', petId);
+
+              if (error) throw error;
+              loadPets(); // Recargar lista
+            } catch (error: any) {
+              console.error('Error deleting pet:', error);
+              Alert.alert(
+                'Error',
+                'Error al eliminar la mascota: ' + (error.message || 'Error desconocido')
+              );
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -136,54 +187,21 @@ export function HomeScreen() {
                   variant="primary"
                 />
 
-                {pets.slice(0, 3).map((pet) => (
-                  <Box
+                {pets.map((pet) => (
+                  <PetCard
                     key={pet.id}
-                    padding="$4"
-                    borderRadius="$lg"
-                    backgroundColor="$white"
-                    borderWidth="$1"
-                    borderColor="$borderLight200"
-                  >
-                    <HStack alignItems="center" gap="$3">
-                      <Box
-                        width="$12"
-                        height="$12"
-                        borderRadius="$full"
-                        backgroundColor="$primary100"
-                        justifyContent="center"
-                        alignItems="center"
-                      >
-                        <Icon as={Ionicons} name="paw" size="$xl" color="$primary600" />
-                      </Box>
-                      <VStack flex={1} gap="$1">
-                        <Text size="md" fontWeight="$semibold" color="$text900">
-                          {pet.name}
-                        </Text>
-                        {pet.species && (
-                          <Text size="sm" color="$text600">
-                            {pet.species}
-                            {pet.breed && ` • ${pet.breed}`}
-                          </Text>
-                        )}
-                      </VStack>
-                    </HStack>
-                  </Box>
+                    id={pet.id}
+                    name={pet.name}
+                    species={pet.species}
+                    breed={pet.breed}
+                    birthDate={pet.birth_date}
+                    photoUrl={pet.photo_url}
+                    onPress={() => handlePetPress(pet.id)}
+                    onEdit={() => handleEditPet(pet.id)}
+                    onDelete={() => handleDeletePet(pet.id)}
+                  />
                 ))}
 
-                {pets.length > 3 && (
-                  <Box
-                    padding="$3"
-                    borderRadius="$md"
-                    backgroundColor="$primary50"
-                    borderWidth="$1"
-                    borderColor="$primary200"
-                  >
-                    <Text size="sm" color="$primary700" textAlign="center">
-                      Y {pets.length - 3} mascota{pets.length - 3 > 1 ? 's' : ''} más
-                    </Text>
-                  </Box>
-                )}
               </VStack>
             )}
           </VStack>
