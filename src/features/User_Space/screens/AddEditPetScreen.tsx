@@ -83,6 +83,7 @@ export function AddEditPetScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingPet, setIsLoadingPet] = useState(isEditing);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [pickedImageUri, setPickedImageUri] = useState<string | null>(null);
 
   useEffect(() => {
     if (isEditing && params.id) {
@@ -116,7 +117,16 @@ export function AddEditPetScreen() {
           photo_url: data.photo_url || '',
         });
         if (data.photo_url) {
-          setSelectedImage(data.photo_url);
+          if (data.photo_url.startsWith('http')) {
+            setSelectedImage(data.photo_url);
+          } else {
+            const { data: urlData } = await supabase.storage
+              .from('pet-photos')
+              .createSignedUrl(data.photo_url, 60 * 60);
+            if (urlData?.signedUrl) {
+              setSelectedImage(urlData.signedUrl);
+            }
+          }
         }
       }
     } catch (error: any) {
@@ -148,6 +158,7 @@ export function AddEditPetScreen() {
 
       if (!result.canceled && result.assets[0]) {
         setSelectedImage(result.assets[0].uri);
+        setPickedImageUri(result.assets[0].uri);
       }
     } catch (error: any) {
       console.error('Error picking image:', error);
@@ -177,12 +188,7 @@ export function AddEditPetScreen() {
 
       if (error) throw error;
 
-      // Obtener URL pública
-      const { data: urlData } = supabase.storage
-        .from('pet-photos')
-        .getPublicUrl(filePath);
-
-      return urlData.publicUrl;
+      return filePath;
     } catch (error: any) {
       console.error('Error uploading photo:', error);
       Alert.alert('Error', 'No se pudo subir la foto. Por favor, intenta de nuevo.');
@@ -210,18 +216,6 @@ export function AddEditPetScreen() {
 
     setIsLoading(true);
     try {
-      let photoUrl = formData.photo_url;
-
-      // Si hay una imagen nueva seleccionada, subirla
-      if (selectedImage && selectedImage !== formData.photo_url && selectedImage.startsWith('file://')) {
-        // Generar ID temporal si no estamos editando
-        const petId = params.id || `temp_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-        const uploadedUrl = await uploadPhoto(selectedImage, petId);
-        if (uploadedUrl) {
-          photoUrl = uploadedUrl;
-        }
-      }
-
       const petData = {
         name: formData.name.trim(),
         species: formData.species,
@@ -231,25 +225,44 @@ export function AddEditPetScreen() {
         gender: formData.gender || null,
         color: formData.color.trim() || null,
         notes: formData.notes.trim() || null,
-        photo_url: photoUrl || null,
         owner_id: userId,
       };
 
       if (isEditing && params.id) {
+        let photoPath = formData.photo_url || null;
+        if (pickedImageUri) {
+          const uploadedPath = await uploadPhoto(pickedImageUri, params.id);
+          if (uploadedPath) {
+            photoPath = uploadedPath;
+          }
+        }
         // Actualizar
         const { error } = await supabase
           .from('pets')
-          .update(petData)
+          .update({ ...petData, photo_url: photoPath })
           .eq('id', params.id);
 
         if (error) throw error;
       } else {
-        // Crear
-        const { error } = await supabase
+        // Crear y obtener ID
+        const { data: createdPet, error: createError } = await supabase
           .from('pets')
-          .insert(petData);
+          .insert({ ...petData, photo_url: null })
+          .select('id')
+          .single();
 
-        if (error) throw error;
+        if (createError) throw createError;
+
+        if (createdPet?.id && pickedImageUri) {
+          const uploadedPath = await uploadPhoto(pickedImageUri, createdPet.id);
+          if (uploadedPath) {
+            const { error: updateError } = await supabase
+              .from('pets')
+              .update({ photo_url: uploadedPath })
+              .eq('id', createdPet.id);
+            if (updateError) throw updateError;
+          }
+        }
       }
 
       router.back();

@@ -105,6 +105,7 @@ export function PetDetailScreen() {
   const { colors } = useThemeContext();
 
   const [pet, setPet] = useState<Pet | null>(null);
+  const [photoDisplayUrl, setPhotoDisplayUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -127,9 +128,21 @@ export function PetDetailScreen() {
 
       if (error) throw error;
       setPet(data);
+      if (data?.photo_url) {
+        if (data.photo_url.startsWith('http')) {
+          setPhotoDisplayUrl(data.photo_url);
+        } else {
+          const { data: urlData } = await supabase.storage
+            .from('pet-photos')
+            .createSignedUrl(data.photo_url, 60 * 60);
+          setPhotoDisplayUrl(urlData?.signedUrl || null);
+        }
+      } else {
+        setPhotoDisplayUrl(null);
+      }
     } catch (error: any) {
       console.error('Error loading pet:', error);
-      alert('Error al cargar la mascota: ' + (error.message || 'Error desconocido'));
+      Alert.alert('Error', 'Error al cargar la mascota: ' + (error.message || 'Error desconocido'));
     } finally {
       setIsLoading(false);
     }
@@ -171,10 +184,9 @@ export function PetDetailScreen() {
     try {
       // Eliminar foto del storage si existe
       if (pet.photo_url) {
-        // Extraer el path del URL
-        const urlParts = pet.photo_url.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        const filePath = `${userId}/${pet.id}/${fileName}`;
+        const filePath = pet.photo_url.startsWith('http')
+          ? `${userId}/${pet.id}/${pet.photo_url.split('/').slice(-1)[0]}`
+          : pet.photo_url;
         
         await supabase.storage
           .from('pet-photos')
@@ -248,9 +260,9 @@ export function PetDetailScreen() {
               borderColor={colors.primary}
               overflow="hidden"
             >
-              {pet.photo_url ? (
+              {photoDisplayUrl ? (
                 <Image
-                  source={{ uri: pet.photo_url }}
+                  source={{ uri: photoDisplayUrl }}
                   alt={pet.name}
                   width="100%"
                   height="100%"

@@ -44,6 +44,7 @@ export function HomeScreen() {
   const supabase = useSupabaseClient();
   const { userId } = useAuth();
   const [pets, setPets] = useState<Pet[]>([]);
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,7 +69,26 @@ export function HomeScreen() {
 
       if (fetchError) throw fetchError;
 
-      setPets(data || []);
+      const petsData = data || [];
+      setPets(petsData);
+
+      const signedUrls: Record<string, string> = {};
+      await Promise.all(
+        petsData.map(async (pet) => {
+          if (!pet.photo_url) return;
+          if (pet.photo_url.startsWith('http')) {
+            signedUrls[pet.id] = pet.photo_url;
+            return;
+          }
+          const { data: urlData } = await supabase.storage
+            .from('pet-photos')
+            .createSignedUrl(pet.photo_url, 60 * 60);
+          if (urlData?.signedUrl) {
+            signedUrls[pet.id] = urlData.signedUrl;
+          }
+        })
+      );
+      setPhotoUrls(signedUrls);
     } catch (err: any) {
       console.error('Error loading pets:', err);
       setError(err.message || 'Error al cargar las mascotas');
@@ -196,7 +216,7 @@ export function HomeScreen() {
                     species={pet.species}
                     breed={pet.breed}
                     birthDate={pet.birth_date}
-                    photoUrl={pet.photo_url}
+                    photoUrl={photoUrls[pet.id]}
                     onPress={() => handlePetPress(pet.id)}
                     onEdit={() => handleEditPet(pet.id)}
                     onDelete={() => handleDeletePet(pet.id)}
