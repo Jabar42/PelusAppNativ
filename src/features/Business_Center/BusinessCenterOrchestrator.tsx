@@ -36,29 +36,7 @@ export default function BusinessCenterOrchestrator() {
 
   return (
     <Box flex={1}>
-      <HStack 
-        backgroundColor="$primary600" 
-        paddingVertical="$2" 
-        paddingHorizontal="$4" 
-        justifyContent="space-between" 
-        alignItems="center"
-      >
-        <HStack alignItems="center" gap="$2">
-          <Ionicons name="briefcase" size={16} color="white" />
-          <Text color="white" fontSize="$xs" fontWeight="$bold">
-            MODO PROFESIONAL: {organization.name}
-          </Text>
-        </HStack>
-        <Button 
-          variant="outline" 
-          action="primary" 
-          size="xs" 
-          borderColor="white" 
-          onPress={handleSwitchToPersonal}
-        >
-          <ButtonText color="white" fontSize="$xs">Ver como Dueño</ButtonText>
-        </Button>
-      </HStack>
+      
 
       <Box flex={1}>
         {/* Si no hay tipo aún, mostramos un mensaje de advertencia o configuración incompleta */}
