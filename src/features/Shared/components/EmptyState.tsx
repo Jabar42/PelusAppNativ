@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, VStack, Text, Icon, Heading } from '@gluestack-ui/themed';
+import { Box, VStack, Text, Icon, Heading, Pressable } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 
 interface EmptyStateProps {
@@ -43,26 +43,25 @@ export default function EmptyState({
         </VStack>
 
         {actionLabel && onAction && (
-          <Box
-            as="button"
-            padding="$3"
-            paddingHorizontal="$6"
-            borderRadius="$lg"
-            backgroundColor="$primary600"
+          <Pressable
             onPress={onAction}
             sx={{
-              ':hover': {
-                backgroundColor: '$primary700',
-              },
               ':active': {
-                backgroundColor: '$primary800',
+                opacity: 0.8,
               },
             }}
           >
-            <Text color="$white" fontWeight="$semibold" size="md">
-              {actionLabel}
-            </Text>
-          </Box>
+            <Box
+              padding="$3"
+              paddingHorizontal="$6"
+              borderRadius="$lg"
+              backgroundColor="$primary600"
+            >
+              <Text color="$white" fontWeight="$semibold" size="md">
+                {actionLabel}
+              </Text>
+            </Box>
+          </Pressable>
         )}
       </VStack>
     </Box>

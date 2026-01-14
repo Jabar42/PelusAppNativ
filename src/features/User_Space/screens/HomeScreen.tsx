@@ -10,6 +10,7 @@ import {
   Center,
   Spinner,
   Icon,
+  Pressable,
 } from '@gluestack-ui/themed';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from 'react-native';
@@ -214,79 +215,83 @@ export function HomeScreen() {
             />
 
             <VStack gap="$3">
-              <Box
-                as="button"
-                padding="$4"
-                borderRadius="$lg"
-                backgroundColor="$white"
-                borderWidth="$1"
-                borderColor="$borderLight200"
+              <Pressable
                 onPress={() => router.push('/(tabs)/fav')}
                 sx={{
                   ':active': {
-                    backgroundColor: '$backgroundLight50',
+                    opacity: 0.8,
                   },
                 }}
               >
-                <HStack alignItems="center" gap="$4">
-                  <Box
-                    width="$10"
-                    height="$10"
-                    borderRadius="$lg"
-                    backgroundColor="$primary100"
-                    justifyContent="center"
-                    alignItems="center"
-                  >
-                    <Icon as={Ionicons} name="heart" size="$md" color="$primary600" />
-                  </Box>
-                  <VStack flex={1} gap="$1">
-                    <Text size="md" fontWeight="$semibold" color="$text900">
-                      Favoritos
-                    </Text>
-                    <Text size="sm" color="$text600">
-                      Tus servicios favoritos
-                    </Text>
-                  </VStack>
-                  <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
-                </HStack>
-              </Box>
+                <Box
+                  padding="$4"
+                  borderRadius="$lg"
+                  backgroundColor="$white"
+                  borderWidth="$1"
+                  borderColor="$borderLight200"
+                >
+                  <HStack alignItems="center" gap="$4">
+                    <Box
+                      width="$10"
+                      height="$10"
+                      borderRadius="$lg"
+                      backgroundColor="$primary100"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Icon as={Ionicons} name="heart" size="$md" color="$primary600" />
+                    </Box>
+                    <VStack flex={1} gap="$1">
+                      <Text size="md" fontWeight="$semibold" color="$text900">
+                        Favoritos
+                      </Text>
+                      <Text size="sm" color="$text600">
+                        Tus servicios favoritos
+                      </Text>
+                    </VStack>
+                    <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                  </HStack>
+                </Box>
+              </Pressable>
 
-              <Box
-                as="button"
-                padding="$4"
-                borderRadius="$lg"
-                backgroundColor="$white"
-                borderWidth="$1"
-                borderColor="$borderLight200"
+              <Pressable
                 onPress={() => router.push('/(tabs)/help')}
                 sx={{
                   ':active': {
-                    backgroundColor: '$backgroundLight50',
+                    opacity: 0.8,
                   },
                 }}
               >
-                <HStack alignItems="center" gap="$4">
-                  <Box
-                    width="$10"
-                    height="$10"
-                    borderRadius="$lg"
-                    backgroundColor="$primary100"
-                    justifyContent="center"
-                    alignItems="center"
-                  >
-                    <Icon as={Ionicons} name="help-circle" size="$md" color="$primary600" />
-                  </Box>
-                  <VStack flex={1} gap="$1">
-                    <Text size="md" fontWeight="$semibold" color="$text900">
-                      Ayuda
-                    </Text>
-                    <Text size="sm" color="$text600">
-                      Preguntas frecuentes y soporte
-                    </Text>
-                  </VStack>
-                  <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
-                </HStack>
-              </Box>
+                <Box
+                  padding="$4"
+                  borderRadius="$lg"
+                  backgroundColor="$white"
+                  borderWidth="$1"
+                  borderColor="$borderLight200"
+                >
+                  <HStack alignItems="center" gap="$4">
+                    <Box
+                      width="$10"
+                      height="$10"
+                      borderRadius="$lg"
+                      backgroundColor="$primary100"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Icon as={Ionicons} name="help-circle" size="$md" color="$primary600" />
+                    </Box>
+                    <VStack flex={1} gap="$1">
+                      <Text size="md" fontWeight="$semibold" color="$text900">
+                        Ayuda
+                      </Text>
+                      <Text size="sm" color="$text600">
+                        Preguntas frecuentes y soporte
+                      </Text>
+                    </VStack>
+                    <Icon as={Ionicons} name="chevron-forward" size="$md" color="$text400" />
+                  </HStack>
+                </Box>
+              </Pressable>
             </VStack>
           </VStack>
 
