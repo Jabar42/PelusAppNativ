@@ -15,11 +15,11 @@ import {
   SafeAreaView,
   Button,
   ButtonText,
-  Icon,
   Pressable,
   Image,
   Textarea,
   TextareaInput,
+  useToken,
 } from '@gluestack-ui/themed';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { Alert } from 'react-native';
@@ -66,6 +66,10 @@ export function AddEditPetScreen() {
   const { userId } = useAuth();
   const { colors } = useThemeContext();
   const isEditing = !!params.id;
+  const textColor = useToken('colors', 'textLight900');
+  const primaryColor = useToken('colors', colors.primary.replace('$', '') as any);
+  const arrowIconSize = useToken('space', '6');
+  const cameraIconSize = useToken('space', '10');
 
   const [formData, setFormData] = useState<PetFormData>({
     name: '',
@@ -291,7 +295,7 @@ export function AddEditPetScreen() {
           {/* Header */}
           <HStack alignItems="center" gap="$4">
             <Pressable onPress={() => router.back()}>
-              <Icon as={Ionicons} name="arrow-back" size="$xl" color="$text900" />
+              <Ionicons name="arrow-back" size={arrowIconSize} color={textColor} />
             </Pressable>
             <Heading size="xl" color="$text900" flex={1}>
               {isEditing ? 'Editar Mascota' : 'Agregar Mascota'}
@@ -316,18 +320,13 @@ export function AddEditPetScreen() {
                   <Image
                     source={{ uri: selectedImage }}
                     alt="Foto de mascota"
-                    width="100%"
-                    height="100%"
+                    width={120}
+                    height={120}
                     resizeMode="cover"
                   />
                 ) : (
                   <VStack alignItems="center" gap="$1">
-                    <Icon
-                      as={Ionicons}
-                      name="camera"
-                      size="$2xl"
-                      color={colors.primary}
-                    />
+                    <Ionicons name="camera" size={cameraIconSize} color={primaryColor} />
                     <Text size="xs" color={colors.primary}>
                       Agregar foto
                     </Text>
