@@ -2,7 +2,7 @@ import React from 'react';
 import { useOrganization, useOrganizationList } from '@clerk/clerk-expo';
 import { HomeScreen as VeterinaryHome } from './Veterinary/screens/HomeScreen';
 import LoadingScreen from '@/shared/components/LoadingScreen';
-import { Box, Text, Center, Button, ButtonText, HStack, Heading, VStack } from '@gluestack-ui/themed';
+import { Box, Text, Center, Button, ButtonText, Heading, VStack } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 
 /**
