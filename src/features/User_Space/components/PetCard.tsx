@@ -12,7 +12,7 @@ import {
   Heading,
   Pressable,
   Image,
-  Icon,
+  useToken,
 } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/features/Shared/components/ui/Card/Card';
@@ -90,10 +90,15 @@ export const PetCard: React.FC<PetCardProps> = ({
   onDelete,
 }) => {
   const age = calculateAge(birthDate);
+  const pawColor = useToken('colors', 'purple600');
+  const editColor = useToken('colors', 'purple600');
+  const deleteColor = useToken('colors', 'error600');
+  const pawSize = useToken('space', '10');
+  const actionIconSize = useToken('space', '6');
 
   return (
     <Pressable onPress={onPress}>
-      <Card variant="outline" padding="$4" borderRadius="$lg">
+      <Card padding="md">
         <HStack gap="$4" alignItems="center">
           {/* Foto de la mascota */}
           <Box
@@ -109,17 +114,12 @@ export const PetCard: React.FC<PetCardProps> = ({
               <Image
                 source={{ uri: photoUrl }}
                 alt={name}
-                width="100%"
-                height="100%"
+                width={80}
+                height={80}
                 resizeMode="cover"
               />
             ) : (
-              <Icon
-                as={Ionicons}
-                name="paw"
-                size="$2xl"
-                color="$purple600"
-              />
+              <Ionicons name="paw" size={pawSize} color={pawColor} />
             )}
           </Box>
 
@@ -145,22 +145,12 @@ export const PetCard: React.FC<PetCardProps> = ({
           <VStack gap="$2">
             {onEdit && (
               <Pressable onPress={onEdit}>
-                <Icon
-                  as={Ionicons}
-                  name="pencil"
-                  size="$md"
-                  color="$purple600"
-                />
+                <Ionicons name="pencil" size={actionIconSize} color={editColor} />
               </Pressable>
             )}
             {onDelete && (
               <Pressable onPress={onDelete}>
-                <Icon
-                  as={Ionicons}
-                  name="trash-outline"
-                  size="$md"
-                  color="$error600"
-                />
+                <Ionicons name="trash-outline" size={actionIconSize} color={deleteColor} />
               </Pressable>
             )}
           </VStack>
