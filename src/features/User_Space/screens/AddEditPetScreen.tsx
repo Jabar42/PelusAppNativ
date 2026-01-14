@@ -22,13 +22,12 @@ import {
   TextareaInput,
 } from '@gluestack-ui/themed';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
+import { Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSupabaseClient } from '@/core/hooks/useSupabaseClient';
 import { useAuth } from '@clerk/clerk-expo';
-// ImagePicker se instalará como dependencia opcional
-// Por ahora, comentamos la funcionalidad de foto hasta que se instale
-// import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from 'expo-image-picker';
 import FormField from '@/features/Shared/components/forms/FormField';
 import DatePickerField from '@/features/Shared/components/forms/DatePickerField';
 import SelectField from '@/features/Shared/components/forms/SelectField';
@@ -128,33 +127,45 @@ export function AddEditPetScreen() {
   };
 
   const pickImage = async () => {
-    // TODO: Instalar expo-image-picker y descomentar
-    // const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    // if (status !== 'granted') {
-    //   alert('Se necesitan permisos para acceder a las fotos');
-    //   return;
-    // }
-    // const result = await ImagePicker.launchImageLibraryAsync({
-    //   mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    //   allowsEditing: true,
-    //   aspect: [1, 1],
-    //   quality: 0.8,
-    // });
-    // if (!result.canceled && result.assets[0]) {
-    //   setSelectedImage(result.assets[0].uri);
-    // }
-    alert('Funcionalidad de foto disponible próximamente. Instalar expo-image-picker.');
+    try {
+      // Solicitar permisos
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permisos requeridos',
+          'Se necesitan permisos para acceder a las fotos. Por favor, habilita los permisos en la configuración de la app.'
+        );
+        return;
+      }
+
+      // Abrir selector de imágenes
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setSelectedImage(result.assets[0].uri);
+      }
+    } catch (error: any) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'No se pudo seleccionar la imagen. Por favor, intenta de nuevo.');
+    }
   };
 
   const uploadPhoto = async (localUri: string, petId: string): Promise<string | null> => {
     if (!userId) return null;
 
     try {
-      // Leer el archivo
-      const response = await fetch(localUri);
-      const blob = await response.blob();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
       const filePath = `${userId}/${petId}/${fileName}`;
+
+      // Leer el archivo como blob usando fetch
+      // En React Native, fetch puede manejar URIs locales (file://) directamente
+      const response = await fetch(localUri);
+      const blob = await response.blob();
 
       // Subir a Supabase Storage
       const { data, error } = await supabase.storage
@@ -174,6 +185,7 @@ export function AddEditPetScreen() {
       return urlData.publicUrl;
     } catch (error: any) {
       console.error('Error uploading photo:', error);
+      Alert.alert('Error', 'No se pudo subir la foto. Por favor, intenta de nuevo.');
       return null;
     }
   };
@@ -243,7 +255,7 @@ export function AddEditPetScreen() {
       router.back();
     } catch (error: any) {
       console.error('Error saving pet:', error);
-      alert('Error al guardar la mascota: ' + (error.message || 'Error desconocido'));
+      Alert.alert('Error', 'Error al guardar la mascota: ' + (error.message || 'Error desconocido'));
     } finally {
       setIsLoading(false);
     }

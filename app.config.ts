@@ -23,9 +23,23 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: "#ffffff"
   },
   assetBundlePatterns: ["**/*"],
-  plugins: ["expo-router", "expo-secure-store"],
+  plugins: [
+    "expo-router",
+    "expo-secure-store",
+    [
+      "expo-image-picker",
+      {
+        photosPermission: "La app necesita acceso a tus fotos para agregar imágenes de mascotas.",
+        cameraPermission: "La app necesita acceso a la cámara para tomar fotos de mascotas."
+      }
+    ]
+  ],
   ios: {
-    supportsTablet: true
+    supportsTablet: true,
+    infoPlist: {
+      NSPhotoLibraryUsageDescription: "La app necesita acceso a tus fotos para agregar imágenes de mascotas.",
+      NSCameraUsageDescription: "La app necesita acceso a la cámara para tomar fotos de mascotas."
+    }
   },
   android: {
     adaptiveIcon: {
