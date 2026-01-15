@@ -8,11 +8,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Box } from '@gluestack-ui/themed';
 
+type BoxProps = React.ComponentProps<typeof Box>;
+
 interface LoadingSkeletonProps {
-  width?: string;
-  height?: string;
-  borderRadius?: string;
-  marginBottom?: string;
+  width?: BoxProps['width'];
+  height?: BoxProps['height'];
+  borderRadius?: BoxProps['borderRadius'];
+  marginBottom?: BoxProps['marginBottom'];
 }
 
 export function LoadingSkeleton({

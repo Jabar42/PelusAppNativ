@@ -32,6 +32,8 @@ export interface ButtonProps {
   onPress?: () => void;
 }
 
+type GluestackButtonProps = React.ComponentProps<typeof GluestackButton>;
+
 /**
  * Componente Button del design system
  * Basado en Gluestack UI con props personalizadas
@@ -46,11 +48,21 @@ export const Button: React.FC<ButtonProps> = ({
   onPress,
   ...props
 }) => {
+  const resolvedVariant = variant === 'ghost' ? 'link' : variant;
+  const resolvedAction: GluestackButtonProps['action'] =
+    colorScheme === 'success'
+      ? 'positive'
+      : colorScheme === 'error'
+        ? 'negative'
+        : colorScheme === 'warning'
+          ? 'secondary'
+          : colorScheme;
+
   return (
     <GluestackButton
       size={size}
-      variant={variant}
-      colorScheme={colorScheme}
+      variant={resolvedVariant}
+      action={resolvedAction}
       isDisabled={isDisabled || isLoading}
       onPress={onPress}
       {...props}

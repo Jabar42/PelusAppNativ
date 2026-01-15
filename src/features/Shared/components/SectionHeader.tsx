@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, VStack, HStack, Text, Heading, Icon, Pressable } from '@gluestack-ui/themed';
+import { Box, VStack, HStack, Text, Heading, Pressable, useToken } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 
 interface SectionHeaderProps {
@@ -21,6 +21,8 @@ export default function SectionHeader({
 }: SectionHeaderProps) {
   const paddingVertical = variant === 'compact' ? '$2' : '$4';
   const paddingHorizontal = variant === 'compact' ? '$1' : '$0';
+  const actionIconSize = useToken('space', '4');
+  const primary600 = useToken('colors', 'primary600');
 
   return (
     <Box
@@ -59,12 +61,7 @@ export default function SectionHeader({
           >
             <HStack alignItems="center" gap="$2">
               {actionIcon && (
-                <Icon
-                  as={Ionicons}
-                  name={actionIcon}
-                  size="$sm"
-                  color="$primary600"
-                />
+                <Ionicons name={actionIcon} size={actionIconSize} color={primary600} />
               )}
               <Text size="sm" color="$primary600" fontWeight="$semibold">
                 {actionLabel}

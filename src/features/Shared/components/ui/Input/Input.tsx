@@ -51,9 +51,14 @@ export const Input: React.FC<InputProps> = ({
   label,
   ...props
 }) => {
+  const resolvedSize = size === 'xs' ? 'sm' : size;
+  const resolvedType = type === 'password' ? 'password' : 'text';
+  const resolvedKeyboardType =
+    type === 'email' ? 'email-address' : type === 'number' ? 'numeric' : undefined;
+
   return (
     <GluestackInput
-      size={size}
+      size={resolvedSize}
       isDisabled={isDisabled}
       isInvalid={isInvalid}
       {...props}
@@ -62,7 +67,8 @@ export const Input: React.FC<InputProps> = ({
         placeholder={placeholder}
         value={value}
         onChangeText={onChangeText}
-        type={type}
+        type={resolvedType}
+        keyboardType={resolvedKeyboardType}
       />
     </GluestackInput>
   );

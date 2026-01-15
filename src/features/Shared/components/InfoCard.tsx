@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, VStack, HStack, Text, Heading, Icon, Pressable } from '@gluestack-ui/themed';
+import { Box, VStack, HStack, Text, Heading, Pressable, useToken } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 
 interface InfoCardProps {
@@ -57,6 +57,8 @@ export default function InfoCard({
   variant = 'default',
 }: InfoCardProps) {
   const styles = variantStyles[variant];
+  const iconSize = useToken('space', '5');
+  const resolvedIconColor = useToken('colors', (iconColor || styles.iconColor) as any);
 
   const content = (
     <Box
@@ -77,12 +79,7 @@ export default function InfoCard({
             justifyContent="center"
             alignItems="center"
           >
-            <Icon
-              as={Ionicons}
-              name={icon}
-              size="$xl"
-              color={iconColor || styles.iconColor}
-            />
+            <Ionicons name={icon} size={iconSize} color={resolvedIconColor} />
           </Box>
         )}
         <VStack flex={1} gap="$1">

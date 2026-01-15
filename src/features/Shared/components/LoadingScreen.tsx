@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -11,12 +11,11 @@ import Animated, {
   FadeIn
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Box, Text, useToken, Center, VStack, Button, ButtonText, HStack, Icon } from '@gluestack-ui/themed';
+import { Box, Text, useToken, Center, VStack, Button, ButtonText, HStack } from '@gluestack-ui/themed';
 import { BRAND_NAME } from '@/core/config/brand';
 
 export default function LoadingScreen() {
   const brandColor = useToken('colors', 'primary600' as any);
-  const primaryBg = useToken('colors', 'primary0' as any);
   const gray200 = useToken('colors', 'gray200' as any);
   const gray500 = useToken('colors', 'gray500' as any);
   const gray800 = useToken('colors', 'gray800' as any);
@@ -234,7 +233,7 @@ export default function LoadingScreen() {
               }}
             >
               <HStack space="xs" alignItems="center">
-                <Icon as={Ionicons} name="refresh" color="$primary600" />
+                <Ionicons name="refresh" size={16} color={brandColor} />
                 <ButtonText color="$primary600">Reintentar conexión</ButtonText>
               </HStack>
             </Button>

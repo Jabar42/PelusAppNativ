@@ -21,7 +21,7 @@ import WorkspaceManager from '../components/WorkspaceManager';
 import { BRAND_NAME } from '@/core/config/brand';
 
 export function ProfileScreen() {
-  const { user, isLoaded: userLoaded } = useUser();
+  const { user } = useUser();
   const { signOut } = useAuth();
 
   return (

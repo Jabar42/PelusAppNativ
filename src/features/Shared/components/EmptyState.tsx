@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, VStack, Text, Icon, Heading, Pressable } from '@gluestack-ui/themed';
+import { Box, VStack, Text, Heading, Pressable, useToken } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 
 interface EmptyStateProps {
@@ -17,6 +17,9 @@ export default function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
+  const iconSize = useToken('space', '12');
+  const primary600 = useToken('colors', 'primary600');
+
   return (
     <Box flex={1} justifyContent="center" alignItems="center" padding="$6">
       <VStack alignItems="center" gap="$6" width="$full" maxWidth="$96">
@@ -28,7 +31,7 @@ export default function EmptyState({
           justifyContent="center"
           alignItems="center"
         >
-          <Icon as={Ionicons} name={icon} size="$6xl" color="$primary600" />
+          <Ionicons name={icon} size={iconSize} color={primary600} />
         </Box>
 
         <VStack alignItems="center" gap="$2">
