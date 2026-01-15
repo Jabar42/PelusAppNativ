@@ -116,8 +116,9 @@ export function SettingsScreen() {
   const currentMembership = userMemberships?.data?.find(
     (membership) => membership.organization.id === organization?.id
   );
-  const canManageLocations =
-    currentMembership?.role === 'admin' || currentMembership?.role === 'owner';
+  const canManageLocations = ['admin', 'owner', 'org:admin', 'org:owner'].includes(
+    currentMembership?.role ?? ''
+  );
 
   const handleNavigateToLocations = () => {
     router.push({

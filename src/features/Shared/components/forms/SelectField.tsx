@@ -69,6 +69,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   const { colors } = useThemeContext();
   const isInvalid = !!error;
   const iconSize = useToken('space', '6');
+  const error600 = useToken('colors', 'error600');
+  const border200 = useToken('colors', 'borderLight200');
 
   return (
     <VStack gap="$1" width="100%">
@@ -84,7 +86,16 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         onValueChange={onValueChange}
         isDisabled={isDisabled}
       >
-        <SelectTrigger variant="outline" size="md">
+        <SelectTrigger
+          variant="outline"
+          size="md"
+          sx={{
+            borderColor: isInvalid ? error600 : border200,
+            ':focus': {
+              borderColor: isInvalid ? error600 : colors.primary,
+            },
+          }}
+        >
           <SelectInput placeholder={placeholder} />
           <SelectIcon>
             <Ionicons name="chevron-down" size={iconSize} />

@@ -15,6 +15,10 @@ export interface ButtonProps {
    */
   colorScheme?: 'primary' | 'secondary' | 'success' | 'error' | 'warning';
   /**
+   * Acción del botón (Gluestack)
+   */
+  action?: React.ComponentProps<typeof GluestackButton>['action'];
+  /**
    * Si el botón está deshabilitado
    */
   isDisabled?: boolean;
@@ -42,6 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'md',
   variant = 'solid',
   colorScheme = 'primary',
+  action,
   isDisabled = false,
   isLoading = false,
   children,
@@ -50,6 +55,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const resolvedVariant = variant === 'ghost' ? 'link' : variant;
   const resolvedAction: GluestackButtonProps['action'] =
+    action ||
     colorScheme === 'success'
       ? 'positive'
       : colorScheme === 'error'
