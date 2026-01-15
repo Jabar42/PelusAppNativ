@@ -12,7 +12,6 @@ import {
   Text,
   Heading,
   ScrollView,
-  SafeAreaView,
   Input,
   InputField,
   Pressable,

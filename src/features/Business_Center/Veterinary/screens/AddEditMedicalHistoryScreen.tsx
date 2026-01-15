@@ -13,7 +13,6 @@ import {
   Text,
   Heading,
   ScrollView,
-  SafeAreaView,
   Button,
   ButtonText,
   Pressable,
