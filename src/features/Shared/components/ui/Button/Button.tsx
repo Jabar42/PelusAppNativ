@@ -55,14 +55,14 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
   const resolvedVariant = variant === 'ghost' ? 'link' : variant;
   const resolvedAction: GluestackButtonProps['action'] =
-    action ||
-    colorScheme === 'success'
+    action ??
+    (colorScheme === 'success'
       ? 'positive'
       : colorScheme === 'error'
         ? 'negative'
         : colorScheme === 'warning'
           ? 'secondary'
-          : colorScheme;
+          : colorScheme);
 
   return (
     <GluestackButton

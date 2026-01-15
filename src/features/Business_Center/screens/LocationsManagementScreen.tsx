@@ -50,7 +50,9 @@ interface LocationsResponse {
 export function LocationsManagementScreen() {
   const router = useRouter();
   const { organization, isLoaded: orgLoaded } = useOrganization();
-  const { userMemberships, isLoaded: membershipsLoaded } = useOrganizationList();
+  const { userMemberships, isLoaded: membershipsLoaded } = useOrganizationList({
+    userMemberships: true,
+  });
   const { getToken } = useAuth();
   const text400 = useToken('colors', 'textLight400');
   const error600 = useToken('colors', 'error600');

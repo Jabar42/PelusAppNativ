@@ -109,7 +109,7 @@ function SettingsToggle({
 export function SettingsScreen() {
   const router = useRouter();
   const { organization } = useOrganization();
-  const { userMemberships } = useOrganizationList();
+  const { userMemberships } = useOrganizationList({ userMemberships: true });
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
