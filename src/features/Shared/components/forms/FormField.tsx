@@ -37,6 +37,10 @@ export interface FormFieldProps {
    */
   type?: 'text' | 'password' | 'email' | 'number';
   /**
+   * Tipo de teclado (cuando el input no soporta type nativo)
+   */
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+  /**
    * Tamaño del input
    */
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
@@ -71,6 +75,7 @@ export const FormField: React.FC<FormFieldProps> = ({
   onChangeText,
   helperText,
   inputProps,
+  keyboardType,
 }) => {
   const { colors } = useThemeContext();
   const isInvalid = !!error;
@@ -94,7 +99,11 @@ export const FormField: React.FC<FormFieldProps> = ({
           placeholder={placeholder}
           value={value}
           onChangeText={onChangeText}
-          type={type}
+          type={type === 'password' ? 'password' : 'text'}
+          keyboardType={
+            keyboardType ||
+            (type === 'email' ? 'email-address' : type === 'number' ? 'numeric' : 'default')
+          }
         />
       </GluestackInput>
 

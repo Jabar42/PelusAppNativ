@@ -81,7 +81,7 @@ export const DatePickerField: React.FC<DatePickerFieldProps> = ({
         isInvalid={isInvalid}
       >
         <InputField
-          type="date"
+          type="text"
           value={value}
           onChangeText={handleDateChange}
           placeholder={placeholder}

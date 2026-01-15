@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { VStack, Text, Select as GluestackSelect, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon } from '@gluestack-ui/themed';
+import { VStack, Text, Select as GluestackSelect, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, useToken } from '@gluestack-ui/themed';
 import { useThemeContext } from '@/core/hooks/useThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -68,6 +68,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 }) => {
   const { colors } = useThemeContext();
   const isInvalid = !!error;
+  const iconSize = useToken('space', '6');
 
   return (
     <VStack gap="$1" width="100%">
@@ -83,10 +84,10 @@ export const SelectField: React.FC<SelectFieldProps> = ({
         onValueChange={onValueChange}
         isDisabled={isDisabled}
       >
-        <SelectTrigger variant="outline" size="md" isInvalid={isInvalid}>
+        <SelectTrigger variant="outline" size="md">
           <SelectInput placeholder={placeholder} />
           <SelectIcon>
-            <Icon as={Ionicons} name="chevron-down" size="$md" />
+            <Ionicons name="chevron-down" size={iconSize} />
           </SelectIcon>
         </SelectTrigger>
         <SelectPortal>
