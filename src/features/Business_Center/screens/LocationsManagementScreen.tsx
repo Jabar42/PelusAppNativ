@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useOrganization, useAuth } from '@clerk/clerk-expo';
+import { useOrganization, useAuth, useOrganizationList } from '@clerk/clerk-expo';
 import {
   Box,
   VStack,
@@ -25,7 +25,7 @@ import {
 } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
 import { apiClient } from '@/core/services/api';
-import { useSupabaseClient } from '@/core/hooks/useSupabaseClient';
+import { useRouter } from 'expo-router';
 
 interface Location {
   id: string;
@@ -48,12 +48,18 @@ interface LocationsResponse {
 }
 
 export function LocationsManagementScreen() {
+  const router = useRouter();
   const { organization, isLoaded: orgLoaded } = useOrganization();
+  const { userMemberships, isLoaded: membershipsLoaded } = useOrganizationList();
   const { getToken } = useAuth();
-  const supabase = useSupabaseClient();
   const text400 = useToken('colors', 'textLight400');
   const error600 = useToken('colors', 'error600');
   const alertIconSize = useToken('space', '6');
+  const currentMembership = userMemberships?.data?.find(
+    (membership) => membership.organization.id === organization?.id
+  );
+  const canManageLocations =
+    currentMembership?.role === 'admin' || currentMembership?.role === 'owner';
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -182,7 +188,7 @@ export function LocationsManagementScreen() {
     }
   };
 
-  if (!orgLoaded) {
+  if (!orgLoaded || !membershipsLoaded) {
     return (
       <Center flex={1}>
         <Spinner size="large" />
@@ -194,6 +200,21 @@ export function LocationsManagementScreen() {
     return (
       <Center flex={1} p="$6">
         <Text>No se encontró una organización activa.</Text>
+      </Center>
+    );
+  }
+
+  if (!canManageLocations) {
+    return (
+      <Center flex={1} p="$6">
+        <VStack space="md" alignItems="center">
+          <Text textAlign="center" color="$text700">
+            No tienes permisos para gestionar las sedes de esta organización.
+          </Text>
+          <Button variant="outline" action="secondary" onPress={() => router.back()}>
+            <ButtonText>Volver</ButtonText>
+          </Button>
+        </VStack>
       </Center>
     );
   }

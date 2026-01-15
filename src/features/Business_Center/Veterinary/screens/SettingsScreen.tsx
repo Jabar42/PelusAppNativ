@@ -12,7 +12,7 @@ import {
 } from '@gluestack-ui/themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useOrganization } from '@clerk/clerk-expo';
+import { useOrganization, useOrganizationList } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import SectionHeader from '@/features/Shared/components/SectionHeader';
 
@@ -109,9 +109,15 @@ function SettingsToggle({
 export function SettingsScreen() {
   const router = useRouter();
   const { organization } = useOrganization();
+  const { userMemberships } = useOrganizationList();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [autoBackup, setAutoBackup] = useState(true);
+  const currentMembership = userMemberships?.data?.find(
+    (membership) => membership.organization.id === organization?.id
+  );
+  const canManageLocations =
+    currentMembership?.role === 'admin' || currentMembership?.role === 'owner';
 
   const handleNavigateToLocations = () => {
     router.push({
@@ -147,11 +153,13 @@ export function SettingsScreen() {
             />
 
             <VStack gap="$1" backgroundColor="$white" borderRadius="$xl" padding="$2" borderWidth="$1" borderColor="$borderLight200">
-              <SettingsMenuItem
-                icon="location-outline"
-                label="Gestión de Sedes"
-                onPress={handleNavigateToLocations}
-              />
+              {canManageLocations && (
+                <SettingsMenuItem
+                  icon="location-outline"
+                  label="Gestión de Sedes"
+                  onPress={handleNavigateToLocations}
+                />
+              )}
               <SettingsMenuItem
                 icon="people-outline"
                 label="Asignaciones de Usuarios"

@@ -121,6 +121,10 @@ export default function TabsLayoutWrapper() {
             name="settings"
             options={{ title: 'Configuración', tabBarButton: () => null }}
           />
+          <Tabs.Screen
+            name="locations-management"
+            options={{ title: 'Gestión de Sedes', tabBarButton: () => null }}
+          />
         </Tabs>
       </Box>
     </Box>
