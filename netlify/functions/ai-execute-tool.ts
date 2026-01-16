@@ -10,6 +10,7 @@ import { getMedicalHistory, summarizeMedicalHistory, MedicalHistoryParams } from
 import { scheduleAppointment, getAvailableSlots, ScheduleAppointmentParams, GetAvailableSlotsParams } from './mcp-tools/appointments';
 import { navigateToRoute, findPetAndNavigate, navigateToMedicalHistory, NavigateParams } from './mcp-tools/navigation';
 import { searchInventory, SearchInventoryParams } from './mcp-tools/inventory';
+import { createLocation, listLocations, CreateLocationParams } from './mcp-tools/locations';
 import { checkRateLimit } from './utils/rate-limiting';
 
 interface ExecuteToolRequest {
@@ -134,6 +135,28 @@ async function executeToolHandler(
         result = await executeMCPTool(
           toolName,
           (ctx) => searchInventory(parameters as SearchInventoryParams, ctx),
+          token,
+          aiContext
+        );
+        break;
+
+      case 'create_location':
+        // Validar parámetros requeridos
+        if (!parameters.name || typeof parameters.name !== 'string') {
+          throw new Error('create_location requires name parameter');
+        }
+        result = await executeMCPTool(
+          toolName,
+          (ctx) => createLocation(parameters as CreateLocationParams, ctx),
+          token,
+          aiContext
+        );
+        break;
+
+      case 'list_locations':
+        result = await executeMCPTool(
+          toolName,
+          (ctx) => listLocations(parameters, ctx),
           token,
           aiContext
         );

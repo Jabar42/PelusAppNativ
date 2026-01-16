@@ -65,6 +65,8 @@ export function validateToolPermissions(
     'schedule_appointment',
     'get_available_slots',
     'search_inventory',
+    'create_location',
+    'list_locations',
   ];
 
   if (b2bTools.includes(toolName)) {
@@ -84,6 +86,17 @@ export function validateToolPermissions(
 
     // Tools que además requieren sede activa
     const locationTools = ['search_inventory', 'schedule_appointment', 'get_available_slots'];
+    
+    // Tools que requieren rol admin/creator
+    const adminTools = ['create_location'];
+    if (adminTools.includes(toolName)) {
+      if (!context.role || !['org:admin', 'org:creator'].includes(context.role)) {
+        return {
+          allowed: false,
+          reason: 'Este tool requiere ser administrador de la organización',
+        };
+      }
+    }
     
     if (locationTools.includes(toolName) && !context.activeLocationId) {
       return {

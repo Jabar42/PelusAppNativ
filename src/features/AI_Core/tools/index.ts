@@ -117,10 +117,73 @@ export const navigateToRouteTool: MCPTool = {
   },
 };
 
+/**
+ * Tool: create_location
+ * Crea una nueva sede para la organización
+ */
+export const createLocationTool: MCPTool = {
+  name: 'create_location',
+  description: 'Crea una nueva sede (location) para la organización activa. Requiere ser administrador de la organización.',
+  parameters: {
+    type: 'object',
+    properties: {
+      name: {
+        type: 'string',
+        description: 'Nombre de la sede (requerido)',
+      },
+      address: {
+        type: 'string',
+        description: 'Dirección de la sede (opcional)',
+      },
+      city: {
+        type: 'string',
+        description: 'Ciudad de la sede (opcional)',
+      },
+      state: {
+        type: 'string',
+        description: 'Estado o departamento (opcional)',
+      },
+      country: {
+        type: 'string',
+        description: 'País (opcional, default: Colombia)',
+      },
+      phone: {
+        type: 'string',
+        description: 'Teléfono de contacto (opcional)',
+      },
+      email: {
+        type: 'string',
+        description: 'Email de contacto (opcional)',
+      },
+      isMain: {
+        type: 'boolean',
+        description: 'Si debe ser la sede principal (opcional, default: true si es la primera)',
+      },
+    },
+    required: ['name'],
+  },
+};
+
+/**
+ * Tool: list_locations
+ * Lista todas las sedes de la organización
+ */
+export const listLocationsTool: MCPTool = {
+  name: 'list_locations',
+  description: 'Lista todas las sedes (locations) de la organización activa. Requiere ser usuario profesional en una organización.',
+  parameters: {
+    type: 'object',
+    properties: {},
+    required: [],
+  },
+};
+
 // Exportar array de todos los tools
 export const allMCPTools: MCPTool[] = [
   getMedicalHistoryTool,
   scheduleAppointmentTool,
   searchInventoryTool,
   navigateToRouteTool,
+  createLocationTool,
+  listLocationsTool,
 ];

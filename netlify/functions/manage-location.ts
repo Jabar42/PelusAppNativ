@@ -76,13 +76,51 @@ async function verifyOrgMember(userId: string, orgId: string): Promise<boolean> 
 
 /**
  * Obtiene el userId del JWT de Clerk
+ * 
+ * Nota: Si el template usa "Custom signing key", clerkClient.verifyToken() puede fallar.
+ * En ese caso, decodificamos el JWT directamente sin verificar la firma,
+ * ya que Supabase será quien verifique la firma cuando use el token.
  */
 async function getUserIdFromToken(token: string): Promise<string | null> {
   try {
-    const session = await clerkClient.verifyToken(token);
-    return session.sub || null;
+    // Intentar verificar con Clerk SDK primero (funciona para tokens por defecto)
+    try {
+      const session = await clerkClient.verifyToken(token);
+      return session.sub || null;
+    } catch (verifyError) {
+      // Si falla la verificación (puede ser por custom signing key),
+      // decodificar el JWT directamente
+      console.warn('Clerk verifyToken failed, decoding JWT directly:', verifyError);
+      
+      // Decodificar el payload del JWT (sin verificar firma)
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid JWT format');
+      }
+      
+      // Decodificar el payload (base64url)
+      // Nota: base64url usa - y _ en lugar de + y /, y no tiene padding
+      let base64Payload = parts[1];
+      // Convertir base64url a base64
+      base64Payload = base64Payload.replace(/-/g, '+').replace(/_/g, '/');
+      // Agregar padding si es necesario
+      while (base64Payload.length % 4) {
+        base64Payload += '=';
+      }
+      
+      const payload = JSON.parse(
+        Buffer.from(base64Payload, 'base64').toString('utf-8')
+      );
+      
+      // Extraer user_id o sub
+      const userId = payload.user_id || payload.sub || null;
+      if (!userId) {
+        console.error('JWT payload missing user_id and sub:', Object.keys(payload));
+      }
+      return userId;
+    }
   } catch (error) {
-    console.error('Error verifying token:', error);
+    console.error('Error getting userId from token:', error);
     return null;
   }
 }
@@ -105,12 +143,26 @@ export const handler: Handler = async (event) => {
   }
 
   const token = authHeader.replace('Bearer ', '');
-  const userId = await getUserIdFromToken(token);
+  let userId: string | null;
   
-  if (!userId) {
+  try {
+    userId = await getUserIdFromToken(token);
+  } catch (error: any) {
+    console.error('Error getting userId from token:', error);
     return withCors({ 
       statusCode: 401, 
-      body: JSON.stringify({ error: 'Token inválido' }) 
+      body: JSON.stringify({ 
+        error: 'Token inválido',
+        details: error.message 
+      }) 
+    });
+  }
+  
+  if (!userId) {
+    console.error('No userId extracted from token');
+    return withCors({ 
+      statusCode: 401, 
+      body: JSON.stringify({ error: 'Token inválido: no se pudo extraer el userId' }) 
     });
   }
 

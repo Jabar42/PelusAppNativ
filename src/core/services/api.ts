@@ -70,7 +70,7 @@ export class ApiClient {
 
       if (!response.ok) {
         return {
-          error: data?.error || response.statusText,
+          error: data?.error || response.statusText || `Error ${status}`,
           status,
         };
       }
@@ -81,8 +81,19 @@ export class ApiClient {
       };
     } catch (error: any) {
       console.error(`API Error (${endpoint}):`, error);
+      
+      // Mejorar mensajes de error según el tipo
+      let errorMessage = 'Error de conexión';
+      if (error.message?.includes('fetch failed')) {
+        errorMessage = 'No se pudo conectar con el servidor. Verifica que Netlify Dev esté corriendo.';
+      } else if (error.message?.includes('Network request failed')) {
+        errorMessage = 'Error de red. Verifica tu conexión a internet.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       return {
-        error: error.message || 'Network Error',
+        error: errorMessage,
         status: 500,
       };
     }

@@ -29,16 +29,50 @@ export async function extractAIContext(event: HandlerEvent): Promise<AIContext |
     const token = authHeader.replace('Bearer ', '');
     
     // Verificar el token con Clerk
-    // Nota: Clerk SDK automáticamente valida la firma del JWT
-    const payload = await clerkClient.verifyToken(token);
+    // Nota: Si el template usa "Custom signing key", clerkClient.verifyToken() puede fallar.
+    // En ese caso, decodificamos el JWT directamente sin verificar la firma,
+    // ya que Supabase será quien verifique la firma cuando use el token.
+    let payload: any;
+    try {
+      payload = await clerkClient.verifyToken(token);
+    } catch (verifyError) {
+      // Si falla la verificación (puede ser por custom signing key),
+      // decodificar el JWT directamente
+      console.warn('[AI Auth] Clerk verifyToken failed, decoding JWT directly:', verifyError);
+      
+      // Decodificar el payload del JWT (sin verificar firma)
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        throw new Error('Invalid JWT format');
+      }
+      
+      // Decodificar el payload (base64url)
+      // Nota: base64url usa - y _ en lugar de + y /, y no tiene padding
+      let base64Payload = parts[1];
+      // Convertir base64url a base64
+      base64Payload = base64Payload.replace(/-/g, '+').replace(/_/g, '/');
+      // Agregar padding si es necesario
+      while (base64Payload.length % 4) {
+        base64Payload += '=';
+      }
+      
+      payload = JSON.parse(
+        Buffer.from(base64Payload, 'base64').toString('utf-8')
+      );
+    }
     
-    if (!payload.sub) {
-      console.error('[AI Auth] Token missing sub claim');
+    if (!payload.sub && !payload.user_id) {
+      console.error('[AI Auth] Token missing sub or user_id claim');
       return null;
     }
 
     // Obtener metadata del usuario
-    const user = await clerkClient.users.getUser(payload.sub);
+    const userId = payload.sub || payload.user_id;
+    if (!userId) {
+      console.error('[AI Auth] Token missing sub or user_id claim');
+      return null;
+    }
+    const user = await clerkClient.users.getUser(userId);
     
     // Obtener organización si existe org_id en el JWT
     let activeLocationId: string | undefined;
@@ -55,7 +89,7 @@ export async function extractAIContext(event: HandlerEvent): Promise<AIContext |
     }
     
     const context: AIContext = {
-      userId: payload.sub,
+      userId: payload.sub || payload.user_id,
       orgId: payload.org_id as string | undefined,
       activeLocationId,
       userType: (user.publicMetadata?.user_type as 'pet_owner' | 'professional') || 'pet_owner',

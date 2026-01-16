@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useOrganization, useAuth, useOrganizationList } from '@clerk/clerk-expo';
 import {
   Box,
@@ -54,6 +54,13 @@ export function LocationsManagementScreen() {
     userMemberships: true,
   });
   const { getToken } = useAuth();
+  const getTokenRef = useRef(getToken);
+  
+  // Actualizar la referencia cuando getToken cambia
+  useEffect(() => {
+    getTokenRef.current = getToken;
+  }, [getToken]);
+  
   const text400 = useToken('colors', 'textLight400');
   const error600 = useToken('colors', 'error600');
   const alertIconSize = useToken('space', '6');
@@ -78,39 +85,71 @@ export function LocationsManagementScreen() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
 
-  // Cargar sedes
-  const loadLocations = async () => {
-    if (!organization?.id) return;
+  // Cargar sedes - memoizada para evitar loops infinitos
+  const loadLocations = useCallback(async () => {
+    if (!organization?.id) {
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError('');
 
     try {
-      const token = await getToken();
-      if (!token) throw new Error('No se pudo obtener el token');
+      // Obtener token con manejo de errores específico
+      let token: string | null;
+      try {
+        token = await getTokenRef.current({ template: 'supabase' });
+      } catch (tokenError: any) {
+        console.error('Error obteniendo token:', tokenError);
+        throw new Error('No se pudo obtener el token de autenticación. Por favor, inicia sesión nuevamente.');
+      }
 
+      if (!token) {
+        throw new Error('No se pudo obtener el token de autenticación. Por favor, inicia sesión nuevamente.');
+      }
+
+      // Hacer la petición con mejor manejo de errores
       const response = await apiClient.get<LocationsResponse>(
         `/manage-location/list?orgId=${organization.id}`,
         token
       );
 
+      // Verificar errores de respuesta
       if (response.error) {
+        // Si es un error de red, mostrar mensaje más amigable
+        if (response.error.includes('fetch failed') || response.error.includes('Network Error')) {
+          throw new Error('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+        }
         throw new Error(response.error);
       }
 
-      setLocations(response.data?.locations || []);
+      // Verificar que la respuesta tenga datos válidos
+      if (!response.data) {
+        throw new Error('La respuesta del servidor no contiene datos válidos.');
+      }
+
+      setLocations(response.data.locations || []);
     } catch (err: any) {
-      setError(err.message || 'Error al cargar las sedes');
+      console.error('Error cargando sedes:', err);
+      // Mostrar mensaje de error más amigable
+      const errorMessage = err.message || 'Error al cargar las sedes. Por favor, intenta nuevamente.';
+      setError(errorMessage);
+      // No limpiar las sedes existentes si hay un error, para que el usuario pueda seguir viendo lo que había
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [organization?.id]);
 
   useEffect(() => {
-    if (orgLoaded && organization?.id) {
+    // Solo cargar si la organización está completamente cargada
+    if (orgLoaded && membershipsLoaded && organization?.id) {
       loadLocations();
+    } else if (orgLoaded && membershipsLoaded && !organization?.id) {
+      // Si está cargado pero no hay organización, no mostrar error
+      setIsLoading(false);
     }
-  }, [orgLoaded, organization?.id]);
+  }, [orgLoaded, membershipsLoaded, organization?.id, loadLocations]);
 
   // Crear nueva sede
   const handleCreateLocation = async () => {
@@ -123,8 +162,18 @@ export function LocationsManagementScreen() {
     setError('');
 
     try {
-      const token = await getToken();
-      if (!token) throw new Error('No se pudo obtener el token');
+      // Obtener token con manejo de errores específico
+      let token: string | null;
+      try {
+        token = await getTokenRef.current({ template: 'supabase' });
+      } catch (tokenError: any) {
+        console.error('Error obteniendo token:', tokenError);
+        throw new Error('No se pudo obtener el token de autenticación. Por favor, inicia sesión nuevamente.');
+      }
+
+      if (!token) {
+        throw new Error('No se pudo obtener el token de autenticación. Por favor, inicia sesión nuevamente.');
+      }
 
       const response = await apiClient.post(
         '/manage-location',
@@ -142,6 +191,10 @@ export function LocationsManagementScreen() {
       );
 
       if (response.error) {
+        // Si es un error de red, mostrar mensaje más amigable
+        if (response.error.includes('fetch failed') || response.error.includes('Network Error')) {
+          throw new Error('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+        }
         throw new Error(response.error);
       }
 
@@ -155,7 +208,8 @@ export function LocationsManagementScreen() {
       setShowCreateForm(false);
       await loadLocations();
     } catch (err: any) {
-      setError(err.message || 'Error al crear la sede');
+      console.error('Error creando sede:', err);
+      setError(err.message || 'Error al crear la sede. Por favor, intenta nuevamente.');
     } finally {
       setIsCreating(false);
     }
@@ -173,8 +227,20 @@ export function LocationsManagementScreen() {
     setError('');
 
     try {
-      const token = await getToken();
-      if (!token) throw new Error('No se pudo obtener el token');
+      // Obtener token con manejo de errores específico
+      let token: string | null;
+      try {
+        token = await getTokenRef.current({ template: 'supabase' });
+      } catch (tokenError: any) {
+        console.error('Error obteniendo token:', tokenError);
+        setError('No se pudo obtener el token de autenticación. Por favor, inicia sesión nuevamente.');
+        return;
+      }
+
+      if (!token) {
+        setError('No se pudo obtener el token de autenticación. Por favor, inicia sesión nuevamente.');
+        return;
+      }
 
       const response = await apiClient.delete(
         `/manage-location?locationId=${locationId}`,
@@ -182,12 +248,17 @@ export function LocationsManagementScreen() {
       );
 
       if (response.error) {
+        // Si es un error de red, mostrar mensaje más amigable
+        if (response.error.includes('fetch failed') || response.error.includes('Network Error')) {
+          throw new Error('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+        }
         throw new Error(response.error);
       }
 
       await loadLocations();
     } catch (err: any) {
-      setError(err.message || 'Error al eliminar la sede');
+      console.error('Error eliminando sede:', err);
+      setError(err.message || 'Error al eliminar la sede. Por favor, intenta nuevamente.');
     }
   };
 
@@ -243,7 +314,7 @@ export function LocationsManagementScreen() {
             )}
           </HStack>
 
-          {error ? (
+          {error && !isLoading ? (
             <Alert action="error" variant="outline">
               <HStack alignItems="center" gap="$3">
                 <Ionicons name="alert-circle" size={alertIconSize} color={error600} />
