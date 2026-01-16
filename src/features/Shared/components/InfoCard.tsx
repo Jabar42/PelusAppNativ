@@ -67,9 +67,11 @@ export default function InfoCard({
                      targetColor.startsWith('rgb') || 
                      targetColor.startsWith('hsl');
   
-  const resolvedIconColor = isRawColor
-    ? targetColor  // Usar color raw directamente (hex, rgb, rgba, hsl)
-    : useToken('colors', (targetColor.startsWith('$') ? targetColor.substring(1) : targetColor) as any);
+  // Siempre llamar useToken (Rules of Hooks - debe ser incondicional)
+  const tokenColor = useToken('colors', (targetColor.startsWith('$') ? targetColor.substring(1) : targetColor) as any);
+  
+  // Decidir qué color usar después de obtener el token
+  const resolvedIconColor = isRawColor ? targetColor : tokenColor;
 
   const content = (
     <Box

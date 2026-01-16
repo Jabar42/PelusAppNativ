@@ -196,9 +196,11 @@ export async function getAvailableSlots(
         }
 
         // Verificar que los slots sean consecutivos (diferencia de 30 min exactos)
-        const currentTime = new Date(`${date}T${slot}:00.000Z`).getTime();
+        // Comparar el slot ANTERIOR con el ACTUAL (pares consecutivos)
+        const prevSlot = businessHoursUTC[nextIndex - 1];
+        const prevTime = new Date(`${date}T${prevSlot}:00.000Z`).getTime();
         const nextTime = new Date(`${date}T${nextSlot}:00.000Z`).getTime();
-        const timeDiff = nextTime - currentTime;
+        const timeDiff = nextTime - prevTime;
         
         // Si hay un gap mayor a 30 min (ej: pausa de almuerzo), no es consecutivo
         if (timeDiff > 30 * 60 * 1000) {
