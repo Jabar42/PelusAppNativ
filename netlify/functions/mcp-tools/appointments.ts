@@ -150,7 +150,7 @@ export async function getAvailableSlots(
     throw new Error(`Error consultando citas: ${error.message}`);
   }
 
-  // Construir set de slots ocupados considerando la duración
+  // Construir set de slots ocupados por citas existentes
   const occupiedSlots = new Set<string>();
   
   existingAppointments?.forEach((apt) => {
@@ -168,12 +168,49 @@ export async function getAvailableSlots(
     }
   });
 
-  // Filtrar y retornar slots disponibles en formato ISO 8601 completo
+  // Calcular cuántos slots consecutivos necesita la duración solicitada
+  const slotsNeeded = Math.ceil(duration / 30);
+
+  // Filtrar slots que tienen suficiente espacio CONTINUO para la duración
   const availableSlots = businessHoursUTC
-    .filter((slot) => !occupiedSlots.has(slot))
+    .filter((slot, index) => {
+      // Verificar que el slot actual esté libre
+      if (occupiedSlots.has(slot)) {
+        return false;
+      }
+
+      // Verificar que los siguientes (slotsNeeded - 1) slots también estén libres
+      for (let i = 1; i < slotsNeeded; i++) {
+        const nextIndex = index + i;
+        
+        // Si nos salimos del horario de negocio, el slot no es válido
+        if (nextIndex >= businessHoursUTC.length) {
+          return false;
+        }
+
+        const nextSlot = businessHoursUTC[nextIndex];
+        
+        // Verificar que el siguiente slot esté libre
+        if (occupiedSlots.has(nextSlot)) {
+          return false;
+        }
+
+        // Verificar que los slots sean consecutivos (diferencia de 30 min exactos)
+        const currentTime = new Date(`${date}T${slot}:00.000Z`).getTime();
+        const nextTime = new Date(`${date}T${nextSlot}:00.000Z`).getTime();
+        const timeDiff = nextTime - currentTime;
+        
+        // Si hay un gap mayor a 30 min (ej: pausa de almuerzo), no es consecutivo
+        if (timeDiff > 30 * 60 * 1000) {
+          return false;
+        }
+      }
+
+      return true;
+    })
     .map((slot) => `${date}T${slot}:00.000Z`);
 
-  console.log('[Tool] Available slots found:', availableSlots.length);
+  console.log('[Tool] Available slots found:', availableSlots.length, `(for ${duration} min appointments)`);
 
   return availableSlots;
 }

@@ -61,8 +61,15 @@ export default function InfoCard({
   
   // Resolver color del icono
   const targetColor = iconColor || styles.iconColor;
-  const colorToken = targetColor.startsWith('$') ? targetColor.substring(1) : targetColor;
-  const resolvedIconColor = useToken('colors', colorToken as any);
+  
+  // Determinar si es un color raw (hex, rgb, rgba, hsl) o un token de Gluestack
+  const isRawColor = targetColor.startsWith('#') || 
+                     targetColor.startsWith('rgb') || 
+                     targetColor.startsWith('hsl');
+  
+  const resolvedIconColor = isRawColor
+    ? targetColor  // Usar color raw directamente (hex, rgb, rgba, hsl)
+    : useToken('colors', (targetColor.startsWith('$') ? targetColor.substring(1) : targetColor) as any);
 
   const content = (
     <Box

@@ -91,9 +91,17 @@ export function validateToolPermissions(
         reason: 'Este tool requiere tener una sede activa seleccionada',
       };
     }
+
+    return { allowed: true };
   }
 
-  return { allowed: true };
+  // 🔒 SEGURIDAD: Denegar por defecto (fail closed)
+  // Si un tool no está en ninguna lista, debe agregarse explícitamente
+  console.error(`[Security] Tool "${toolName}" no está registrado en las listas de permisos`);
+  return {
+    allowed: false,
+    reason: `Tool "${toolName}" no está autorizado. Contacta al administrador del sistema.`,
+  };
 }
 
 /**

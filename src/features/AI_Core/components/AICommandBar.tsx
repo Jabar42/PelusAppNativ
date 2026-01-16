@@ -22,11 +22,10 @@ import {
   useToken,
 } from '@gluestack-ui/themed';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform, KeyboardAvoidingView } from 'react-native';
+import { Platform, KeyboardAvoidingView, ScrollView as RNScrollView } from 'react-native';
 import { useAIStore } from '@/core/store/aiStore';
 import { useAIChat } from '../hooks/useAIChat';
 import { useAIActions } from '../hooks/useAIActions';
-import { LoadingSkeleton } from '@/features/Shared/components/LoadingSkeleton';
 
 interface AICommandBarProps {
   isOpen: boolean;
@@ -36,7 +35,7 @@ interface AICommandBarProps {
 export function AICommandBar({ isOpen, onClose }: AICommandBarProps) {
   const { commandBarInput, setCommandBarInput } = useAIStore();
   const { messages, isLoading, error, sendMessage } = useAIChat();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<RNScrollView>(null);
 
   // Hook para ejecutar acciones pendientes
   useAIActions();
@@ -89,7 +88,7 @@ export function AICommandBar({ isOpen, onClose }: AICommandBarProps) {
 
             {/* Messages Area */}
             <ScrollView
-              ref={scrollViewRef}
+              ref={scrollViewRef as any}
               flex={1}
               showsVerticalScrollIndicator={false}
             >
