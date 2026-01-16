@@ -6,10 +6,10 @@
 import { HandlerEvent } from '@netlify/functions';
 import { withAIAuth, AIContext } from './utils/auth';
 import { executeMCPTool, logToolExecution, createMCPSupabaseClient } from './mcp-tools/supabase-mcp';
-import { getMedicalHistory, summarizeMedicalHistory } from './mcp-tools/medical-history';
-import { scheduleAppointment, getAvailableSlots } from './mcp-tools/appointments';
-import { navigateToRoute, findPetAndNavigate, navigateToMedicalHistory } from './mcp-tools/navigation';
-import { searchInventory } from './mcp-tools/inventory';
+import { getMedicalHistory, summarizeMedicalHistory, MedicalHistoryParams } from './mcp-tools/medical-history';
+import { scheduleAppointment, getAvailableSlots, ScheduleAppointmentParams, GetAvailableSlotsParams } from './mcp-tools/appointments';
+import { navigateToRoute, findPetAndNavigate, navigateToMedicalHistory, NavigateParams } from './mcp-tools/navigation';
+import { searchInventory, SearchInventoryParams } from './mcp-tools/inventory';
 import { checkRateLimit } from './utils/rate-limiting';
 
 interface ExecuteToolRequest {
@@ -64,9 +64,13 @@ async function executeToolHandler(
     // Ejecutar tool usando MCP wrapper
     switch (toolName) {
       case 'get_medical_history':
+        // Validar parámetros requeridos
+        if (!parameters.petId || typeof parameters.petId !== 'string') {
+          throw new Error('get_medical_history requires petId parameter');
+        }
         result = await executeMCPTool(
           toolName,
-          (ctx) => getMedicalHistory(parameters, ctx),
+          (ctx) => getMedicalHistory(parameters as MedicalHistoryParams, ctx),
           token,
           aiContext
         );
@@ -75,7 +79,7 @@ async function executeToolHandler(
       case 'summarize_medical_history':
         result = await executeMCPTool(
           toolName,
-          (ctx) => summarizeMedicalHistory(parameters, ctx),
+          (ctx) => summarizeMedicalHistory(parameters as { petId: string; maxRecords?: number }, ctx),
           token,
           aiContext
         );
@@ -84,7 +88,7 @@ async function executeToolHandler(
       case 'schedule_appointment':
         result = await executeMCPTool(
           toolName,
-          (ctx) => scheduleAppointment(parameters, ctx),
+          (ctx) => scheduleAppointment(parameters as ScheduleAppointmentParams, ctx),
           token,
           aiContext
         );
@@ -93,7 +97,7 @@ async function executeToolHandler(
       case 'get_available_slots':
         result = await executeMCPTool(
           toolName,
-          (ctx) => getAvailableSlots(parameters, ctx),
+          (ctx) => getAvailableSlots(parameters as GetAvailableSlotsParams, ctx),
           token,
           aiContext
         );
@@ -102,7 +106,7 @@ async function executeToolHandler(
       case 'navigate_to_route':
         result = await executeMCPTool(
           toolName,
-          (ctx) => navigateToRoute(parameters, ctx),
+          (ctx) => navigateToRoute(parameters as NavigateParams, ctx),
           token,
           aiContext
         );
@@ -111,7 +115,7 @@ async function executeToolHandler(
       case 'find_pet_and_navigate':
         result = await executeMCPTool(
           toolName,
-          (ctx) => findPetAndNavigate(parameters, ctx),
+          (ctx) => findPetAndNavigate(parameters as { petName: string }, ctx),
           token,
           aiContext
         );
@@ -120,7 +124,7 @@ async function executeToolHandler(
       case 'navigate_to_medical_history':
         result = await executeMCPTool(
           toolName,
-          (ctx) => navigateToMedicalHistory(parameters, ctx),
+          (ctx) => navigateToMedicalHistory(parameters as { petId: string }, ctx),
           token,
           aiContext
         );
@@ -129,7 +133,7 @@ async function executeToolHandler(
       case 'search_inventory':
         result = await executeMCPTool(
           toolName,
-          (ctx) => searchInventory(parameters, ctx),
+          (ctx) => searchInventory(parameters as SearchInventoryParams, ctx),
           token,
           aiContext
         );

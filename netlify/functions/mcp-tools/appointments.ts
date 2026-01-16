@@ -13,6 +13,11 @@ export interface ScheduleAppointmentParams {
   notes?: string;
 }
 
+export interface GetAvailableSlotsParams {
+  date: string; // YYYY-MM-DD
+  duration?: number; // minutos, default 30
+}
+
 export interface Appointment {
   id: string;
   pet_id: string;

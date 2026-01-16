@@ -36,6 +36,7 @@ export async function getMedicalHistory(
   context: MCPToolContext
 ): Promise<MedicalHistoryRecord[]> {
   const { petId, limit = 20, includeAttachments = false } = params;
+  // TODO: Implementar includeAttachments cuando exista la tabla medical_history_attachments
   const { supabase, aiContext } = context;
 
   console.log('[Tool] get_medical_history:', {
@@ -46,13 +47,10 @@ export async function getMedicalHistory(
   });
 
   // Query base con RLS
-  let query = supabase
+  // TODO: Cuando exista la tabla medical_history_attachments, agregar relación aquí
+  const query = supabase
     .from('medical_histories')
-    .select(
-      includeAttachments
-        ? '*, attachments:medical_history_attachments(*)'
-        : '*'
-    )
+    .select('*')
     .eq('pet_id', petId)
     .order('visit_date', { ascending: false })
     .limit(limit);
@@ -62,6 +60,10 @@ export async function getMedicalHistory(
   if (error) {
     console.error('[Tool] get_medical_history error:', error);
     throw new Error(`Failed to fetch medical history: ${error.message}`);
+  }
+
+  if (!data) {
+    return [];
   }
 
   return data as MedicalHistoryRecord[];

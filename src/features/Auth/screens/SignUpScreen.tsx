@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Platform } from 'react-native';
-import { useSignUp, useAuth, useUser, useSSO } from '@clerk/clerk-expo';
+import { useSignUp, useAuth, useSSO } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
 import { 
   Box, 
@@ -27,7 +26,6 @@ import { BRAND_NAME } from '@/core/config/brand';
 export function SignUpScreen() {
   const { signUp, setActive, isLoaded } = useSignUp();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
-  const { user } = useUser();
   const { startSSOFlow } = useSSO();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

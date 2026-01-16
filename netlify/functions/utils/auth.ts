@@ -40,16 +40,24 @@ export async function extractAIContext(event: HandlerEvent): Promise<AIContext |
     // Obtener metadata del usuario
     const user = await clerkClient.users.getUser(payload.sub);
     
-    // Encontrar la membresía de la organización activa (no siempre es la primera)
-    const currentMembership = payload.org_id
-      ? user.organizationMemberships?.find((m) => m.organization.id === payload.org_id)
-      : undefined;
+    // Obtener organización si existe org_id en el JWT
+    let activeLocationId: string | undefined;
+    if (payload.org_id) {
+      try {
+        const organization = await clerkClient.organizations.getOrganization({
+          organizationId: payload.org_id as string,
+        });
+        activeLocationId = organization.publicMetadata?.active_location_id as string | undefined;
+      } catch (error) {
+        console.warn('[AI Auth] Could not fetch organization:', error);
+        // Continuar sin activeLocationId si falla
+      }
+    }
     
     const context: AIContext = {
       userId: payload.sub,
       orgId: payload.org_id as string | undefined,
-      // active_location_id está en organization.publicMetadata, no en membership.publicMetadata
-      activeLocationId: currentMembership?.organization.publicMetadata?.active_location_id as string | undefined,
+      activeLocationId,
       userType: (user.publicMetadata?.user_type as 'pet_owner' | 'professional') || 'pet_owner',
       role: payload.org_role as string | undefined,
     };
@@ -74,7 +82,7 @@ export function withAIAuth(handler: (event: HandlerEvent, context: AIContext) =>
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Headers': 'Content-Type, Authorization',
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        },
+        } as Record<string, string>,
         body: '',
       };
     }
@@ -83,6 +91,9 @@ export function withAIAuth(handler: (event: HandlerEvent, context: AIContext) =>
     if (event.httpMethod !== 'POST') {
       return {
         statusCode: 405,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ error: 'Method not allowed' }),
       };
     }
