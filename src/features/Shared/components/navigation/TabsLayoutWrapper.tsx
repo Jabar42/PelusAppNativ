@@ -6,6 +6,9 @@ import ResponsiveNavigation from './ResponsiveNavigation';
 import UserAvatarHeader from './UserAvatarHeader';
 import { useOrganization, useAuth } from '@clerk/clerk-expo';
 import LoadingScreen from '@/shared/components/LoadingScreen';
+import { AIFloatingButton } from '@/features/AI_Core/components/AIFloatingButton';
+import { AICommandBar } from '@/features/AI_Core/components/AICommandBar';
+import { useAIStore } from '@/core/store/aiStore';
 
 export default function TabsLayoutWrapper() {
   const { width } = useWindowDimensions();
@@ -16,6 +19,7 @@ export default function TabsLayoutWrapper() {
   const { organization } = useOrganization();
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
   const router = useRouter();
+  const { isCommandBarOpen, openCommandBar, closeCommandBar } = useAIStore();
 
   // Protección de sesión: si el usuario no está logueado y Clerk ya cargó,
   // evitamos renderizar las pestañas para prevenir parpadeos durante el logout.
@@ -127,6 +131,10 @@ export default function TabsLayoutWrapper() {
           />
         </Tabs>
       </Box>
+      
+      {/* AI Floating Button y Command Bar */}
+      <AIFloatingButton onPress={openCommandBar} />
+      <AICommandBar isOpen={isCommandBarOpen} onClose={closeCommandBar} />
     </Box>
   );
 }

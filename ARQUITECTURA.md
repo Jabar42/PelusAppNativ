@@ -11,7 +11,7 @@ PelusApp ha evolucionado de un modelo de "Roles Fijos" a un ecosistema de **Iden
 ```
 src/
 ├── core/                   # 💎 Infraestructura Inmutable
-│   ├── store/             # Zustand (Solo flags globales de UI)
+│   ├── store/             # Zustand (aiStore, authStore, etc.)
 │   ├── services/          # Clientes API con Auth (JWT)
 │   └── types/             # Tipos base (User, Organization, UserType)
 │
@@ -25,6 +25,13 @@ src/
 │   ├── Business_Center/   # 💼 Orquestador Profesional (B2B)
 │   │   ├── BusinessCenterOrchestrator.tsx # Carga de módulos por org.publicMetadata.type
 │   │   └── screens/       # RegisterBusinessScreen (Registro B2B)
+│   │
+│   ├── AI_Core/           # 🤖 Capacidades de IA (AI-First)
+│   │   ├── agents/        # Configuraciones de agentes Mastra
+│   │   ├── tools/         # Definiciones de tools MCP
+│   │   ├── hooks/         # useAIChat, useAIActions
+│   │   ├── components/    # AICommandBar, AIFloatingButton
+│   │   └── services/      # aiClient (bridge a Netlify Functions)
 │   │
 │   └── Shared/            # UI Components & Navigation (Independiente de Features)
 ```
@@ -120,5 +127,32 @@ Las tablas de negocio (ej: `medical_histories`, `appointments`) deben incluir `l
 - **Admins**: Ven todas las sedes de su organización
 
 ---
-**Última actualización**: Enero 2025
-**Versión de Arquitectura**: 2.4 (Sistema de Sedes Multisede)
+
+## 🤖 Capacidades de IA (AI-First)
+
+PelusApp integra agentes de IA usando **Mastra** y **MCP (Model Context Protocol)** manteniendo la seguridad Zero-Trust.
+
+### Componentes Principales
+
+- **AI Command Bar**: Interfaz de chat con el agente, siempre accesible mediante botón flotante
+- **MCP Tools**: Herramientas seguras que acceden a datos respetando RLS de Supabase
+- **AI Actions**: Sistema de acciones diferidas (navegación, notificaciones, actualizaciones)
+- **Rate Limiting**: Control de uso por tipo de usuario (5 req/hora B2C, 100 req/día B2B)
+
+### Agentes Disponibles
+
+1. **Agente Veterinario**: Consulta historias clínicas, agenda citas, busca en inventario
+2. **Navegación Asistida**: Comandos naturales para moverse por la app ("Llévame a las vacunas de Firulais")
+
+### Seguridad Zero-Trust en IA
+
+- JWT de Clerk pasa desde frontend hasta MCP Server
+- RLS de Supabase activo en todas las queries
+- Validación de permisos antes de ejecutar cada tool
+- Audit logging de todas las ejecuciones
+
+**Documentación detallada**: Ver [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md)
+
+---
+**Última actualización**: Enero 2026
+**Versión de Arquitectura**: 3.0 (AI-First con Mastra y MCP)

@@ -34,6 +34,25 @@ Como IA de Cursor, debes adherirte estrictamente a estas reglas para mantener la
   2. ¿Requiere cambios en la lógica de permisos? (Consulta `BACKEND_SECURITY.md`).
   3. ¿Cómo afecta a la navegación sensible al contexto?
 
+## 7. AI-First Development
+- **MCP Tools Obligatorios**: Cada nueva tabla o feature con datos debe tener tools MCP correspondientes definidos en `netlify/functions/mcp-tools/`.
+- **Context Awareness**: Los tools deben documentar explícitamente qué claims del JWT requieren (`user_id`, `org_id`, `active_location_id`).
+- **Validación de Permisos**: Usa `validateToolPermissions` del MCP wrapper antes de ejecutar cualquier tool que acceda a datos sensibles.
+- **Testing de RLS**: Cada tool debe tener tests que validen que no se filtra información entre organizaciones o usuarios.
+- **Rate Limiting**: Respeta los límites configurados en `utils/rate-limiting.ts`. Tools de navegación están exentos.
+
+## 8. AI Actions y Componentes
+- **Registro de Actions**: Los componentes que pueden ser targets de AI Actions deben registrarse o documentarse en su código.
+- **Documentación de Comandos**: Cada screen/feature debe documentar qué comandos de lenguaje natural pueden invocarla (ej: "Llévame a las vacunas de Firulais").
+- **Actions Descriptivas**: Al retornar actions desde tools, usa estructuras claras: `{ type: 'navigate', screen: '/pet-detail', params: { petId } }`.
+- **Manejo de Errores**: Las actions deben manejar errores gracefully (ej: mostrar alert si la navegación falla).
+
+## 9. Seguridad Zero-Trust en IA
+- **JWT Pass-Through**: El JWT de Clerk DEBE pasar desde el frontend hasta el MCP Server para que el RLS de Supabase funcione.
+- **No Bypass de RLS**: NUNCA uses el Service Role Key de Supabase en tools MCP que devuelvan datos al usuario.
+- **Validación de Contexto**: Antes de ejecutar un tool, verifica que el usuario tenga el contexto necesario (org activa, sede activa).
+- **Audit Logging**: Usa `logToolExecution` para registrar todas las ejecuciones de tools con contexto completo.
+
 
 
 

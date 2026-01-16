@@ -253,6 +253,162 @@ Migrar completamente de `auth.uid()` a `auth.jwt() ->> 'user_id'` en todas las p
 
 ---
 
+## ADR 010: Arquitectura AI-First con Mastra y MCP
+**Estado: Aceptado (Fase 1 Implementada)**
+**Fecha: Enero 2026**
+
+### Contexto
+Para competir como plataforma SaaS moderna, PelusApp necesita capacidades de IA que permitan a los usuarios interactuar con la aplicación mediante lenguaje natural, automatizar tareas repetitivas y obtener insights de sus datos. La arquitectura debe mantener la seguridad Zero-Trust multi-tenant existente y respetar todas las políticas RLS.
+
+### Decisión
+Implementar una **Arquitectura AI-First** usando:
+- **Mastra** como orquestador de agentes con soporte multi-proveedor LLM (OpenAI, Anthropic, local)
+- **MCP (Model Context Protocol)** como puente de datos entre los agentes y Supabase
+- **MCP Custom Wrapper** que inyecta el JWT de Clerk en cada query para activar RLS
+- **Netlify Functions** como backend para la IA, reutilizando la infraestructura existente
+
+**Componentes principales:**
+1. **Frontend** (`src/features/AI_Core/`):
+   - AICommandBar: Interfaz de chat con ActionSheet móvil
+   - AIFloatingButton: Botón flotante animado siempre visible
+   - useAIChat/useAIActions: Hooks para comunicación y ejecución de acciones
+   - aiStore (Zustand): Estado global de conversaciones y acciones pendientes
+
+2. **Backend** (`netlify/functions/`):
+   - `ai-chat.ts`: Endpoint principal de conversación
+   - `ai-execute-tool.ts`: Ejecución directa de tools MCP
+   - `utils/auth.ts`: Validación JWT + extracción de contexto (user_id, org_id, location_id)
+   - `utils/rate-limiting.ts`: Control de uso por tipo de usuario
+   - `mcp-tools/`: Tools seguros con RLS activo
+
+3. **Capacidades Implementadas** (Fase 1):
+   - **Agente Veterinario**: Consulta historias clínicas, agenda citas
+   - **Navegación Asistida**: Comandos naturales ("Llévame a las vacunas de Firulais")
+   - **Sistema de AI Actions**: Acciones diferidas que el frontend ejecuta
+   - **Rate Limiting**: 5 req/hora B2C, 100 req/día B2B (navegación exenta)
+
+**Alternativas consideradas:**
+- LangChain + function calling directo: ❌ Menos estructura, más complejo gestionar tools
+- Claude MCP oficial + Supabase MCP oficial: ❌ No soporta inyección de contexto JWT
+- Backend separado (Express/Fastify): ❌ Infraestructura adicional innecesaria
+
+### Consecuencias
+- **Positivas**:
+  - Transforma PelusApp en plataforma "AI-First" competitiva
+  - Mejora UX dramáticamente (comandos naturales vs navegación manual)
+  - Reutiliza infraestructura existente (Netlify Functions, Clerk JWT, Supabase RLS)
+  - Seguridad Zero-Trust mantenida: JWT pass-through hasta RLS
+  - Arquitectura flexible: fácil cambiar entre proveedores LLM
+  - Rate limiting previene abuso y controla costos
+  - AI Actions permite automatización compleja (navegación, notificaciones, actualizaciones de estado)
+
+- **Negativas**:
+  - Complejidad adicional en el stack (Mastra, MCP, gestión de prompts)
+  - Costo variable según uso (llamadas a LLM)
+  - Requiere monitoreo de rate limits y costos
+  - Prompts requieren mantenimiento y optimización continua
+  - Latencia adicional por llamadas a LLM (mitigable con streaming en Fase 2)
+
+- **Consideraciones de Seguridad**:
+  - ✅ JWT validado en cada request (withAIAuth middleware)
+  - ✅ Contexto extraído y validado (user_id, org_id, active_location_id)
+  - ✅ MCP wrapper valida permisos antes de ejecutar tools (validateToolPermissions)
+  - ✅ RLS activo en todas las queries mediante JWT pass-through
+  - ✅ Rate limiting previene abuso por usuario/organización
+  - ✅ Audit logging de todas las ejecuciones de tools (logToolExecution)
+  - ⚠️ Service Role Key NUNCA usado en tools MCP (solo para admin tasks)
+  - ⚠️ Navegación gratuita e ilimitada (sin rate limit) para mejor UX
+
+### Reglas para Desarrolladores
+
+**Al crear nuevas tablas o features:**
+1. **SIEMPRE** crear tools MCP correspondientes en `netlify/functions/mcp-tools/`
+2. **DOCUMENTAR** qué claims del JWT requiere cada tool (`user_id`, `org_id`, `active_location_id`)
+3. **VALIDAR** permisos usando `validateToolPermissions` antes de acceso a datos
+4. **PROBAR** que RLS filtra correctamente entre organizaciones y usuarios
+5. **CONSIDERAR** si el tool debe tener rate limiting o ser gratuito
+
+**Patrón estándar de MCP Tool:**
+```typescript
+// netlify/functions/mcp-tools/my-feature.ts
+export async function myFeatureTool(
+  params: MyParams,
+  context: MCPToolContext
+): Promise<MyResult> {
+  const { supabase, aiContext } = context;
+  
+  // Query con RLS automático via JWT
+  const { data, error } = await supabase
+    .from('my_table')
+    .select('*')
+    .eq('some_filter', params.value);
+  
+  if (error) throw new Error(`Failed: ${error.message}`);
+  return data;
+}
+
+// Registrar en ai-execute-tool.ts
+case 'my_feature_tool':
+  result = await executeMCPTool(
+    toolName,
+    (ctx) => myFeatureTool(parameters, ctx),
+    token,
+    aiContext
+  );
+  break;
+```
+
+**Al documentar screens/features:**
+- Incluir comentario de comandos IA que la invocan:
+  ```typescript
+  /**
+   * PetDetailScreen
+   * 
+   * AI Commands:
+   * - "Muéstrame a Firulais"
+   * - "Ver detalles de [nombre mascota]"
+   */
+  ```
+
+### Métricas de Éxito (a monitorear)
+- Tasa de adopción del AI Command Bar (% usuarios que lo usan)
+- Comandos de navegación más populares
+- Tiempo promedio de respuesta de tools MCP
+- Costo por usuario/mes en llamadas LLM
+- Tasa de error de tools vs tasa de éxito
+- Rate limit hits por tipo de usuario
+
+### Roadmap de Fases
+
+**✅ Fase 1 (Completada - Enero 2026):**
+- Estructura AI_Core + MCP wrapper
+- Netlify Functions con autenticación
+- 7 tools MCP implementados
+- AI Command Bar UI
+- Rate limiting básico
+- Documentación completa
+
+**🔄 Fase 2 (Próxima):**
+- Integración completa con Mastra
+- LLM provider configurado (OpenAI/Anthropic)
+- Prompts optimizados
+- Streaming de respuestas
+- Historial persistente en UI
+
+**📅 Fase 3:**
+- Caching con Upstash/Redis
+- Multi-provider con fallback automático
+- Comandos de voz (expo-speech)
+- Analytics de uso
+
+**📅 Fase 4:**
+- Más tools MCP (inventario, facturas, reportes)
+- Agentes especializados por tipo de negocio
+- Integración con calendarios externos
+- Notificaciones inteligentes
+
+---
+
 
 
 

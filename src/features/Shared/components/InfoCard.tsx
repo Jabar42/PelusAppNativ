@@ -58,7 +58,11 @@ export default function InfoCard({
 }: InfoCardProps) {
   const styles = variantStyles[variant];
   const iconSize = useToken('space', '5');
-  const resolvedIconColor = useToken('colors', (iconColor || styles.iconColor) as any);
+  
+  // Resolver color del icono
+  const targetColor = iconColor || styles.iconColor;
+  const colorToken = targetColor.startsWith('$') ? targetColor.substring(1) : targetColor;
+  const resolvedIconColor = useToken('colors', colorToken as any);
 
   const content = (
     <Box

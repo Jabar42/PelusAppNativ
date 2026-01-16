@@ -40,6 +40,24 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 # Se usa para operaciones administrativas donde ya validamos permisos
 # NUNCA exponer en el frontend
 # SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# ============================================
+# IA - Capacidades AI-First (OPCIONAL)
+# ============================================
+# Proveedor de LLM principal (openai, anthropic, o local)
+AI_PROVIDER=openai
+
+# API Keys - Solo necesitas configurar el proveedor que uses
+# OpenAI (GPT-4, GPT-4-turbo)
+OPENAI_API_KEY=sk-...
+
+# Anthropic (Claude 3.5 Sonnet)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Rate Limiting con Upstash Redis (OPCIONAL - Fase 4)
+# Por ahora el rate limiting es en memoria
+# UPSTASH_REDIS_REST_URL=https://...
+# UPSTASH_REDIS_REST_TOKEN=...
 ```
 
 ## Cómo Obtener las Credenciales
@@ -69,9 +87,41 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    - **Project URL** → `EXPO_PUBLIC_SUPABASE_URL`
    - **anon/public key** → `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 
+### Capacidades de IA (Opcional)
+
+Las capacidades de IA son **completamente opcionales**. La app funciona sin ellas, pero no tendrás acceso al AI Command Bar ni a los agentes.
+
+Para habilitar IA:
+
+1. **Elige un proveedor LLM**:
+   - OpenAI (GPT-4): Mejor para tareas complejas, costo medio-alto
+   - Anthropic (Claude): Excelente para contextos largos, costo medio
+
+2. **Obtén tu API Key**:
+   - **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+   - **Anthropic**: [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+
+3. **Configura las variables**:
+   ```env
+   AI_PROVIDER=openai
+   OPENAI_API_KEY=sk-proj-...
+   ```
+
+4. **Instala dependencias de Mastra**:
+   ```bash
+   npm install @mastra/core @mastra/anthropic @mastra/openai
+   ```
+
+**Rate Limiting**: Por defecto usa memoria (desarrollo). Para producción, considera Upstash Redis.
+
+**Costo Estimado**:
+- B2C (5 consultas/hora): ~$0.50-1.00/usuario/mes
+- B2B (100 consultas/día): ~$10-20/organización/mes
+
 ## Notas Importantes
 
 - El archivo `.env` está en `.gitignore` y NO se subirá al repositorio
 - Para Supabase local, las credenciales pueden cambiar si haces `supabase reset`
-- Nunca compartas tu `.env` con credenciales reales
+- Nunca compartas tu `.env` con credenciales reales (especialmente API keys de LLM)
 - En producción, usa variables de entorno del hosting (Netlify, Vercel, etc.)
+- Las API keys de LLM tienen costo por uso - monitorea tu consumo regularmente

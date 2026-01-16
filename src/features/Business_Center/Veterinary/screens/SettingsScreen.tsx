@@ -116,7 +116,7 @@ export function SettingsScreen() {
   const currentMembership = userMemberships?.data?.find(
     (membership) => membership.organization.id === organization?.id
   );
-  const canManageLocations = ['admin', 'owner', 'org:admin', 'org:owner'].includes(
+  const canManageLocations = ['org:admin', 'org:creator'].includes(
     currentMembership?.role ?? ''
   );
 
