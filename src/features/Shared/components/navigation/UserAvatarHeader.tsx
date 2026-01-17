@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { useUser, useAuth, useOrganization } from '@clerk/clerk-expo';
 import { 
@@ -35,6 +35,10 @@ export default function UserAvatarHeader() {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
 
+  // Memoizar valores derivados para evitar recreaciones innecesarias
+  const userImageUrl = useMemo(() => user?.imageUrl, [user?.imageUrl]);
+  const userFullName = useMemo(() => user?.fullName || user?.primaryEmailAddress?.emailAddress, [user?.fullName, user?.primaryEmailAddress?.emailAddress]);
+
   const handleSignOut = async () => {
     try {
       setShowMenu(false);
@@ -56,8 +60,8 @@ export default function UserAvatarHeader() {
     <Box paddingRight="$4">
       <Pressable onPress={() => setShowMenu(true)}>
         <Avatar size="sm" bg="$primary500">
-          <AvatarFallbackText>{user?.fullName || user?.primaryEmailAddress?.emailAddress}</AvatarFallbackText>
-          {user?.imageUrl && <AvatarImage source={{ uri: user.imageUrl }} alt="Profile" />}
+          <AvatarFallbackText>{userFullName}</AvatarFallbackText>
+          {userImageUrl && <AvatarImage source={{ uri: userImageUrl }} alt="Profile" />}
         </Avatar>
       </Pressable>
 
@@ -72,8 +76,8 @@ export default function UserAvatarHeader() {
             {/* Info de Usuario */}
             <HStack gap="$3" alignItems="center">
               <Avatar size="md" bg="$primary500">
-                <AvatarFallbackText>{user?.fullName || user?.primaryEmailAddress?.emailAddress}</AvatarFallbackText>
-                {user?.imageUrl && <AvatarImage source={{ uri: user.imageUrl }} alt="Profile" />}
+                <AvatarFallbackText>{userFullName}</AvatarFallbackText>
+                {userImageUrl && <AvatarImage source={{ uri: userImageUrl }} alt="Profile" />}
               </Avatar>
               <VStack>
                 <Text fontWeight="$bold" size="md" color="$text900">

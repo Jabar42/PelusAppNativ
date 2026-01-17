@@ -30,12 +30,17 @@ export default function TabsLayoutWrapper() {
   // Función para capturar las props del tabBar sin causar loops
   const handleTabBar = useCallback((props: any) => {
     if (isLargeScreen) {
-      // Guardar las props en el ref
-      navPropsRef.current = props;
+      // Comparar solo las propiedades esenciales para evitar updates innecesarios
+      const currentStateIndex = navPropsRef.current?.state?.index;
+      const newStateIndex = props?.state?.index;
+      const propsChanged = currentStateIndex !== newStateIndex || 
+                          navPropsRef.current?.state?.routes?.length !== props?.state?.routes?.length;
       
-      // Programar actualización solo si no hay una ya programada
-      if (!updateScheduledRef.current) {
+      // Solo actualizar si realmente cambió algo importante
+      if (propsChanged && !updateScheduledRef.current) {
+        navPropsRef.current = props;
         updateScheduledRef.current = true;
+        
         // Usar requestAnimationFrame para actualizar después del render
         if (typeof requestAnimationFrame !== 'undefined') {
           requestAnimationFrame(() => {
@@ -49,7 +54,11 @@ export default function TabsLayoutWrapper() {
             updateScheduledRef.current = false;
           }, 0);
         }
+      } else {
+        // Actualizar el ref sin causar re-render
+        navPropsRef.current = props;
       }
+      
       // Retornar Box vacío en lugar de null para evitar errores de DOM
       return <Box style={{ display: 'none' }} />;
     }

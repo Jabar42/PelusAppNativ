@@ -6,6 +6,7 @@ Como IA de Cursor, debes adherirte estrictamente a estas reglas para mantener la
 - **Cita las Fuentes**: Antes de proponer cambios estructurales, consulta `ARQUITECTURA.md` y los documentos en `docs/`.
 - **Registro de Decisiones**: Si sugieres un cambio en la lógica central (Auth, Roles, Metadatos), debes pedir permiso para registrarlo en `docs/DECISION_LOG.md`.
 - **Sincronización**: Al terminar una tarea, verifica si los diagramas Mermaid en la documentación necesitan actualización.
+- **Cumplimiento Arquitectónico**: Consulta `.cursor/rules/architecture-compliance.md` antes de implementar cualquier funcionalidad. Esta regla previene código ad-hoc que comprometa la escalabilidad.
 
 ## 2. Reglas de Identidad y Seguridad (Clerk)
 - **Backend-Only Metadata**: NUNCA intentes escribir en `publicMetadata` desde el frontend. Usa `apiClient.post` hacia las Netlify Functions correspondientes.
@@ -34,12 +35,16 @@ Como IA de Cursor, debes adherirte estrictamente a estas reglas para mantener la
   2. ¿Requiere cambios en la lógica de permisos? (Consulta `BACKEND_SECURITY.md`).
   3. ¿Cómo afecta a la navegación sensible al contexto?
 
-## 7. AI-First Development
+## 7. AI-First Development (Mastra Obligatorio)
+- **🚫 PROHIBIDO Código Ad-Hoc**: NUNCA crear llamadas directas a APIs de LLM (OpenAI, Anthropic, etc.). SIEMPRE usar Mastra como orquestador.
+- **Mastra Obligatorio**: Todos los agentes de IA DEBEN usar `Agent` de `@mastra/core/agent` e inicializarse con `initializeVeterinaryAgent()` de `utils/mastra-setup.ts`.
+- **Tools con createTool**: Todos los tools MCP DEBEN crearse con `createTool` de `@mastra/core/tools`, nunca manualmente.
 - **MCP Tools Obligatorios**: Cada nueva tabla o feature con datos debe tener tools MCP correspondientes definidos en `netlify/functions/mcp-tools/`.
 - **Context Awareness**: Los tools deben documentar explícitamente qué claims del JWT requieren (`user_id`, `org_id`, `active_location_id`).
 - **Validación de Permisos**: Usa `validateToolPermissions` del MCP wrapper antes de ejecutar cualquier tool que acceda a datos sensibles.
 - **Testing de RLS**: Cada tool debe tener tests que validen que no se filtra información entre organizaciones o usuarios.
 - **Rate Limiting**: Respeta los límites configurados en `utils/rate-limiting.ts`. Tools de navegación están exentos.
+- **Consulta Obligatoria**: Antes de implementar cualquier funcionalidad de IA, consulta `docs/AI_ARCHITECTURE.md` y `.cursor/rules/architecture-compliance.md`.
 
 ## 8. AI Actions y Componentes
 - **Registro de Actions**: Los componentes que pueden ser targets de AI Actions deben registrarse o documentarse en su código.

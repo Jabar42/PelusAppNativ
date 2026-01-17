@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useOrganization, useOrganizationList, useAuth } from '@clerk/clerk-expo';
 import { useSupabaseClient } from '@/core/hooks/useSupabaseClient';
@@ -117,9 +117,13 @@ export default function WorkspaceManager() {
   const handleClose = () => setShowActionsheet(false);
   const handleCloseLocationSheet = () => setShowLocationSheet(false);
 
-  // Cargar sedes del usuario en la organización activa
-  const loadUserLocations = async () => {
-    if (!activeOrg?.id || !userId) {
+  // Extraer valores primitivos para evitar recreaciones innecesarias
+  const orgId = activeOrg?.id;
+  const activeLocationIdFromMetadata = activeOrg?.publicMetadata?.active_location_id as string | undefined;
+
+  // Cargar sedes del usuario en la organización activa (memoizada)
+  const loadUserLocations = useCallback(async () => {
+    if (!orgId || !userId) {
       setLocations([]);
       setActiveLocationId(null);
       return;
@@ -129,7 +133,7 @@ export default function WorkspaceManager() {
     try {
       const { data, error } = await supabase.rpc('get_user_locations_in_org', {
         p_user_id: userId,
-        p_org_id: activeOrg.id,
+        p_org_id: orgId,
       });
 
       if (error) throw error;
@@ -137,24 +141,23 @@ export default function WorkspaceManager() {
       setLocations(data || []);
       
       // Obtener active_location_id de los metadatos de la organización
-      const currentActiveLocationId = activeOrg.publicMetadata?.active_location_id as string | undefined;
-      setActiveLocationId(currentActiveLocationId || null);
+      setActiveLocationId(activeLocationIdFromMetadata || null);
     } catch (error) {
       console.error('Error loading locations:', error);
       setLocations([]);
     } finally {
       setIsLoadingLocations(false);
     }
-  };
+  }, [orgId, userId, activeLocationIdFromMetadata, supabase]);
 
   useEffect(() => {
-    if (isFullyLoaded && activeOrg) {
+    if (isFullyLoaded && orgId) {
       loadUserLocations();
     } else {
       setLocations([]);
       setActiveLocationId(null);
     }
-  }, [isFullyLoaded, activeOrg?.id, userId]);
+  }, [isFullyLoaded, orgId, userId, loadUserLocations]);
 
   const handleSwitchOrg = async (orgId: string | null) => {
     if (setActive) {

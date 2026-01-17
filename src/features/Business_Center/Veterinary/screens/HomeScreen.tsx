@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   VStack,
@@ -38,14 +38,13 @@ export function HomeScreen() {
   const [activeLocation, setActiveLocation] = useState<Location | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
 
-  useEffect(() => {
-    if (orgLoaded && organization?.id) {
-      loadActiveLocation();
-    }
-  }, [orgLoaded, organization?.id]);
+  // Extraer valores primitivos para evitar recreaciones innecesarias
+  const orgId = organization?.id;
+  const activeLocationId = organization?.publicMetadata?.active_location_id as string | undefined;
 
-  const loadActiveLocation = async () => {
-    if (!organization?.id) {
+  // Memoizar la función para evitar recrearla en cada render
+  const loadActiveLocation = useCallback(async () => {
+    if (!orgId) {
       setIsLoadingLocation(false);
       return;
     }
@@ -53,14 +52,12 @@ export function HomeScreen() {
     setIsLoadingLocation(true);
 
     try {
-      const activeLocationId = organization.publicMetadata?.active_location_id as string | undefined;
-
       if (activeLocationId) {
         const { data, error } = await supabase
           .from('locations')
           .select('id, name, is_main')
           .eq('id', activeLocationId)
-          .eq('org_id', organization.id)
+          .eq('org_id', orgId)
           .single();
 
         if (!error && data) {
@@ -71,7 +68,7 @@ export function HomeScreen() {
         const { data, error } = await supabase
           .from('locations')
           .select('id, name, is_main')
-          .eq('org_id', organization.id)
+          .eq('org_id', orgId)
           .eq('is_main', true)
           .single();
 
@@ -84,7 +81,13 @@ export function HomeScreen() {
     } finally {
       setIsLoadingLocation(false);
     }
-  };
+  }, [orgId, activeLocationId, supabase]);
+
+  useEffect(() => {
+    if (orgLoaded && orgId) {
+      loadActiveLocation();
+    }
+  }, [orgLoaded, orgId, loadActiveLocation]);
 
   if (!orgLoaded) {
     return (

@@ -1,15 +1,13 @@
 /**
  * AI Chat Function
  * Endpoint principal para conversaciones con agentes de IA
+ * Usa Mastra como orquestador según arquitectura documentada
  */
-
 import { HandlerEvent } from '@netlify/functions';
 import { withAIAuth, AIContext } from './utils/auth';
 import { withCors } from './utils/cors';
 import { checkRateLimit } from './utils/rate-limiting';
-
-// TODO: Importar Mastra cuando se instale
-// import { Mastra, Agent } from '@mastra/core';
+import { initializeVeterinaryAgent } from './utils/mastra-setup';
 
 interface ChatRequest {
   messages: Array<{
@@ -69,50 +67,62 @@ async function handleAIChat(event: HandlerEvent, aiContext: AIContext): Promise<
     locationId: aiContext.activeLocationId,
   });
 
-  // TODO: Fase 1 - Implementar integración con Mastra
-  // Por ahora, respuesta mock para testing
-  const userMessage = messages[messages.length - 1];
-  
-  // Detectar intención simple (mock)
-  const content = userMessage.content.toLowerCase();
-  let responseText = '';
-  let actions = [];
-
-  if (content.includes('navegar') || content.includes('ir a') || content.includes('llévame')) {
-    responseText = 'Entendido, te llevaré a la sección que solicitaste.';
-    actions.push({
-      type: 'navigate',
-      payload: {
-        screen: '/(tabs)/',
-        params: {},
-      },
-    });
-  } else if (content.includes('historia') || content.includes('historial')) {
-    responseText = 'Para consultar el historial médico, necesito saber de qué mascota. ¿Podrías darme el nombre o ID?';
-  } else if (content.includes('cita') || content.includes('agendar')) {
-    responseText = 'Para agendar una cita, necesitaré algunos datos: ¿Para qué mascota? ¿Qué día y hora te vendría bien?';
-  } else {
-    responseText = 'Hola, soy tu asistente de PelusApp. Puedo ayudarte a navegar por la app, consultar historias clínicas, agendar citas y más. ¿En qué puedo ayudarte?';
+  // Obtener token del header para pasarlo a los tools
+  const token = event.headers.authorization?.replace('Bearer ', '') || '';
+  if (!token) {
+    throw new Error('Token de autenticación requerido');
   }
 
-  // TODO: Fase 1 - Aquí iría la lógica real de Mastra:
-  /*
-  const agent = await initializeAgent(aiContext);
-  const response = await agent.chat({
-    messages,
-    context: aiContext,
-  });
-  
-  return {
-    message: {
-      role: 'assistant',
-      content: response.content,
-      timestamp: Date.now(),
-    },
-    actions: response.actions,
-    toolCalls: response.toolCalls,
-  };
-  */
+  // Inicializar agente de Mastra con tools MCP
+  const agent = initializeVeterinaryAgent(token, aiContext);
+
+  // Preparar mensajes para Mastra (convertir formato)
+  const mastraMessages = messages.map(msg => ({
+    role: msg.role === 'user' ? 'user' : msg.role === 'assistant' ? 'assistant' : 'system',
+    content: msg.content,
+  }));
+
+  // Ejecutar agente con Mastra
+  let responseText = '';
+  const actions: any[] = [];
+  const toolCalls: any[] = [];
+
+  try {
+    console.log('[AI Chat] Executing agent with Mastra...');
+    
+    // Obtener el último mensaje del usuario
+    const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
+    
+    // Los modelos de @ai-sdk/openai y @ai-sdk/anthropic son v2/v3
+    // generate() funciona con modelos v2/v3/v5
+    // generateLegacy() solo funciona con modelos v1
+    const result = await agent.generate(lastUserMessage, {
+      maxSteps: 10,
+    });
+
+    // Extraer texto de la respuesta
+    responseText = result.text || 'No se pudo generar una respuesta.';
+
+    // Extraer tool calls del resultado si están disponibles
+    // result.toolCalls es un array de ToolCallChunk con estructura:
+    // { type: 'tool-call', payload: { toolCallId, toolName, args, output } }
+    if (result.toolCalls && result.toolCalls.length > 0) {
+      for (const toolCallChunk of result.toolCalls) {
+        const payload = toolCallChunk.payload;
+        toolCalls.push({
+          toolName: payload.toolName,
+          parameters: payload.args,
+          result: payload.output,
+        });
+      }
+    }
+
+    // TODO: Extraer actions del resultado si están disponibles
+    // Las actions podrían estar en result.steps o en los toolResults
+  } catch (error: any) {
+    console.error('[AI Chat] Error executing agent:', error);
+    throw new Error(`Error al ejecutar agente: ${error.message}`);
+  }
 
   return {
     message: {
@@ -121,6 +131,7 @@ async function handleAIChat(event: HandlerEvent, aiContext: AIContext): Promise<
       timestamp: Date.now(),
     },
     actions: actions.length > 0 ? actions : undefined,
+    toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
   };
 }
 

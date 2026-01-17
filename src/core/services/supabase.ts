@@ -42,8 +42,16 @@ export const createSupabaseClient = (getToken: (options: { template: string }) =
           // 1. Obtener token fresco del template 'supabase' de Clerk
           const token = await getToken({ template: 'supabase' });
           
-          // 2. Inyectar en los headers
+          // 2. Preparar headers preservando los existentes
           const headers = new Headers(options.headers);
+          
+          // Headers requeridos por PostgREST para evitar error 406 (Not Acceptable)
+          // Estos headers son necesarios para que PostgREST procese correctamente las queries
+          headers.set('Accept', 'application/json');
+          headers.set('Content-Type', 'application/json');
+          headers.set('Prefer', 'return=representation');
+          
+          // Inyectar token de Clerk para RLS
           if (token) {
             headers.set('Authorization', `Bearer ${token}`);
           } else {
@@ -56,13 +64,26 @@ export const createSupabaseClient = (getToken: (options: { template: string }) =
             headers,
           });
 
-          // 4. Si hay error de RLS, verificar si es por falta de claims
+          // 4. Manejo de errores con diagnóstico mejorado
           // IMPORTANTE: Clonar la respuesta antes de leer el body para no consumir el stream
           if (!response.ok) {
             // Clonar la respuesta para poder leer el body sin consumir el stream original
             const clonedResponse = response.clone();
             try {
               const errorText = await clonedResponse.text();
+              
+              // Error 406: Not Acceptable - generalmente por headers faltantes
+              if (response.status === 406) {
+                console.error(
+                  '[Supabase 406 Error] PostgREST rechazó la petición.\n' +
+                  'Esto generalmente indica que faltan headers requeridos.\n' +
+                  'URL:', url.toString(), '\n' +
+                  'Headers enviados:', Object.fromEntries(headers.entries()), '\n' +
+                  'Error:', errorText
+                );
+              }
+              
+              // Error de RLS
               if (errorText.includes('row-level security policy')) {
                 console.error(
                   '[Supabase RLS Error] El JWT puede no tener los claims necesarios.\n' +
