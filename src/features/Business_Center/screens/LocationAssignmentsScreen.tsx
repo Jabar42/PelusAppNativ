@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useOrganization, useAuth, useOrganizationList } from '@clerk/clerk-expo';
 import {
   Box,
@@ -57,9 +57,13 @@ interface LocationsResponse {
   locations: Location[];
 }
 
+interface OrgMembersResponse {
+  members: OrgMember[];
+}
+
 export function LocationAssignmentsScreen() {
   const { organization, isLoaded: orgLoaded } = useOrganization();
-  const { userMemberships } = useOrganizationList();
+  const { userMemberships } = useOrganizationList({ userMemberships: true });
   const { getToken } = useAuth();
   const supabase = useSupabaseClient();
   const text400 = useToken('colors', 'textLight400');
@@ -77,20 +81,38 @@ export function LocationAssignmentsScreen() {
   const [selectedLocationId, setSelectedLocationId] = useState('');
   const [selectedRole, setSelectedRole] = useState('staff');
 
-  // Cargar datos
-  const loadData = async () => {
-    if (!organization?.id) return;
+  // Obtener rol del usuario actual para validar permisos
+  const currentMembership = useMemo(() => {
+    return userMemberships?.data?.find(
+      (m) => m.organization.id === organization?.id
+    );
+  }, [userMemberships?.data, organization?.id]);
+
+  const canManageAssignments = useMemo(() => {
+    return ['org:admin', 'org:creator'].includes(currentMembership?.role ?? '');
+  }, [currentMembership?.role]);
+
+  // Usar useRef para getToken para evitar recreaciones innecesarias
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
+
+  // Extraer valores primitivos para dependencias
+  const orgId = organization?.id;
+
+  // Cargar datos (memoizado con useCallback)
+  const loadData = useCallback(async () => {
+    if (!orgId) return;
 
     setIsLoading(true);
     setError('');
 
     try {
-      const token = await getToken();
+      const token = await getTokenRef.current({ template: 'supabase' });
       if (!token) throw new Error('No se pudo obtener el token');
 
       // Cargar sedes
       const locationsResponse = await apiClient.get<LocationsResponse>(
-        `/manage-location/list?orgId=${organization.id}`,
+        `/manage-location/list?orgId=${orgId}`,
         token
       );
 
@@ -100,32 +122,23 @@ export function LocationAssignmentsScreen() {
 
       setLocations(locationsResponse.data?.locations || []);
 
-      // Cargar miembros de la organización desde Clerk
-      // Nota: Esto requiere acceso a la lista de miembros, que puede requerir permisos especiales
-      // Por ahora, usamos los miembros visibles desde userMemberships
-      const memberships = userMemberships?.data ?? [];
-      if (memberships.length) {
-        const orgMembership = memberships.find((m) => m.organization.id === organization.id);
-        if (orgMembership) {
-          // Esto es una aproximación - en producción necesitarías obtener la lista completa de miembros
-          // desde Clerk Admin API o desde Supabase si los guardas allí
-          setMembers([
-            {
-              userId: orgMembership.publicUserData?.userId || '',
-              firstName: orgMembership.publicUserData?.firstName || undefined,
-              lastName: orgMembership.publicUserData?.lastName || undefined,
-              emailAddress: orgMembership.publicUserData?.identifier || undefined,
-              role: orgMembership.role || 'member',
-            },
-          ]);
-        }
+      // Cargar miembros de la organización desde la nueva Netlify Function
+      const membersResponse = await apiClient.get<OrgMembersResponse>(
+        `/get-org-members?orgId=${orgId}`,
+        token
+      );
+
+      if (membersResponse.error) {
+        throw new Error(membersResponse.error);
       }
+
+      setMembers(membersResponse.data?.members || []);
 
       // Cargar asignaciones desde Supabase
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('user_location_assignments')
         .select('*')
-        .eq('org_id', organization.id)
+        .eq('org_id', orgId)
         .eq('is_active', true);
 
       if (assignmentsError) {
@@ -134,22 +147,28 @@ export function LocationAssignmentsScreen() {
 
       setAssignments(assignmentsData || []);
     } catch (err: any) {
+      console.error('Error loading data:', err);
       setError(err.message || 'Error al cargar los datos');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [orgId, supabase]);
 
   useEffect(() => {
-    if (orgLoaded && organization?.id) {
+    if (orgLoaded && orgId) {
       loadData();
     }
-  }, [orgLoaded, organization?.id]);
+  }, [orgLoaded, orgId, loadData]);
 
-  // Asignar usuario a sede
-  const handleAssign = async () => {
-    if (!organization?.id || !selectedUserId || !selectedLocationId || !selectedRole) {
+  // Asignar usuario a sede (memoizado)
+  const handleAssign = useCallback(async () => {
+    if (!orgId || !selectedUserId || !selectedLocationId || !selectedRole) {
       setError('Por favor completa todos los campos');
+      return;
+    }
+
+    if (!canManageAssignments) {
+      setError('No tienes permisos para asignar usuarios. Solo los administradores pueden hacer esto.');
       return;
     }
 
@@ -157,13 +176,13 @@ export function LocationAssignmentsScreen() {
     setError('');
 
     try {
-      const token = await getToken();
+      const token = await getTokenRef.current({ template: 'supabase' });
       if (!token) throw new Error('No se pudo obtener el token');
 
       const response = await apiClient.post(
         '/manage-location/assign',
         {
-          orgId: organization.id,
+          orgId,
           locationId: selectedLocationId,
           targetUserId: selectedUserId,
           role: selectedRole,
@@ -181,14 +200,20 @@ export function LocationAssignmentsScreen() {
       setSelectedRole('staff');
       await loadData();
     } catch (err: any) {
+      console.error('Error assigning user:', err);
       setError(err.message || 'Error al asignar usuario');
     } finally {
       setIsAssigning(false);
     }
-  };
+  }, [orgId, selectedUserId, selectedLocationId, selectedRole, canManageAssignments, loadData]);
 
-  // Remover asignación
-  const handleRemoveAssignment = async (assignmentId: string) => {
+  // Remover asignación (memoizado)
+  const handleRemoveAssignment = useCallback(async (assignmentId: string) => {
+    if (!canManageAssignments) {
+      setError('No tienes permisos para remover asignaciones. Solo los administradores pueden hacer esto.');
+      return;
+    }
+
     if (!confirm('¿Estás seguro de remover esta asignación?')) {
       return;
     }
@@ -196,7 +221,7 @@ export function LocationAssignmentsScreen() {
     setError('');
 
     try {
-      const token = await getToken();
+      const token = await getTokenRef.current({ template: 'supabase' });
       if (!token) throw new Error('No se pudo obtener el token');
 
       const response = await apiClient.delete(
@@ -210,29 +235,35 @@ export function LocationAssignmentsScreen() {
 
       await loadData();
     } catch (err: any) {
+      console.error('Error removing assignment:', err);
       setError(err.message || 'Error al remover la asignación');
     }
-  };
+  }, [canManageAssignments, loadData]);
 
-  // Obtener asignaciones de un usuario
-  const getUserAssignments = (userId: string) => {
+  // Obtener asignaciones de un usuario (memoizado)
+  const getUserAssignments = useCallback((userId: string) => {
     return assignments.filter(a => a.user_id === userId);
-  };
+  }, [assignments]);
 
-  // Obtener nombre del usuario
-  const getUserName = (userId: string) => {
+  // Obtener nombre del usuario (memoizado)
+  const getUserName = useCallback((userId: string) => {
     const member = members.find(m => m.userId === userId);
     if (member?.firstName || member?.lastName) {
       return `${member.firstName || ''} ${member.lastName || ''}`.trim();
     }
     return member?.emailAddress || userId.substring(0, 8) + '...';
-  };
+  }, [members]);
 
-  // Obtener nombre de la sede
-  const getLocationName = (locationId: string) => {
+  // Obtener nombre de la sede (memoizado)
+  const getLocationName = useCallback((locationId: string) => {
     const location = locations.find(l => l.id === locationId);
     return location?.name || 'Sede desconocida';
-  };
+  }, [locations]);
+
+  // Obtener lista de usuarios únicos con asignaciones (memoizado)
+  const uniqueUserIds = useMemo(() => {
+    return Array.from(new Set(assignments.map(a => a.user_id)));
+  }, [assignments]);
 
   if (!orgLoaded) {
     return (
@@ -267,13 +298,14 @@ export function LocationAssignmentsScreen() {
             </Alert>
           ) : null}
 
-          {/* Formulario de asignación */}
-          <Card>
-            <Box padding="$4" borderBottomWidth="$1" borderColor="$borderLight200">
-              <Heading size="md">Asignar Usuario a Sede</Heading>
-            </Box>
-            <Box padding="$4">
-              <VStack space="md">
+          {/* Formulario de asignación - Solo visible para admins */}
+          {canManageAssignments ? (
+            <Card>
+              <Box padding="$4" borderBottomWidth="$1" borderColor="$borderLight200">
+                <Heading size="md">Asignar Usuario a Sede</Heading>
+              </Box>
+              <Box padding="$4">
+                <VStack space="md">
                 <Select
                   selectedValue={selectedUserId}
                   onValueChange={setSelectedUserId}
@@ -364,6 +396,16 @@ export function LocationAssignmentsScreen() {
               </VStack>
             </Box>
           </Card>
+          ) : (
+            <Alert action="info" variant="outline">
+              <HStack alignItems="center" gap="$3">
+                <Ionicons name="information-circle" size={alertIconSize} color={text400} />
+                <AlertText>
+                  Solo los administradores pueden asignar usuarios a sedes.
+                </AlertText>
+              </HStack>
+            </Alert>
+          )}
 
           {/* Lista de asignaciones */}
           {isLoading ? (
@@ -382,7 +424,7 @@ export function LocationAssignmentsScreen() {
           ) : (
             <VStack space="md">
               <Heading size="md">Asignaciones Actuales</Heading>
-              {Array.from(new Set(assignments.map(a => a.user_id))).map((userId) => {
+              {uniqueUserIds.map((userId) => {
                 const userAssignments = getUserAssignments(userId);
                 return (
                   <Card key={userId}>
@@ -410,11 +452,13 @@ export function LocationAssignmentsScreen() {
                                 Rol: {assignment.role}
                               </Text>
                             </VStack>
-                            <Pressable
-                              onPress={() => handleRemoveAssignment(assignment.id)}
-                            >
-                              <Ionicons name="close-circle" size={20} color={error600} />
-                            </Pressable>
+                            {canManageAssignments && (
+                              <Pressable
+                                onPress={() => handleRemoveAssignment(assignment.id)}
+                              >
+                                <Ionicons name="close-circle" size={20} color={error600} />
+                              </Pressable>
+                            )}
                           </HStack>
                         ))}
                       </VStack>

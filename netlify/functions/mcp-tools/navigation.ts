@@ -43,6 +43,7 @@ export async function navigateToRoute(
     '/(tabs)/pro',
     '/(tabs)/settings',
     '/(tabs)/locations-management',
+    '/(tabs)/location-assignments',
     '/pet-detail',
     '/add-edit-pet',
     '/medical-histories',

@@ -67,6 +67,9 @@ export function validateToolPermissions(
     'search_inventory',
     'create_location',
     'list_locations',
+    'list_location_assignments',
+    'assign_user_to_location',
+    'remove_location_assignment',
   ];
 
   if (b2bTools.includes(toolName)) {
@@ -88,7 +91,7 @@ export function validateToolPermissions(
     const locationTools = ['search_inventory', 'schedule_appointment', 'get_available_slots'];
     
     // Tools que requieren rol admin/creator
-    const adminTools = ['create_location'];
+    const adminTools = ['create_location', 'assign_user_to_location', 'remove_location_assignment'];
     if (adminTools.includes(toolName)) {
       if (!context.role || !['org:admin', 'org:creator'].includes(context.role)) {
         return {

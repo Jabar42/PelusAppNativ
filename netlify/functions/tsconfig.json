@@ -10,7 +10,7 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "noEmit": true,
-    "types": ["node", "@netlify/functions"]
+    "typeRoots": ["./node_modules/@types", "../node_modules/@types"]
   },
   "include": [
     "**/*.ts"

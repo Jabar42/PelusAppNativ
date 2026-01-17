@@ -3,6 +3,8 @@
  * Endpoint principal para conversaciones con agentes de IA
  * Usa Mastra como orquestador según arquitectura documentada
  */
+/// <reference types="node" />
+// @ts-ignore - Los tipos están disponibles pero el linter no los encuentra desde el subdirectorio
 import { HandlerEvent } from '@netlify/functions';
 import { withAIAuth, AIContext } from './utils/auth';
 import { withCors } from './utils/cors';
@@ -73,32 +75,112 @@ async function handleAIChat(event: HandlerEvent, aiContext: AIContext): Promise<
     throw new Error('Token de autenticación requerido');
   }
 
-  // Inicializar agente de Mastra con tools MCP
-  const agent = initializeVeterinaryAgent(token, aiContext);
 
-  // Preparar mensajes para Mastra (convertir formato)
-  const mastraMessages = messages.map(msg => ({
-    role: msg.role === 'user' ? 'user' : msg.role === 'assistant' ? 'assistant' : 'system',
-    content: msg.content,
-  }));
-
-  // Ejecutar agente con Mastra
+  // Ejecutar agente con Mastra con fallback de modelos
   let responseText = '';
   const actions: any[] = [];
   const toolCalls: any[] = [];
 
+  // Obtener el último mensaje del usuario
+  const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
+
+  // Inicializar agente una sola vez (usa el modelo configurado automáticamente)
+  const agent = initializeVeterinaryAgent(token, aiContext);
+  
+  let result: any = null;
+  let generateError: any = null;
+  let legacyError: any = null;
+
+  // Intentar primero con generate() (para modelos v2/v3/v5)
   try {
-    console.log('[AI Chat] Executing agent with Mastra...');
-    
-    // Obtener el último mensaje del usuario
-    const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
-    
-    // Los modelos de @ai-sdk/openai y @ai-sdk/anthropic son v2/v3
-    // generate() funciona con modelos v2/v3/v5
-    // generateLegacy() solo funciona con modelos v1
-    const result = await agent.generate(lastUserMessage, {
+    console.log('[AI Chat] Attempting with generate()...');
+    result = await agent.generate(lastUserMessage, {
       maxSteps: 10,
     });
+    console.log('[AI Chat] Success with generate()');
+  } catch (error: any) {
+    generateError = error;
+    console.warn('[AI Chat] generate() failed:', error.message);
+    
+    // Si el error indica que es un modelo v1/v4 (no compatible con generate/stream), intentar generateLegacy()
+    // Los mensajes de error de Mastra para modelos v1/v4 incluyen:
+    // - "AI SDK v4 model ... not compatible with generate()"
+    // - "AI SDK v4 model ... not compatible with stream()"
+    // - "Please use AI SDK v5+ models or call the generateLegacy()"
+    const isV1OrV4Model = 
+      error.message?.includes('AI SDK v4 model') || 
+      error.message?.includes('not compatible with generate()') ||
+      error.message?.includes('not compatible with stream()') ||
+      (error.message?.includes('Please use') && error.message?.includes('generateLegacy()'));
+    
+    // NO intentar generateLegacy() si el error dice que el modelo es v2/v3
+    const isV2OrV3Model = 
+      error.message?.includes('V2 models are not supported') ||
+      error.message?.includes('V3 models are not supported') ||
+      error.message?.includes('Please use generate instead');
+    
+    if (isV1OrV4Model && !isV2OrV3Model) {
+      try {
+        console.log('[AI Chat] Model appears to be v1/v4, attempting with generateLegacy()...');
+        result = await agent.generateLegacy(lastUserMessage, {
+          maxSteps: 10,
+        });
+        console.log('[AI Chat] Success with generateLegacy()');
+      } catch (error2: any) {
+        legacyError = error2;
+        console.error('[AI Chat] generateLegacy() also failed:', error2.message);
+        
+        // Si generateLegacy() falla porque el modelo es v2/v3, tenemos un problema
+        // El modelo es v2/v3 pero generate() también falla (probablemente bug en Mastra)
+        if (error2.message?.includes('V2 models are not supported') ||
+            error2.message?.includes('V3 models are not supported') ||
+            error2.message?.includes('Please use generate instead')) {
+          // El modelo es v2/v3, pero generate() falló. Esto es un bug conocido.
+          // Lanzar error descriptivo con instrucciones claras
+          const errorDetails = `Error generate(): ${generateError.message.substring(0, 200)}`;
+          throw new Error(
+            `⚠️ Bug conocido en Mastra: El modelo OpenAI v3 no funciona correctamente.\n\n` +
+            `Solución inmediata: Cambia a otro modelo agregando una de estas líneas a tu archivo .env:\n` +
+            `  AI_PROVIDER=google\n` +
+            `  # O\n` +
+            `  AI_PROVIDER=deepseek\n` +
+            `  # O\n` +
+            `  AI_PROVIDER=anthropic\n\n` +
+            `Asegúrate de tener la API key correspondiente configurada.\n\n` +
+            `${errorDetails}`
+          );
+        }
+        
+        // Otro tipo de error en generateLegacy()
+        throw error2;
+      }
+    } else {
+      // Si el error es sobre stream() pero el modelo es v2/v3, es un bug conocido de Mastra
+      // En este caso, no podemos usar generateLegacy() porque no funciona con v2/v3
+      if (error.message?.includes('not compatible with stream()') || isV2OrV3Model) {
+        throw new Error(
+          `El modelo actual (v2/v3) tiene un bug conocido en Mastra: generate() falla porque internamente llama a stream() que no funciona. ` +
+          `Solución: Configura otro modelo usando AI_PROVIDER=google, AI_PROVIDER=deepseek, o AI_PROVIDER=anthropic en tu .env. ` +
+          `Error original: ${error.message}`
+        );
+      }
+      
+      // Si no es un error de compatibilidad de versión, lanzar el error original
+      throw error;
+    }
+  }
+
+  // Si no hay resultado después de todos los intentos, lanzar error
+  if (!result) {
+    const errorMsg = legacyError 
+      ? `generateLegacy(): ${legacyError.message}` 
+      : generateError 
+        ? `generate(): ${generateError.message}` 
+        : 'Unknown error';
+    throw new Error(`No se pudo ejecutar el agente. ${errorMsg}`);
+  }
+
+  try {
 
     // Extraer texto de la respuesta
     responseText = result.text || 'No se pudo generar una respuesta.';
@@ -120,8 +202,13 @@ async function handleAIChat(event: HandlerEvent, aiContext: AIContext): Promise<
     // TODO: Extraer actions del resultado si están disponibles
     // Las actions podrían estar en result.steps o en los toolResults
   } catch (error: any) {
-    console.error('[AI Chat] Error executing agent:', error);
-    throw new Error(`Error al ejecutar agente: ${error.message}`);
+    console.error('[AI Chat] Error processing result:', error);
+    // Si ya tenemos un resultado, usarlo aunque haya error procesando tool calls
+    if (result && result.text) {
+      responseText = result.text;
+    } else {
+      throw new Error(`Error al procesar resultado del agente: ${error.message}`);
+    }
   }
 
   return {

@@ -3,11 +3,16 @@
  * Inicialización de Mastra con agentes y tools configurados
  * Según arquitectura documentada en docs/AI_ARCHITECTURE.md
  */
+/// <reference types="node" />
 
 import { Agent } from '@mastra/core/agent';
 import { createTool } from '@mastra/core/tools';
+// @ts-ignore - Los tipos están disponibles pero el linter no los encuentra desde el subdirectorio
 import { openai } from '@ai-sdk/openai';
+// @ts-ignore - Los tipos están disponibles pero el linter no los encuentra desde el subdirectorio
 import { anthropic } from '@ai-sdk/anthropic';
+import { google } from '@ai-sdk/google';
+import { deepseek } from '@ai-sdk/deepseek';
 import { z } from 'zod';
 import { veterinaryAgentConfig } from '../../../src/features/AI_Core/agents/veterinaryAgent';
 import { AIContext } from './auth';
@@ -17,27 +22,81 @@ import { scheduleAppointment, getAvailableSlots } from '../mcp-tools/appointment
 import { navigateToRoute, findPetAndNavigate } from '../mcp-tools/navigation';
 import { searchInventory } from '../mcp-tools/inventory';
 import { createLocation, listLocations } from '../mcp-tools/locations';
+import { assignUserToLocation, listLocationAssignments, removeLocationAssignment } from '../mcp-tools/location-assignments';
+
+/**
+ * Configuración de modelos con fallback
+ * Orden de prioridad: OpenAI -> Gemini -> DeepSeek -> Anthropic
+ */
+interface ModelConfig {
+  provider: 'openai' | 'google' | 'deepseek' | 'anthropic';
+  modelName: string;
+  apiKeyEnv: string;
+  createModel: (modelName: string) => any;
+}
+
+const MODEL_FALLBACK_CHAIN: ModelConfig[] = [
+  {
+    provider: 'openai',
+    modelName: process.env.AI_MODEL || 'gpt-4o-mini',
+    apiKeyEnv: 'OPENAI_API_KEY',
+    createModel: (name) => openai(name),
+  },
+  {
+    provider: 'google',
+    modelName: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+    apiKeyEnv: 'GOOGLE_GENERATIVE_AI_API_KEY',
+    createModel: (name) => google(name),
+  },
+  {
+    provider: 'deepseek',
+    modelName: process.env.DEEPSEEK_MODEL || 'deepseek-chat',
+    apiKeyEnv: 'DEEPSEEK_API_KEY',
+    createModel: (name) => deepseek(name),
+  },
+  {
+    provider: 'anthropic',
+    modelName: process.env.ANTHROPIC_MODEL || 'claude-3-haiku-20240307',
+    apiKeyEnv: 'ANTHROPIC_API_KEY',
+    createModel: (name) => anthropic(name),
+  },
+];
 
 /**
  * Obtiene el modelo configurado según el proveedor
+ * Si AI_PROVIDER está configurado, usa ese específico
+ * Si no, intenta usar el primer modelo disponible en la cadena de fallback
  */
 function getModel() {
-  const aiProvider = process.env.AI_PROVIDER || 'openai';
-  const modelName = process.env.AI_MODEL || (aiProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-haiku-20240307');
+  const aiProvider = process.env.AI_PROVIDER;
 
-  if (aiProvider === 'openai') {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY no está configurada');
+  // Si hay un proveedor específico configurado, usarlo
+  if (aiProvider) {
+    const config = MODEL_FALLBACK_CHAIN.find(c => c.provider === aiProvider);
+    if (!config) {
+      throw new Error(`Proveedor de IA no soportado: ${aiProvider}`);
     }
-    return openai(modelName);
-  } else if (aiProvider === 'anthropic') {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      throw new Error('ANTHROPIC_API_KEY no está configurada');
+    
+    if (!process.env[config.apiKeyEnv]) {
+      throw new Error(`${config.apiKeyEnv} no está configurada`);
     }
-    return anthropic(modelName);
-  } else {
-    throw new Error(`Proveedor de IA no soportado: ${aiProvider}`);
+    
+    return config.createModel(config.modelName);
   }
+
+  // Si no hay proveedor específico, intentar en orden de fallback
+  for (const config of MODEL_FALLBACK_CHAIN) {
+    if (process.env[config.apiKeyEnv]) {
+      console.log(`[Mastra] Usando modelo: ${config.provider}/${config.modelName}`);
+      return config.createModel(config.modelName);
+    }
+  }
+
+  // Si ningún modelo está disponible, lanzar error
+  const availableKeys = MODEL_FALLBACK_CHAIN.map(c => c.apiKeyEnv).join(', ');
+  throw new Error(
+    `Ningún modelo de IA está configurado. Configura al menos una de estas variables: ${availableKeys}`
+  );
 }
 
 /**
@@ -118,7 +177,7 @@ export function createMCPToolsForMastra(token: string, aiContext: AIContext) {
       description: 'Navega a una pantalla específica de la aplicación',
       inputSchema: z.object({
         screen: z.string().describe('Ruta de la pantalla'),
-        params: z.record(z.any()).optional().describe('Parámetros de la ruta (opcional)'),
+        params: z.record(z.string(), z.any()).optional().describe('Parámetros de la ruta (opcional)'),
       }),
       execute: async (inputData: any) => {
         const params = inputData as { screen: string; params?: Record<string, any> };
@@ -217,6 +276,71 @@ export function createMCPToolsForMastra(token: string, aiContext: AIContext) {
         );
         if (!result.success) {
           throw new Error(result.error || 'Error al listar sedes');
+        }
+        return result.data;
+      },
+    }),
+
+    assign_user_to_location: createTool({
+      id: 'assign_user_to_location',
+      description: 'Asigna un usuario a una sede con un rol específico. Requiere ser administrador de la organización.',
+      inputSchema: z.object({
+        userId: z.string().describe('ID del usuario a asignar'),
+        locationId: z.string().describe('ID de la sede'),
+        role: z.enum(['admin', 'manager', 'staff', 'viewer']).describe('Rol del usuario en la sede'),
+      }),
+      execute: async (context: any) => {
+        const params = context.input as { userId: string; locationId: string; role: 'admin' | 'manager' | 'staff' | 'viewer' };
+        const result = await executeMCPTool(
+          'assign_user_to_location',
+          (ctx) => assignUserToLocation(params, ctx),
+          token,
+          aiContext
+        );
+        if (!result.success) {
+          throw new Error(result.error || 'Error al asignar usuario a sede');
+        }
+        return result.data;
+      },
+    }),
+
+    list_location_assignments: createTool({
+      id: 'list_location_assignments',
+      description: 'Lista asignaciones de usuarios a sedes. Puede filtrar por sede específica.',
+      inputSchema: z.object({
+        locationId: z.string().optional().describe('ID de la sede (opcional, si no se proporciona lista todas las asignaciones de la organización)'),
+      }),
+      execute: async (context: any) => {
+        const params = context.input as { locationId?: string };
+        const result = await executeMCPTool(
+          'list_location_assignments',
+          (ctx) => listLocationAssignments(params, ctx),
+          token,
+          aiContext
+        );
+        if (!result.success) {
+          throw new Error(result.error || 'Error al listar asignaciones');
+        }
+        return result.data;
+      },
+    }),
+
+    remove_location_assignment: createTool({
+      id: 'remove_location_assignment',
+      description: 'Remueve una asignación de usuario a sede. Requiere ser administrador de la organización.',
+      inputSchema: z.object({
+        assignmentId: z.string().describe('ID de la asignación a remover'),
+      }),
+      execute: async (context: any) => {
+        const params = context.input as { assignmentId: string };
+        const result = await executeMCPTool(
+          'remove_location_assignment',
+          (ctx) => removeLocationAssignment(params, ctx),
+          token,
+          aiContext
+        );
+        if (!result.success) {
+          throw new Error(result.error || 'Error al remover asignación');
         }
         return result.data;
       },

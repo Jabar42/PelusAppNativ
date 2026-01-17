@@ -178,6 +178,72 @@ export const listLocationsTool: MCPTool = {
   },
 };
 
+/**
+ * Tool: assign_user_to_location
+ * Asigna un usuario a una sede con un rol específico
+ */
+export const assignUserToLocationTool: MCPTool = {
+  name: 'assign_user_to_location',
+  description: 'Asigna un usuario a una sede con un rol específico. Requiere ser administrador de la organización.',
+  parameters: {
+    type: 'object',
+    properties: {
+      userId: {
+        type: 'string',
+        description: 'ID del usuario a asignar',
+      },
+      locationId: {
+        type: 'string',
+        description: 'ID de la sede',
+      },
+      role: {
+        type: 'string',
+        enum: ['admin', 'manager', 'staff', 'viewer'],
+        description: 'Rol del usuario en la sede',
+      },
+    },
+    required: ['userId', 'locationId', 'role'],
+  },
+};
+
+/**
+ * Tool: list_location_assignments
+ * Lista asignaciones de usuarios a sedes
+ */
+export const listLocationAssignmentsTool: MCPTool = {
+  name: 'list_location_assignments',
+  description: 'Lista asignaciones de usuarios a sedes. Puede filtrar por sede específica. Requiere ser usuario profesional en una organización.',
+  parameters: {
+    type: 'object',
+    properties: {
+      locationId: {
+        type: 'string',
+        description: 'ID de la sede (opcional, si no se proporciona lista todas las asignaciones de la organización)',
+      },
+    },
+    required: [],
+  },
+};
+
+/**
+ * Tool: remove_location_assignment
+ * Remueve una asignación de usuario a sede
+ */
+export const removeLocationAssignmentTool: MCPTool = {
+  name: 'remove_location_assignment',
+  description: 'Remueve una asignación de usuario a sede. Requiere ser administrador de la organización.',
+  parameters: {
+    type: 'object',
+    properties: {
+      assignmentId: {
+        type: 'string',
+        description: 'ID de la asignación a remover',
+      },
+    },
+    required: ['assignmentId'],
+  },
+};
+
 // Exportar array de todos los tools
 export const allMCPTools: MCPTool[] = [
   getMedicalHistoryTool,
@@ -186,4 +252,7 @@ export const allMCPTools: MCPTool[] = [
   navigateToRouteTool,
   createLocationTool,
   listLocationsTool,
+  assignUserToLocationTool,
+  listLocationAssignmentsTool,
+  removeLocationAssignmentTool,
 ];

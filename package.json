@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.15",
+    "@ai-sdk/deepseek": "^2.0.8",
+    "@ai-sdk/google": "^3.0.10",
     "@ai-sdk/openai": "^3.0.12",
     "@clerk/clerk-expo": "^2.19.10",
     "@clerk/clerk-sdk-node": "^5.0.0",

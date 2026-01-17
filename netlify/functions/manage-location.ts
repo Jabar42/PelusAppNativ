@@ -25,7 +25,14 @@ function createAuthenticatedSupabaseClient(token: string) {
     global: {
       headers: {
         Authorization: `Bearer ${token}`,
+        Accept: 'application/json',
+        Content-Type: 'application/json',
+        Prefer: 'return=representation',
       },
+    },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
     },
   });
 }
@@ -134,7 +141,7 @@ export const handler: Handler = async (event) => {
     return handleOptions();
   }
 
-  const authHeader = event.headers.authorization;
+  const authHeader = event.headers.authorization || event.headers.Authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return withCors({ 
       statusCode: 401, 
@@ -168,7 +175,17 @@ export const handler: Handler = async (event) => {
 
   const supabase = createAuthenticatedSupabaseClient(token);
   const path = event.path.replace('/.netlify/functions/manage-location', '');
-  const body = event.body ? JSON.parse(event.body) : {};
+  
+  // Parse body solo si existe y no está vacío
+  let body: any = {};
+  if (event.body && event.body.trim()) {
+    try {
+      body = JSON.parse(event.body);
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError);
+      // Si falla el parse, body queda como objeto vacío
+    }
+  }
 
   try {
     // GET /manage-location/list - Listar sedes de la organización
@@ -199,12 +216,23 @@ export const handler: Handler = async (event) => {
         .order('created_at', { ascending: true });
 
       if (error) {
+        console.error('[manage-location/list] Supabase error:', error);
+        // Si es un error de RLS, proporcionar mensaje más útil
+        if (error.message?.includes('row-level security policy')) {
+          return withCors({
+            statusCode: 403,
+            body: JSON.stringify({
+              error: 'Error de seguridad (RLS): El JWT no tiene los claims necesarios.',
+              details: 'Verifica que el template "supabase" en Clerk tenga los claims: user_id, org_id, org_role',
+            }),
+          });
+        }
         throw error;
       }
 
       return withCors({
         statusCode: 200,
-        body: JSON.stringify({ locations: data }),
+        body: JSON.stringify({ locations: data || [] }),
       });
     }
 
@@ -586,9 +614,16 @@ export const handler: Handler = async (event) => {
     });
   } catch (error: any) {
     console.error('Error en manage-location:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Event path:', event.path);
+    console.error('Event method:', event.httpMethod);
+    
     return withCors({
       statusCode: 500,
-      body: JSON.stringify({ error: error.message || 'Error interno del servidor' }),
+      body: JSON.stringify({ 
+        error: error.message || 'Error interno del servidor',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      }),
     });
   }
 };
