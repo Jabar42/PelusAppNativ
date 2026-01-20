@@ -24,10 +24,10 @@ function createAuthenticatedSupabaseClient(token: string) {
   return createClient(supabaseUrl, supabaseAnonKey, {
     global: {
       headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/json',
-        Content-Type: 'application/json',
-        Prefer: 'return=representation',
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
       },
     },
     auth: {
