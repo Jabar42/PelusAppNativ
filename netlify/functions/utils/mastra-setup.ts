@@ -35,7 +35,7 @@ interface ModelConfig {
   createModel: (modelName: string) => any;
 }
 
-const MODEL_FALLBACK_CHAIN: ModelConfig[] = [
+export const MODEL_FALLBACK_CHAIN: ModelConfig[] = [
   {
     provider: 'openai',
     modelName: process.env.AI_MODEL || 'gpt-4o-mini',
@@ -350,8 +350,15 @@ export function createMCPToolsForMastra(token: string, aiContext: AIContext) {
 
 /**
  * Inicializa el agente veterinario con Mastra
+ * @param token - Token JWT de Clerk
+ * @param aiContext - Contexto del usuario
+ * @param modelOverride - Modelo específico a usar (opcional, para fallback automático)
  */
-export function initializeVeterinaryAgent(token: string, aiContext: AIContext): Agent {
+export function initializeVeterinaryAgent(
+  token: string, 
+  aiContext: AIContext,
+  modelOverride?: any
+): Agent {
   const tools = createMCPToolsForMastra(token, aiContext);
   
   // Filtrar tools según la configuración del agente
@@ -370,7 +377,7 @@ Contexto del usuario:
 - Organización: ${aiContext.orgId || 'No activa'}
 - Sede activa: ${aiContext.activeLocationId || 'No activa'}`;
 
-  const model = getModel();
+  const model = modelOverride || getModel();
   
   return new Agent({
     id: veterinaryAgentConfig.name,
@@ -378,5 +385,21 @@ Contexto del usuario:
     instructions,
     model: model as any, // Mastra acepta LanguageModelV3
     tools: agentTools,
+  });
+}
+
+/**
+ * Obtiene todos los modelos disponibles (con API keys configuradas)
+ * Útil para fallback automático
+ */
+export function getAvailableModels(): ModelConfig[] {
+  return MODEL_FALLBACK_CHAIN.filter(config => {
+    // Si AI_PROVIDER está configurado, solo devolver ese
+    const aiProvider = process.env.AI_PROVIDER;
+    if (aiProvider) {
+      return config.provider === aiProvider && !!process.env[config.apiKeyEnv];
+    }
+    // Si no, devolver todos los que tengan API key
+    return !!process.env[config.apiKeyEnv];
   });
 }

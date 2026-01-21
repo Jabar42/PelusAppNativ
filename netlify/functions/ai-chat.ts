@@ -9,7 +9,7 @@ import { HandlerEvent } from '@netlify/functions';
 import { withAIAuth, AIContext } from './utils/auth';
 import { withCors } from './utils/cors';
 import { checkRateLimit } from './utils/rate-limiting';
-import { initializeVeterinaryAgent } from './utils/mastra-setup';
+import { initializeVeterinaryAgent, getAvailableModels, MODEL_FALLBACK_CHAIN } from './utils/mastra-setup';
 
 interface ChatRequest {
   messages: Array<{
@@ -76,7 +76,7 @@ async function handleAIChat(event: HandlerEvent, aiContext: AIContext): Promise<
   }
 
 
-  // Ejecutar agente con Mastra con fallback de modelos
+  // Ejecutar agente con Mastra con fallback automático de modelos
   let responseText = '';
   const actions: any[] = [];
   const toolCalls: any[] = [];
@@ -84,100 +84,103 @@ async function handleAIChat(event: HandlerEvent, aiContext: AIContext): Promise<
   // Obtener el último mensaje del usuario
   const lastUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
 
-  // Inicializar agente una sola vez (usa el modelo configurado automáticamente)
-  const agent = initializeVeterinaryAgent(token, aiContext);
-  
-  let result: any = null;
-  let generateError: any = null;
-  let legacyError: any = null;
+  // Obtener modelos disponibles para fallback
+  const availableModels = getAvailableModels();
+  if (availableModels.length === 0) {
+    throw new Error(
+      'Ningún modelo de IA está configurado. Configura al menos una API key: ' +
+      'OPENAI_API_KEY, GOOGLE_GENERATIVE_AI_API_KEY, DEEPSEEK_API_KEY, o ANTHROPIC_API_KEY'
+    );
+  }
 
-  // Intentar primero con generate() (para modelos v2/v3/v5)
-  try {
-    console.log('[AI Chat] Attempting with generate()...');
-    result = await agent.generate(lastUserMessage, {
-      maxSteps: 10,
-    });
-    console.log('[AI Chat] Success with generate()');
-  } catch (error: any) {
-    generateError = error;
-    console.warn('[AI Chat] generate() failed:', error.message);
+  let result: any = null;
+  let lastError: any = null;
+  let triedModels: string[] = [];
+
+  // Intentar con cada modelo disponible hasta que uno funcione
+  for (const modelConfig of availableModels) {
+    const modelKey = `${modelConfig.provider}/${modelConfig.modelName}`;
     
-    // Si el error indica que es un modelo v1/v4 (no compatible con generate/stream), intentar generateLegacy()
-    // Los mensajes de error de Mastra para modelos v1/v4 incluyen:
-    // - "AI SDK v4 model ... not compatible with generate()"
-    // - "AI SDK v4 model ... not compatible with stream()"
-    // - "Please use AI SDK v5+ models or call the generateLegacy()"
-    const isV1OrV4Model = 
-      error.message?.includes('AI SDK v4 model') || 
-      error.message?.includes('not compatible with generate()') ||
-      error.message?.includes('not compatible with stream()') ||
-      (error.message?.includes('Please use') && error.message?.includes('generateLegacy()'));
-    
-    // NO intentar generateLegacy() si el error dice que el modelo es v2/v3
-    const isV2OrV3Model = 
-      error.message?.includes('V2 models are not supported') ||
-      error.message?.includes('V3 models are not supported') ||
-      error.message?.includes('Please use generate instead');
-    
-    if (isV1OrV4Model && !isV2OrV3Model) {
+    try {
+      console.log(`[AI Chat] Intentando con modelo: ${modelKey}`);
+      
+      // Crear agente con este modelo específico
+      const agent = initializeVeterinaryAgent(token, aiContext, modelConfig.createModel(modelConfig.modelName));
+      
+      // Intentar primero con generate() (para modelos v2/v3/v5)
       try {
-        console.log('[AI Chat] Model appears to be v1/v4, attempting with generateLegacy()...');
-        result = await agent.generateLegacy(lastUserMessage, {
+        result = await agent.generate(lastUserMessage, {
           maxSteps: 10,
         });
-        console.log('[AI Chat] Success with generateLegacy()');
-      } catch (error2: any) {
-        legacyError = error2;
-        console.error('[AI Chat] generateLegacy() also failed:', error2.message);
+        console.log(`[AI Chat] ✅ Éxito con ${modelKey} usando generate()`);
+        break; // Salir del loop si funciona
+      } catch (error: any) {
+        // Si el error indica que es un modelo v1/v4, intentar generateLegacy()
+        const isV1OrV4Model = 
+          error.message?.includes('AI SDK v4 model') || 
+          error.message?.includes('not compatible with generate()') ||
+          error.message?.includes('not compatible with stream()');
         
-        // Si generateLegacy() falla porque el modelo es v2/v3, tenemos un problema
-        // El modelo es v2/v3 pero generate() también falla (probablemente bug en Mastra)
-        if (error2.message?.includes('V2 models are not supported') ||
-            error2.message?.includes('V3 models are not supported') ||
-            error2.message?.includes('Please use generate instead')) {
-          // El modelo es v2/v3, pero generate() falló. Esto es un bug conocido.
-          // Lanzar error descriptivo con instrucciones claras
-          const errorDetails = `Error generate(): ${generateError.message.substring(0, 200)}`;
-          throw new Error(
-            `⚠️ Bug conocido en Mastra: El modelo OpenAI v3 no funciona correctamente.\n\n` +
-            `Solución inmediata: Cambia a otro modelo agregando una de estas líneas a tu archivo .env:\n` +
-            `  AI_PROVIDER=google\n` +
-            `  # O\n` +
-            `  AI_PROVIDER=deepseek\n` +
-            `  # O\n` +
-            `  AI_PROVIDER=anthropic\n\n` +
-            `Asegúrate de tener la API key correspondiente configurada.\n\n` +
-            `${errorDetails}`
-          );
+        const isV2OrV3Model = 
+          error.message?.includes('V2 models are not supported') ||
+          error.message?.includes('V3 models are not supported') ||
+          error.message?.includes('Please use generate instead');
+        
+        if (isV1OrV4Model && !isV2OrV3Model) {
+          try {
+            console.log(`[AI Chat] Modelo ${modelKey} parece ser v1/v4, intentando generateLegacy()...`);
+            result = await agent.generateLegacy(lastUserMessage, {
+              maxSteps: 10,
+            });
+            console.log(`[AI Chat] ✅ Éxito con ${modelKey} usando generateLegacy()`);
+            break; // Salir del loop si funciona
+          } catch (error2: any) {
+            // generateLegacy() también falló, continuar con el siguiente modelo
+            console.warn(`[AI Chat] ❌ ${modelKey} falló con generateLegacy():`, error2.message);
+            lastError = error2;
+            triedModels.push(`${modelKey} (generateLegacy)`);
+            continue; // Intentar siguiente modelo
+          }
+        } else {
+          // Error de compatibilidad con v2/v3 o error diferente
+          console.warn(`[AI Chat] ❌ ${modelKey} falló con generate():`, error.message);
+          lastError = error;
+          triedModels.push(`${modelKey} (generate)`);
+          
+          // Si es un error de compatibilidad conocido (bug de Mastra con OpenAI v3), continuar con siguiente modelo
+          if (error.message?.includes('not compatible with stream()') || isV2OrV3Model) {
+            console.log(`[AI Chat] Error de compatibilidad conocido, intentando siguiente modelo...`);
+            continue; // Intentar siguiente modelo
+          }
+          
+          // Si es otro tipo de error, continuar con siguiente modelo también
+          continue;
         }
-        
-        // Otro tipo de error en generateLegacy()
-        throw error2;
       }
-    } else {
-      // Si el error es sobre stream() pero el modelo es v2/v3, es un bug conocido de Mastra
-      // En este caso, no podemos usar generateLegacy() porque no funciona con v2/v3
-      if (error.message?.includes('not compatible with stream()') || isV2OrV3Model) {
-        throw new Error(
-          `El modelo actual (v2/v3) tiene un bug conocido en Mastra: generate() falla porque internamente llama a stream() que no funciona. ` +
-          `Solución: Configura otro modelo usando AI_PROVIDER=google, AI_PROVIDER=deepseek, o AI_PROVIDER=anthropic en tu .env. ` +
-          `Error original: ${error.message}`
-        );
-      }
-      
-      // Si no es un error de compatibilidad de versión, lanzar el error original
-      throw error;
+    } catch (error: any) {
+      // Error al crear el agente o modelo
+      console.warn(`[AI Chat] ❌ Error con ${modelKey}:`, error.message);
+      lastError = error;
+      triedModels.push(`${modelKey} (init)`);
+      continue; // Intentar siguiente modelo
     }
   }
 
-  // Si no hay resultado después de todos los intentos, lanzar error
+  // Si no hay resultado después de intentar todos los modelos, lanzar error descriptivo
   if (!result) {
-    const errorMsg = legacyError 
-      ? `generateLegacy(): ${legacyError.message}` 
-      : generateError 
-        ? `generate(): ${generateError.message}` 
-        : 'Unknown error';
-    throw new Error(`No se pudo ejecutar el agente. ${errorMsg}`);
+    const triedModelsList = triedModels.length > 0 
+      ? `\nModelos intentados:\n${triedModels.map(m => `  - ${m}`).join('\n')}`
+      : '';
+    
+    const availableProviders = availableModels.map(m => m.provider).join(', ');
+    
+    throw new Error(
+      `No se pudo ejecutar el agente con ningún modelo disponible.\n\n` +
+      `Modelos disponibles: ${availableProviders}\n` +
+      `Último error: ${lastError?.message || 'Desconocido'}\n` +
+      triedModelsList +
+      `\n\nSugerencia: Verifica que las API keys estén correctamente configuradas en tu .env`
+    );
   }
 
   try {
